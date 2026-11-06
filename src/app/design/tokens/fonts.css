@@ -1,7 +1,4 @@
-/* El Dron en la Sopa — Webfonts
-   Loaded from Google Fonts CDN. To ship offline, replace with local @font-face
-   rules pointing at .woff2 binaries in /assets/fonts.
-   - Space Grotesk : display / headings (geometric, technical character)
-   - Manrope       : body / UI (clean, warm humanist sans)
-   - JetBrains Mono : technical accent, code, labels, data */
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* Jaytech — Webfonts (Google Fonts CDN)
+   - Unbounded  : display / headings / wordmark (wide, rounded, distinctive)
+   - Geist      : body / UI / labels / data */
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Geist:wght@400;500;600;700;800&display=swap');

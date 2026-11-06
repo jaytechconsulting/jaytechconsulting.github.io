@@ -16,21 +16,24 @@
     opacity: 0;
   }
 }
-@keyframes dl-orbit {
-  from {
-    transform: rotate(0deg) translateX(78px) rotate(0deg);
-  }
+@keyframes jl-draw {
   to {
-    transform: rotate(360deg) translateX(78px) rotate(-360deg);
+    stroke-dashoffset: 0;
   }
 }
-@keyframes dl-pulse {
+@keyframes jl-dot-pop {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes jl-dot-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.5);
+    filter: drop-shadow(0 0 0 rgba(64, 88, 255, 0));
   }
   50% {
-    box-shadow: 0 0 22px 4px rgba(34, 211, 238, 0.35);
+    filter: drop-shadow(0 0 8px rgba(64, 88, 255, 0.85));
   }
 }
 
@@ -40,9 +43,16 @@
 .dl-cursor {
   animation: dl-blink 1s step-end infinite;
 }
-.dl-orbit-dot {
-  animation: dl-orbit 2.4s linear infinite;
+.jl-draw {
+  stroke-dasharray: 240;
+  stroke-dashoffset: 240;
+  animation: jl-draw 1.1s var(--ease-out) forwards;
 }
-.dl-core {
-  animation: dl-pulse 1.8s var(--ease-in-out) infinite;
+.jl-dot {
+  opacity: 0;
+  transform: scale(0.4);
+  transform-origin: 8px 24px;
+  animation:
+    jl-dot-pop 0.4s var(--ease-out) 0.9s forwards,
+    jl-dot-pulse 1.8s ease-in-out 1.3s infinite;
 }

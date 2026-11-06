@@ -1,0 +1,7 @@
+@let row = record();
+        <article class="record-card" role="listitem" [class.is-selected]="isSelected()">
+          <header class="card-heading"><span class="card-avatar" aria-hidden="true">{{row.name.slice(0,2).toUpperCase()}}</span><div class="card-title"><h3>{{row.name}}</h3><p>{{row.detail}}</p></div><app-checkbox [checked]="isSelected()" [label]="'Seleccionar '+row.name" (checkedChange)="selectedChange.emit()" /></header>
+          <div class="card-status"><span class="status" [attr.data-tone]="tone()">{{row.status}}</span>@if(isSelected()){<span class="selected-caption"><app-icon name="check"/>Seleccionado</span>}</div>
+          <dl class="card-details">@for(col of columns();track col.key){<div><dt>{{col.label}}</dt><dd>@switch(col.key){@case('createdAt'){ {{row.createdAt | date:'dd/MM/yyyy'}} }@case('role'){ {{displayRole(row.role)}} }@default{ {{cell(row,col.key) || '—'}} }}</dd></div>}</dl>
+          @if(resource()==='proyectos'){<div class="card-progress"><div><span>Progreso del proyecto</span><strong>{{row.progress}}%</strong></div><div class="card-progress-track"><span [style.width.%]="row.progress"></span></div></div>}
+        </article>

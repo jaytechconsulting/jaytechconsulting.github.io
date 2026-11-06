@@ -1,0 +1,17 @@
+<dialog [class.is-closing]="closing()" #modal (cancel)="$event.preventDefault();close()" aria-labelledby="record-editor-title"><form (submit)="save($event)"><header><div class="editor-heading"><span class="editor-title-icon" aria-hidden="true"><app-icon [name]="readOnly() ? 'view' : row() ? 'edit' : 'plus'" /></span><h2 id="record-editor-title">{{readOnly() ? 'Ver registro' : row() ? 'Editar registro' : 'Agregar registro'}}</h2></div><app-button variant="ghost" icon="close" [iconOnly]="true" label="Cerrar" [disabled]="busy() || closing()" (clicked)="close()" /></header>
+@if(failed()){<div class="error" role="alert">No pudimos cargar el registro.<app-button variant="outline" icon="reset" (clicked)="load()">Reintentar</app-button></div>}
+@else if(busy() && !data()['name'] && !data()['title']){<p role="status">Cargando registro…</p>}
+@else {
+  <fieldset [disabled]="busy() || closing() || readOnly()"><div class="fields">
+    @for(field of fields();track field.key) {
+      @if(field.options) {<app-select [label]="field.label" [placeholder]="placeholder(field.key)" [options]="field.options" [value]="text(field.key)" [disabled]="busy() || closing() || readOnly()" (valueChange)="set(field.key,$event)" />}
+      @else if(field.type==='number') {<app-number-input [label]="field.label" [value]="text(field.key)" [placeholder]="placeholder(field.key)" [min]="field.min" [max]="field.max" [required]="!!field.required" [disabled]="busy() || closing() || readOnly()" (valueChange)="set(field.key,$event,'number')" />}
+      @else {<label>{{field.label}}
+        @if(field.type==='textarea') {<textarea [placeholder]="placeholder(field.key)" [value]="text(field.key)" [required]="!!field.required" (input)="set(field.key,$any($event.target).value)" [disabled]="resource()==='tickets'"></textarea>}
+        @else {<input [type]="field.type || 'text'" [placeholder]="placeholder(field.key)" [value]="text(field.key)" [required]="!!field.required" [attr.minlength]="field.type==='password'?8:null" [disabled]="resource()==='tickets'" (input)="set(field.key,$any($event.target).value)" />}
+      </label>}
+    }
+  </div></fieldset>
+}
+
+<footer><app-button variant="outline" icon="close" [disabled]="busy() || closing()" (clicked)="close()">{{readOnly()?'Cerrar':'Cancelar'}}</app-button>@if(!readOnly()){<app-button type="submit" icon="check" [disabled]="busy() || closing() || failed()">Guardar</app-button>}</footer></form></dialog>

@@ -1,6 +1,6 @@
 <div class="grid min-h-screen grid-cols-1 bg-surface-page font-body lg:grid-cols-2">
   <!-- Aside -->
-  <aside class="relative flex flex-col justify-between overflow-hidden bg-[image:var(--gradient-ink)] p-8 text-text-on-inverse sm:p-12 lg:p-14">
+  <aside class="relative flex flex-col justify-between overflow-hidden bg-[image:var(--gradient-ink)] p-8 text-text-on-inverse sm:p-12 lg:p-14" [style]="asideStyle()">
     <div
       class="pointer-events-none absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-40 [mask-image:radial-gradient(circle_at_30%_20%,#000,transparent_72%)]"
     ></div>
@@ -12,14 +12,14 @@
 
     <div class="relative max-w-[380px]">
       <h1 class="m-0 font-display text-[clamp(28px,4vw,40px)] font-bold leading-[var(--lh-heading)] tracking-[var(--ls-tight)]">
-        Tu trabajo, siempre a la vista
+        {{ pageDesign().heading }}
       </h1>
-      <p class="mt-4 text-base leading-[var(--lh-body)] text-text-inverse-muted">
-        Accede para gestionar proyectos, avances, tickets, facturas y archivos en un solo lugar.
-      </p>
+      @if (pageDesign().description) {
+        <p class="mt-4 text-base leading-[var(--lh-body)] text-text-inverse-muted">{{ pageDesign().description }}</p>
+      }
     </div>
 
-    <div class="relative font-mono text-xs text-text-faint">© 2026 DronLab · El Dron en la Sopa</div>
+    <div class="relative font-mono text-xs text-text-faint">© 2026 Jaytech</div>
   </aside>
 
   <!-- Form -->

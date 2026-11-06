@@ -1,4 +1,4 @@
-/* El Dron en la Sopa — global styles entry point */
+/* Jaytech — global styles entry point */
 @import './app/design/tokens/fonts.css';
 @import 'tailwindcss';
 
@@ -90,39 +90,40 @@
   --shadow-glow-soft-cyan: var(--glow-soft-cyan);
 }
 
-@keyframes dron-cursor {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-16px); }
 }
 
-body {
-  margin: 0;
-  background: var(--surface-page);
-  font-family: var(--font-body);
-  color: var(--text-body);
+@keyframes float-y-sm {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
-a {
-  color: var(--text-link);
-}
-a:hover {
-  color: var(--text-link-hover);
+@keyframes float-wiggle {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-8px) rotate(3deg); }
 }
 
-.grecaptcha-badge {
-  right: 0 !important;
-  left: auto !important;
-  bottom: 12px !important;
-  width: 70px !important;
-  overflow: hidden !important;
-  z-index: 90 !important;
-  transition: width 180ms ease !important;
+@layer base {
+  body {
+    margin: 0;
+    background: var(--surface-page);
+    font-family: var(--font-body);
+    color: var(--text-body);
+  }
+
+  a {
+    color: var(--text-link);
+  }
+  a:hover {
+    color: var(--text-link-hover);
+  }
 }
 
-.grecaptcha-badge:hover {
-  width: 256px !important;
-}
-
-.whatsapp-fab {
-  bottom: clamp(88px, calc(3vw + 60px), 104px) !important;
-}
+/* Overlay scrollbar: transparent track, no layout gutter, theme-aware thumb. */
+.overlay-scroll-thumb{position:absolute;z-index:2;width:3px;border-radius:999px;background:color-mix(in srgb,var(--text-muted) 28%,transparent);opacity:0;transition:opacity .25s ease,background .2s ease;touch-action:none;cursor:grab}
+.overlay-scroll-thumb.is-visible{opacity:1}
+.overlay-scroll-thumb:hover,.overlay-scroll-thumb:active{opacity:1;background:color-mix(in srgb,var(--text-muted) 45%,transparent)}
+.overlay-scroll-thumb:active{cursor:grabbing}
+@media(prefers-reduced-motion:reduce){.overlay-scroll-thumb{transition:none}}

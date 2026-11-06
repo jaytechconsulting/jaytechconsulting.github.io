@@ -16,16 +16,20 @@
     <input
       [id]="fieldId()"
       [type]="type()"
+      [attr.autocomplete]="autocomplete()"
+      [attr.minlength]="minLength()" [attr.maxlength]="maxLength()" [attr.inputmode]="inputMode()"
       [value]="value()"
       [placeholder]="placeholder() ?? ''"
       [disabled]="disabled()"
       [required]="required()"
+      [attr.aria-invalid]="!!error()"
+      [attr.aria-describedby]="hint() || error() ? fieldId() + '-message' : null"
       [class]="fieldClasses()"
       (input)="onInput($event)"
     />
   </div>
   @if (hint() || error()) {
-    <span class="font-body text-[13px]" [class]="error() ? 'text-danger' : 'text-text-muted'">
+    <span [id]="fieldId() + '-message'" class="font-body text-[13px]" [class]="error() ? 'text-danger' : 'text-text-muted'">
       {{ error() || hint() }}
     </span>
   }

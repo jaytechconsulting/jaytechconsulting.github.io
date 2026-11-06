@@ -1,84 +1,135 @@
-/* El Dron en la Sopa — Color tokens
-   Direction: deep midnight surfaces, warm signal orange, sunny yellow accent.
+/* Jaytech — Color tokens
+   Direction "Pulso": ink-black surfaces (Tinta #0C0F14), Ultramar #4058FF for
+   action, Voltio #C6F432 as the live-signal accent, Niebla #EEF1F5 light surfaces.
    Base scale + semantic aliases. Use semantic aliases in components. */
 :root {
   /* ---- Brand base ---- */
-  --brand-orange: #FF6B35;      /* primary signal — the "dron" */
-  --brand-orange-600: #E85A28;  /* hover / pressed */
-  --brand-orange-300: #FF9066;  /* soft / tint */
-  --brand-yellow: #F7C948;      /* warm accent — the "sopa" */
-  --brand-yellow-600: #E0B133;
+  --brand-ultramar: #4058FF;      /* primary — action, CTAs, "tech" on light */
+  --brand-ultramar-600: #2E44E6;
+  --brand-ultramar-700: #2A3BD1;  /* links / text on light */
+  --brand-ultramar-300: #8A9BFF;
+  --brand-voltio: #C6F432;        /* live signal — the pulse, "tech" on dark */
+  --brand-voltio-600: #A8D61A;
+  --brand-voltio-700: #4C6B00;    /* voltio as text on light */
+  --brand-voltio-300: #DDFB86;
+  --brand-tinta: #0C0F14;         /* brand ink */
+  --brand-niebla: #EEF1F5;        /* brand light surface */
+  --brand-solar: #FFB547;         /* rare warm highlight */
+  --brand-solar-600: #F09A1A;
 
-  /* ---- Futuristic accent: electric cyan (HUD / signal) ---- */
-  --brand-cyan: #22D3EE;
-  --brand-cyan-600: #0FB6D4;
-  --brand-cyan-300: #7DE8F7;
+  /* ---- Aliases (previous names keep working) ---- */
+  --brand-nova: var(--brand-ultramar);
+  --brand-nova-600: var(--brand-ultramar-600);
+  --brand-nova-700: var(--brand-ultramar-700);
+  --brand-nova-300: var(--brand-ultramar-300);
+  --brand-plasma: var(--brand-voltio);
+  --brand-plasma-600: var(--brand-voltio-600);
+  --brand-plasma-700: var(--brand-voltio-700);
+  --brand-plasma-300: var(--brand-voltio-300);
+  --brand-navy: var(--brand-tinta);
+  --brand-ice: var(--brand-niebla);
+  --brand-orange: var(--brand-ultramar);
+  --brand-orange-600: var(--brand-ultramar-600);
+  --brand-orange-300: var(--brand-ultramar-300);
+  --brand-cyan: var(--brand-voltio);
+  --brand-cyan-600: var(--brand-voltio-600);
+  --brand-cyan-700: var(--brand-voltio-700);
+  --brand-cyan-300: var(--brand-voltio-300);
+  --brand-yellow: var(--brand-solar);
+  --brand-yellow-600: var(--brand-solar-600);
 
-  /* ---- Ink / neutral scale (cool navy-tinted) ---- */
-  --ink-950: #0B0F1A;   /* deepest background */
-  --ink-900: #10151F;   /* raised background */
-  --ink-800: #182030;   /* surface / card on dark */
-  --ink-700: #232E42;   /* borders on dark */
-  --ink-600: #38445C;
-  --ink-500: #5A6579;
-  --ink-400: #8792A6;
-  --ink-300: #B4BCCB;
-  --ink-200: #D6DBE4;
-  --ink-100: #EDEDED;   /* light surface / text on dark */
-  --ink-50:  #F6F7F9;   /* lightest background */
+  /* ---- Ink / neutral scale (cool graphite) ---- */
+  --ink-950: #07090D;
+  --ink-900: #0C0F14;
+  --ink-800: #151922;
+  --ink-700: #222834;
+  --ink-600: #363D4C;
+  --ink-500: #5B6273;
+  --ink-400: #8A90A0;
+  --ink-300: #B9BDC8;
+  --ink-200: #DADDE4;
+  --ink-100: #EEF1F5;
+  --ink-50:  #F7F8FA;
   --white: #FFFFFF;
 
   /* ---- Semantic status ---- */
-  --success: #1FA971;
-  --success-tint: #E4F5EE;
-  --warning: #F7C948;
-  --warning-tint: #FBF1D2;
-  --danger:  #E5484D;
-  --danger-tint: #FBE3E4;
-  --info:    #3B82F6;
-  --info-tint: #E3EDFD;
+  --success: #12B886;
+  --success-tint: #E0F6EF;
+  --warning: #FFB547;
+  --warning-tint: #FFF1DB;
+  --danger:  #F03E5E;
+  --danger-tint: #FDE3E8;
+  --info:    #4058FF;
+  --info-tint: #E6E9FF;
 
   /* ---- Semantic aliases: SURFACES ---- */
-  --surface-page: var(--ink-50);        /* light-theme page */
+  --surface-page: var(--ink-50);
   --surface-card: var(--white);
   --surface-sunken: var(--ink-100);
-  --surface-inverse: var(--ink-950);    /* dark hero / footer */
+  --surface-inverse: var(--ink-900);
   --surface-inverse-raised: var(--ink-800);
 
   /* ---- Semantic aliases: TEXT ---- */
-  --text-strong: var(--ink-950);
-  --text-body: #2B3444;
+  --text-strong: var(--ink-900);
+  --text-body: #23272F;
   --text-muted: var(--ink-500);
   --text-faint: var(--ink-400);
-  --text-on-brand: var(--ink-950);      /* dark text on orange/yellow */
+  --text-on-brand: var(--white);        /* white on Ultramar */
+  --text-on-voltio: var(--ink-900);     /* ink on Voltio */
   --text-on-inverse: var(--ink-100);
   --text-inverse-muted: var(--ink-400);
-  --text-link: var(--brand-orange-600);
-  --text-link-hover: var(--brand-orange);
+  --text-link: var(--brand-ultramar-700);
+  --text-link-hover: var(--brand-ultramar);
 
   /* ---- Semantic aliases: BORDERS ---- */
   --border-subtle: var(--ink-200);
   --border-default: var(--ink-300);
   --border-strong: var(--ink-600);
   --border-inverse: var(--ink-700);
-  --border-focus: var(--brand-orange);
+  --border-focus: var(--brand-ultramar);
 
   /* ---- Semantic aliases: ACCENTS ---- */
-  --accent-primary: var(--brand-orange);
-  --accent-primary-hover: var(--brand-orange-600);
-  --accent-secondary: var(--brand-yellow);
-  --focus-ring: rgba(255, 107, 53, 0.35);
+  --accent-primary: var(--brand-ultramar);
+  --accent-primary-hover: var(--brand-ultramar-600);
+  --accent-secondary: var(--brand-voltio);
+  --focus-ring: rgba(64, 88, 255, 0.32);
 
-  /* ---- Futuristic: gradients, glow & texture ---- */
-  --gradient-signal: linear-gradient(100deg, var(--brand-orange) 0%, var(--brand-yellow) 100%);
-  --gradient-hud: linear-gradient(120deg, var(--brand-cyan) 0%, var(--brand-orange) 100%);
-  --gradient-ink: linear-gradient(180deg, #0B0F1A 0%, #060912 100%); /* @kind color */
-  --text-gradient: linear-gradient(96deg, #FFFFFF 0%, #FF9066 55%, #22D3EE 130%);
-  /* dotted / grid textures for dark surfaces — use as background-image */
-  --texture-grid: linear-gradient(var(--ink-700) 1px, transparent 1px), linear-gradient(90deg, var(--ink-700) 1px, transparent 1px);
-  --texture-grid-size: 48px 48px;
-  --texture-dots: radial-gradient(rgba(255,255,255,0.06) 1.2px, transparent 1.2px); /* @kind other */
+  /* ---- Gradients, glow & texture ---- */
+  --gradient-signal: linear-gradient(100deg, var(--brand-ultramar) 0%, var(--brand-ultramar-300) 100%);
+  --gradient-hud: linear-gradient(120deg, var(--brand-ultramar) 0%, var(--brand-voltio) 100%);
+  --gradient-ink: linear-gradient(180deg, #0C0F14 0%, #040507 100%); /* @kind color */
+  --gradient-brand-shell: linear-gradient(135deg, #0C0F14 0%, #151922 55%, #2A3BD1 100%); /* @kind color */
+  --text-gradient: linear-gradient(96deg, #FFFFFF 0%, #DDFB86 60%, #C6F432 120%);
+  /* pulse-line texture — a faint heartbeat trace. Use as background-image */
+  --texture-grid: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='80' viewBox='0 0 160 80'%3E%3Cpath d='M0 40H56L64 24L76 58L84 40H160' fill='none' stroke='%23222834' stroke-width='1.2' stroke-linejoin='round'/%3E%3C/svg%3E"); /* @kind other */
+  --texture-grid-size: 160px 80px;
+  --texture-dots: radial-gradient(rgba(255,255,255,0.07) 1.2px, transparent 1.2px); /* @kind other */
   --texture-dots-size: 22px 22px;
-  --glass-dark: rgba(24, 32, 48, 0.55);
-  --glass-border: rgba(125, 232, 247, 0.18);
+  --glass-dark: rgba(21, 25, 34, 0.6);
+  --glass-border: rgba(198, 244, 50, 0.16);
+  --glass-header: rgba(255, 255, 255, 0.86);
+}
+
+/* ---- Dark theme overrides ----
+   Flips the light-theme semantic aliases above. Brand/status colors and the
+   "always inverse" dark surfaces (hero banners, footer) stay as-is — only the
+   page-level light surfaces, text and borders swap so toggled sections adapt. */
+:root[data-theme='dark'] {
+  --surface-page: var(--ink-950);
+  --surface-card: var(--ink-900);
+  --surface-sunken: var(--ink-800);
+
+  --text-strong: var(--ink-50);
+  --text-body: var(--ink-200);
+  --text-muted: var(--ink-400);
+  --text-faint: var(--ink-600);
+  --text-on-inverse: var(--ink-100);
+  --text-inverse-muted: var(--ink-400);
+
+  --border-subtle: var(--ink-700);
+  --border-default: var(--ink-600);
+  --border-strong: var(--ink-400);
+
+  --texture-dots: radial-gradient(rgba(255,255,255,0.08) 1.2px, transparent 1.2px);
+  --glass-header: rgba(7, 9, 13, 0.86);
 }

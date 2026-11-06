@@ -1,0 +1,58 @@
+<section class="filters" aria-label="Filtros de la tabla">
+  <div class="filter-fields">
+    <label class="search-field">Buscar<input type="search" [value]="searchInput()" (input)="searchChanged($any($event.target).value)" (keydown.enter)="searchNow()" placeholder="Nombre, correo o referencia…" /></label>
+    <app-select class="status-field" label="Estado" [value]="status()" [options]="statusOptions()" (valueChange)="filterChanged('status',$event)" />
+    @if(resource() === 'usuarios') {<app-select class="account-type-field" label="Tipo de cuenta" [value]="role()" [options]="roleOptions" (valueChange)="filterChanged('role',$event)" />}
+    <div class="filter-actions">
+      @if(hasExtraFilters()) {<app-button variant="outline" size="sm" icon="filter" [mobileIcon]="true" label="Mostrar filtros adicionales" [active]="expandedFilters() || !!role()" [expanded]="expandedFilters()" controls="additional-filters" (clicked)="expandedFilters.set(!expandedFilters())">Filtros @if(role()){<span class="filter-count">1</span>}</app-button>}
+      <app-button variant="outline" size="sm" icon="eraser" [mobileIcon]="true" label="Limpiar filtros" (clicked)="clearFilters()">Limpiar</app-button>
+    </div>
+  </div>
+  @if(hasExtraFilters() && expandedFilters()) {
+    <div id="additional-filters" class="additional-filters">
+      @if(resource() === 'tickets') {<app-select label="Prioridad" [value]="role()" [options]="priorityOptions" (valueChange)="filterChanged('role',$event)" />}
+    </div>
+  }
+</section>
+<app-module-actions [selected]="selected()?.name || ''" [busy]="loading()" [canCreate]="resource() !== 'tickets'" [canRemove]="resource() !== 'tickets'" [removeLabel]="resource() === 'proyectos' ? 'Eliminar' : 'Inactivar'" (create)="addRecord()" (view)="viewRecord()" (edit)="editRecord()" (remove)="removeRecord()"><app-button variant="outline" size="sm" icon="reset" [mobileIcon]="true" label="Recargar registros" [disabled]="loading()" (clicked)="refresh('reload')">Recargar</app-button></app-module-actions>
+<div class="mobile-sort" aria-label="Ordenamiento de registros">
+  <app-select label="Ordenar por" [value]="sort()" [options]="sortOptions()" [searchable]="false" [disabled]="loading()" (valueChange)="mobileSort($event)" />
+  <app-button variant="outline" size="sm" [iconOnly]="true" [icon]="direction()==='asc'?'sortAscending':'sortDescending'" [label]="direction()==='asc'?'Orden ascendente. Cambiar a descendente':'Orden descendente. Cambiar a ascendente'" [disabled]="loading()" (clicked)="toggleDirection()" />
+</div>
+<div class="table-area" [attr.aria-busy]="loading()">
+  @if(error()) { <div role="alert" class="state">No pudimos cargar los registros. <app-button variant="outline" size="sm" icon="reset" (clicked)="refresh()">Reintentar</app-button></div> }
+  @else {
+    <div class="table-scroll"><table><thead><tr><th class="selection-column" scope="col"><span class="sr-only">Seleccionar registro</span></th>@for(col of columns();track col.key) {<th [attr.aria-sort]="sort() === col.key ? (direction() === 'asc' ? 'ascending':'descending') : 'none'"><button (click)="order(col.key)">{{col.label}} <app-icon [name]="sort() === col.key ? (direction() === 'asc' ? 'arrowUp' : 'arrowDown') : 'sort'" /></button></th>}</tr></thead>
+    <tbody>@if(loading()) {<tr><td [attr.colspan]="columns().length + 1" class="state" role="status">Cargando registros…</td></tr>}
+    @else {@for(row of data().items;track row.id) {<tr [class.is-selected]="selected()?.id === row.id" (click)="select(row)"><td><app-checkbox [checked]="selected()?.id===row.id" [disabled]="loading()" [label]="'Seleccionar ' + row.name" (click)="$event.stopPropagation()" (checkedChange)="select(row)" /></td>@for(col of columns();track col.key) {<td>@switch(col.key) {@case('createdAt') { {{row.createdAt | date:'dd/MM/yyyy'}} } @case('progress') {<div class="progress"><span [style.width.%]="row.progress"></span></div>{{row.progress}}%} @case('status') {<span class="status" [attr.data-tone]="statusTone(row.status)">{{row.status}}</span>} @case('role') { {{row.role === 'admin' ? 'Administrador' : row.role === 'client' ? 'Cliente' : row.role}} } @default { {{cell(row,col.key)}} } }</td>}</tr>}@empty {<tr><td [attr.colspan]="columns().length + 1" class="state">No hay registros con estos filtros.</td></tr>}}
+    </tbody></table></div>
+    <div class="mobile-card-grid" role="list" aria-label="Registros">
+      @if(loading()){<div class="record-card card-loading" role="status">Cargando registros…</div>}
+      @else {@for(row of data().items;track row.id){
+        <app-admin-record-card [record]="row" [resource]="resource()" [columns]="cardColumns()" [tone]="statusTone(row.status)" [isSelected]="selected()?.id===row.id" (selectedChange)="select(row)" />
+      }@empty{<div class="record-card state">No hay registros con estos filtros.</div>}}
+    </div>
+    <footer class="pagination">
+      <div class="pagination-summary">
+        <div class="page-size desktop-page-size"><app-select [inlineLabel]="true" label="Registros por página" [compact]="true" [searchable]="false" [value]="'' + pageSize()" [options]="pageSizeOptions" (valueChange)="filterChanged('pageSize',$event)" /></div>
+        <div class="mobile-page-size"><app-select [hideLabel]="true" [inlineLabel]="true" label="Registros por página" [compact]="true" [searchable]="false" [value]="'' + pageSize()" [options]="pageSizeOptions" (valueChange)="filterChanged('pageSize',$event)" /></div>
+        <span aria-live="polite"><span class="desktop-range">{{firstRecord()}}–{{lastRecord()}} de <strong>{{data().total}}</strong> registros</span><span class="mobile-range">{{firstRecord()}}–{{lastRecord()}} / <strong>{{data().total}}</strong></span></span>
+      </div>
+      <nav class="pagination-controls desktop-pagination" aria-label="Paginación de la tabla">
+        <app-button variant="outline" size="sm" icon="first" [iconOnly]="true" label="Primera página" [disabled]="loading() || page() <= 1" (clicked)="go(1)" />
+        <app-button variant="outline" size="sm" icon="chevronLeft" [iconOnly]="true" label="Página anterior" [disabled]="loading() || page() <= 1" (clicked)="go(page()-1)" />
+        @for(number of pageNumbers();track $index){@if(number === '…'){<span class="ellipsis">…</span>}@else{<app-button variant="ghost" size="sm" [iconOnly]="true" [active]="page() === number" [current]="page() === number ? 'page' : null" [label]="'Página ' + number" [disabled]="loading()" (clicked)="go(number)">{{number}}</app-button>}}
+        @if(!data().totalPages){<app-button size="sm" [iconOnly]="true" [active]="true" current="page" [disabled]="true">1</app-button>}
+        <app-button variant="outline" size="sm" icon="chevronRight" [iconOnly]="true" label="Página siguiente" [disabled]="loading() || page() >= data().totalPages" (clicked)="go(page()+1)" />
+        <app-button variant="outline" size="sm" icon="last" [iconOnly]="true" label="Última página" [disabled]="loading() || page() >= data().totalPages" (clicked)="go(data().totalPages)" />
+      </nav>
+      <nav class="mobile-pagination" aria-label="Paginación de registros">
+        <app-button variant="outline" icon="chevronLeft" [iconOnly]="true" label="Página anterior" [disabled]="loading() || page()<=1" (clicked)="go(page()-1)" />
+        <span [attr.aria-label]="'Página ' + data().page + ' de ' + (data().totalPages || 1)"><strong>{{data().page}}</strong> / {{data().totalPages || 1}}</span>
+        <app-button variant="outline" icon="chevronRight" [iconOnly]="true" label="Página siguiente" [disabled]="loading() || page()>=data().totalPages" (clicked)="go(page()+1)" />
+      </nav>
+    </footer>
+  }
+</div>
+
+@if(editor();as state){<app-record-editor [resource]="resource()" [row]="state.row" [readOnly]="state.readOnly" (closed)="editor.set(null)" (saved)="editorSaved()" />}

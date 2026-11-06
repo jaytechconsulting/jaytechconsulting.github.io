@@ -14,10 +14,10 @@ interface Review {
 
 const EMPTY_REVIEW: Review = {
   quote: 'Aún no hay reseñas publicadas.',
-  name: 'DronLab',
+  name: 'Jaytech',
   role: 'Equipo',
-  company: 'El Dron en la Sopa',
-  initials: 'DL',
+  company: 'Jaytech',
+  initials: 'JT',
   photo: '',
   rating: 5,
   color: '#22D3EE',

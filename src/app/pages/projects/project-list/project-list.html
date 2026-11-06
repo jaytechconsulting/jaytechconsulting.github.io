@@ -1,6 +1,7 @@
 <div class="min-h-screen bg-surface-page font-body">
   <header
     class="relative overflow-hidden bg-[image:var(--gradient-ink)] px-5 pt-[clamp(40px,6vw,72px)] pb-[clamp(56px,7vw,88px)] text-text-on-inverse sm:px-10"
+    [style]="headerStyle()"
   >
     <div
       class="pointer-events-none absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-45 [mask-image:radial-gradient(circle_at_70%_0%,#000,transparent_72%)]"
@@ -19,8 +20,11 @@
       <h1
         class="m-0 max-w-[720px] text-balance font-display text-[clamp(34px,6vw,60px)] font-bold leading-[var(--lh-tight)] tracking-[var(--ls-tight)]"
       >
-        Lo que hemos construido para empresas como la tuya
+        {{ pageDesign().heading }}
       </h1>
+      @if (pageDesign().description) {
+        <p class="mt-4 max-w-[600px] text-base leading-[var(--lh-body)] text-text-inverse-muted">{{ pageDesign().description }}</p>
+      }
 
       <div class="mt-9 flex flex-wrap gap-10">
         @for (s of stats; track s[1]) {

@@ -1,0 +1,66 @@
+<app-admin-shell [title]="title()" active="access"><div class="access-page p-4 md:p-8">
+ @if(draggedMenu();as dragged){@if(dragPoint();as point){<div class="menu-drag-preview" aria-hidden="true" [style.left.px]="point.x+12" [style.top.px]="point.y+12"><app-icon [name]="$any(dragged.icon)"/><strong>{{dragged.label}}</strong></div>}}
+ <section class="access-overview"><span class="access-emblem"><app-icon name="shield"/></span><div><h2>{{title()}}</h2><p>Define quien puede entrar y que acciones puede realizar.</p></div><div class="overview-count"><strong>{{state().roles.length}}</strong><span>roles</span><strong>{{state().permissions.length}}</strong><span>permisos</span></div></section>
+ @if(failed()){<div class="access-error" role="alert">No pudimos cargar el modulo. <button type="button" (click)="load()">Reintentar</button></div>}
+ @if(isAudit()){
+ <section class="audit-card"><header><h3>Ultimos cambios de acceso</h3><app-button icon="reset" variant="outline" size="sm" (clicked)="load()">Recargar</app-button></header><div class="audit-list">@for(item of audit();track item.id){<article><span class="audit-mark"><app-icon name="shield"/></span><div><strong>{{item.action}}</strong><span>{{item.target}}</span><small>Usuario: {{item.actorName || item.actorId}}</small></div><time>{{item.createdAt | date:'dd/MM/yyyy HH:mm'}}</time></article>}@empty{<div class="empty-state"><app-icon name="info"/><p>Aun no hay cambios registrados.</p></div>}</div></section>
+ }@else{
+ <app-module-actions [selected]="selectedName()" [busy]="busy()" [canCreate]="!isUser()" [canRemove]="!isUser() && !protectedRemoval()" (create)="create()" (view)="readOnly.set(true)" (edit)="edit()" (remove)="remove()"><app-button icon="reset" size="sm" variant="outline" [mobileIcon]="true" label="Recargar" [disabled]="busy()" (clicked)="load()">Recargar</app-button></app-module-actions>
+ <div class="access-workspace"><section class="access-directory"><div class="directory-search"><app-input label="Buscar" placeholder="Nombre, codigo o correo..." [value]="query()" (valueChange)="search($event)"/></div><div class="directory-list">
+ @if(view()==='menus'){
+ <p class="menu-order-help" id="menu-order-help">Arrastra el control para ordenar dentro de cada grupo. También puedes usar las flechas del teclado.</p>
+ @if(query().trim()){<p class="menu-order-help">Limpia la búsqueda para cambiar el orden.</p>}
+ @for(menu of menuRows();track menu.id){<div class="menu-sort-row" [attr.data-menu-id]="menu.id" [style.--menu-depth]="menu.depth" [class.selected]="selectedId()===menu.id" [class.is-dragging]="draggingId()===menu.id" [class.drop-before]="dropTarget()?.id===menu.id && !dropTarget()?.after" [class.drop-after]="dropAfterRowId()===menu.id">
+ <button type="button" class="menu-drag-handle" [attr.data-menu-handle]="menu.id" [disabled]="!canReorder()" [attr.aria-label]="'Mover '+menu.label" aria-describedby="menu-order-help" [title]="'Arrastrar '+menu.label" (pointerdown)="startDrag($event,menu.id)" (keydown)="moveMenuKey($event,menu.id)"><span class="menu-drag-grip" aria-hidden="true"></span></button>
+ <button type="button" class="directory-row" [attr.aria-pressed]="selectedId()===menu.id" (click)="select(menu.id)"><span class="row-icon"><app-icon [name]="$any(menu.icon)"/></span><span class="row-copy"><strong>{{menu.label}}</strong><small>{{menu.route || 'Grupo de menus'}}</small></span><span class="state-dot" [class.inactive]="!menu.isActive" [attr.aria-label]="menu.isActive?'Activo':'Inactivo'"></span></button>
+ </div>}
+ <span class="sr-only" role="status" aria-live="polite">{{orderAnnouncement()}}</span>
+ }@else{
+ @if(isUser()){@for(user of users().items;track user.id){<button type="button" class="directory-row" [class.selected]="selectedId()===user.id" (click)="select(user.id)"><span class="row-icon"><app-icon name="user"/></span><span class="row-copy"><strong>{{user.name}}</strong><small>{{user.email}}</small><span>{{user.roles.join(', ') || 'Sin roles asignados'}}</span></span><span class="state-dot" [class.inactive]="!user.isActive" [attr.aria-label]="user.isActive?'Activo':'Inactivo'"></span></button>}}
+ @else{@for(row of pagedRecords();track row.id){<button type="button" class="directory-row" [class.selected]="selectedId()===row.id" (click)="select(row.id)"><span class="row-icon"><app-icon [name]="view()==='roles'?'shield':view()==='menus'?'dashboard':'check'"/></span><span class="row-copy"><strong>{{row.title}}</strong><small>{{row.detail}}</small>@if(row.system){<span>Sistema</span>}</span><span class="state-dot" [class.inactive]="!row.active" [attr.aria-label]="row.active?'Activo':'Inactivo'"></span></button>}}
+ }
+ @if(!total() && !busy()){<div class="empty-state"><app-icon name="search"/><p>No hay resultados.</p></div>}
+ </div><footer class="directory-pagination"><span>{{total()}} registros</span>@if(view()!=='menus'){<div><app-button icon="chevronLeft" [iconOnly]="true" label="Anterior" size="sm" variant="outline" [disabled]="page()<=1 || busy()" (clicked)="turnPage(-1)"/><span>{{page()}} / {{totalPages()}}</span><app-button icon="chevronRight" [iconOnly]="true" label="Siguiente" size="sm" variant="outline" [disabled]="page()>=totalPages() || busy()" (clicked)="turnPage(1)"/></div>}</footer></section>
+ <section class="access-editor">
+ @if(!editing()){<div class="editor-empty"><span class="empty-shield"><app-icon name="shield"/></span><h3>Configura los accesos</h3><p>Selecciona un registro para ver sus detalles o usa Agregar para crear uno.</p></div>}
+ @else{<form novalidate (submit)="save($event)"><header class="editor-heading"><span class="row-icon"><app-icon [name]="isUser()?'user':view()==='menus'?'dashboard':'shield'"/></span><div><h3>{{selectedName() || 'Nuevo registro'}}</h3><span>{{readOnly() ? 'Vista de consulta' : 'Edicion de accesos'}}</span></div><button type="button" class="close-editor" aria-label="Cerrar editor" (click)="reset()"><app-icon name="close"/></button></header>
+ @if(selectedSystem()){<p class="protected-note"><app-icon name="shield"/>Puedes cambiar el nombre y la descripcion. Los permisos y el estado de administracion total estan protegidos.</p>}
+ <fieldset [disabled]="readOnly() || busy()">
+ @if(isUser()){
+ <div class="user-access-heading"><strong>{{userDetails()?.user?.email}}</strong><span class="effective-count">{{effective().size}} permisos efectivos</span></div>
+ <h4>Roles asignados</h4><div class="role-choices">@for(role of state().roles;track role.id){@if(role.isActive || chosenRoles().has(role.id)){<div class="role-choice" [class.checked]="chosenRoles().has(role.id)"><app-checkbox [label]="role.name" [text]="role.name" [checked]="chosenRoles().has(role.id)" [disabled]="readOnly()" (checkedChange)="toggleRole(role.id,$event)"/><small>{{!role.isActive ? 'Rol desactivado' : (role.description || role.code)}}</small></div>}}</div>
+ <div class="matrix-heading"><div><h4>Excepciones por usuario</h4><p>Heredar usa los roles. Denegar tiene prioridad sobre sus permisos.</p></div><app-input label="Buscar permiso" placeholder="Nombre o recurso..." [value]="permissionQuery()" (valueChange)="permissionQuery.set($event)"/></div>
+ @for(group of permissionGroups();track group.resource){<div class="permission-group"><h5>{{group.resource}}</h5>@for(permission of group.items;track permission.id){<div class="override-row"><div><strong>{{permission.name}}</strong><small>{{permission.code}}</small></div><span class="permission-badge" [class.allowed]="effective().has(permission.id)">{{effective().has(permission.id)?'Permitido':'Sin acceso'}}</span><app-select [label]="permission.name" [hideLabel]="true" [options]="overrideOptions" [value]="overrides()[permission.id] || ''" [disabled]="readOnly() || permission.isActive===false" (valueChange)="setOverride(permission.id,$event)"/></div>}</div>}
+ }@else{
+ <div class="editor-fields">
+ @if(view()==='permisos'){
+ <app-input label="Recurso" placeholder="Ej. reports" [value]="draft().resource" [required]="true" [disabled]="!!selectedId() || readOnly()" [error]="error('resource')" (valueChange)="set('resource',$event)"/>
+ <app-input label="Accion" placeholder="Ej. export" [value]="draft().action" [required]="true" [disabled]="!!selectedId() || readOnly()" [error]="error('action')" (valueChange)="set('action',$event)"/>
+ }@else{<app-input label="Codigo" placeholder="Ej. operaciones" [value]="draft().code" [required]="true" [disabled]="!!selectedId() || readOnly()" [error]="error('code')" (valueChange)="set('code',$event)"/>}
+ @if(view()==='menus'){
+ <app-input label="Nombre del menu" placeholder="Ej. Operaciones" [value]="draft().label" [required]="true" [error]="error('label')" (valueChange)="set('label',$event)"/>
+ <app-select label="Grupo padre" [options]="parentOptions()" [value]="draft().parentId" [disabled]="readOnly() || protectedMenu()" (valueChange)="set('parentId',$event)"/>
+ <app-icon-picker class="full-width" [options]="availableIcons()" [value]="draft().icon" [disabled]="readOnly() || busy()" [error]="error('icon')" (valueChange)="set('icon',$event)"/>
+ <app-input label="Ruta interna (vacia para grupo)" placeholder="/admin/proyectos" [value]="draft().route" [disabled]="readOnly() || protectedMenu()" [error]="error('route')" (valueChange)="set('route',$event)"/>
+ <app-input label="Seccion (opcional)" placeholder="Ej. proyectos" [value]="draft().section" [disabled]="readOnly() || protectedMenu()" [error]="error('section')" (valueChange)="set('section',$event)"/>
+ <app-select label="Permiso de lectura" [options]="permissionOptions()" [value]="draft().permissionId" [error]="error('permissionId')" [disabled]="readOnly() || protectedMenu()" (valueChange)="set('permissionId',$event)"/>
+ <app-number-input label="Orden" [min]="0" [max]="10000" [value]="''+draft().sortOrder" (valueChange)="set('sortOrder',+$event)"/>
+ @if(error('sortOrder')){<span class="field-error" role="alert">{{error('sortOrder')}}</span>}
+ <p class="menu-preview"><app-icon [name]="$any(draft().icon)"/>{{draft().label || 'Vista previa del menu'}}</p>
+ }@else{
+ <app-input label="Nombre" placeholder="Nombre del registro" [value]="draft().name" [required]="true" [error]="error('name')" (valueChange)="set('name',$event)"/>
+ <app-textarea class="full-width" label="Descripcion" [error]="error('description')" placeholder="Describe su finalidad..." [value]="draft().description" (valueChange)="set('description',$event)"/>
+ }
+ <app-checkbox class="full-width" label="Registro activo" text="Activo" [checked]="draft().isActive" [disabled]="readOnly() || selectedSystem() || systemPermission() || protectedMenu()" (checkedChange)="set('isActive',$event)"/>
+ </div>
+ @if(view()==='roles'){
+ <div class="matrix-heading"><div><h4>Permisos del rol</h4><p>{{grantIds().size}} permisos seleccionados</p></div><app-input label="Buscar permiso" placeholder="Nombre o recurso..." [value]="permissionQuery()" (valueChange)="permissionQuery.set($event)"/></div>
+ @for(group of permissionGroups();track group.resource){<div class="permission-group"><h5>{{group.resource}}</h5><div class="permission-choices">@for(permission of group.items;track permission.id){<div class="permission-choice"><app-checkbox [label]="permission.name" [text]="permission.name" [checked]="grantIds().has(permission.id)" [disabled]="readOnly() || selectedSystem() || permission.isActive===false" (checkedChange)="toggleGrant(permission.id,$event)"/><small>{{permission.code}}</small></div>}</div></div>}
+ }
+ }
+ </fieldset>
+ @if(!readOnly()){<footer class="editor-footer"><app-button icon="close" variant="outline" (clicked)="reset()">Cancelar</app-button><app-button type="submit" icon="check" [disabled]="busy()">Guardar cambios</app-button></footer>}
+ </form>}
+ </section></div>
+ }
+</div></app-admin-shell>

@@ -1,0 +1,58 @@
+<div class="dm-overlay" [class.is-closing]="closing()" (mousedown)="onBackdrop($event)">
+  <section role="dialog" aria-modal="true" class="dm-panel">
+    <button
+      type="button"
+      class="relative flex h-[180px] w-full shrink-0 cursor-pointer items-center justify-center overflow-hidden bg-cover bg-center"
+      aria-label="Ver página completa"
+      [style.background-image]="image() ? 'url(' + image() + ')' : 'linear-gradient(135deg, ' + accentColor() + '38, ' + accentColor() + '0a)'"
+      (click)="goToDetail()"
+    >
+      @if (!image()) {
+        <span class="text-5xl opacity-70" [style.color]="accentColor()">{{ glyph() }}</span>
+      }
+      <div class="pointer-events-none absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-20"></div>
+      <div class="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all duration-200 ease-out hover:bg-black/25 hover:opacity-100">
+        <span class="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-base text-ink-950 shadow-lg">⤢</span>
+      </div>
+      <app-button
+        variant="glass"
+        size="sm"
+        icon="close"
+        [iconOnly]="true"
+        label="Cerrar"
+        class="absolute top-4 right-4"
+        (clicked)="$event.stopPropagation(); requestClose()"
+      />
+    </button>
+
+    <div class="px-7 pt-6 pb-7">
+      @if (badges().length) {
+        <div class="mb-3 flex flex-wrap items-center gap-2">
+          @for (b of badges(); track b) {
+            <span class="rounded-pill border border-border-subtle bg-surface-sunken px-2.5 py-1 font-mono text-xs text-text-muted">{{ b }}</span>
+          }
+        </div>
+      }
+      <h2 class="m-0 mb-3 font-display text-2xl font-bold leading-[1.2] text-text-strong">{{ title() }}</h2>
+      <p class="m-0 text-[15px] leading-[1.7] text-text-muted">{{ description() }}</p>
+
+      <button
+        type="button"
+        class="mt-4 inline-flex cursor-pointer items-center gap-1.5 border-0 bg-transparent p-0 font-mono text-[13px] font-semibold no-underline"
+        [style.color]="accentColor()"
+        (click)="goToDetail()"
+      >
+        {{ detailLabel() }}
+        <span>→</span>
+      </button>
+
+      <div class="mt-6 flex flex-col gap-3 border-t border-border-subtle pt-6 sm:flex-row">
+        <app-button variant="primary" size="md" [fullWidth]="true" (clicked)="ctaClicked.emit()">
+          {{ ctaLabel() }}
+          <span slot="icon-right">→</span>
+        </app-button>
+        <app-button variant="outline" size="md" [fullWidth]="true" (clicked)="requestClose()">Cerrar</app-button>
+      </div>
+    </div>
+  </section>
+</div>

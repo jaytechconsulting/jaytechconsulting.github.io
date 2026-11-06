@@ -1,4 +1,5 @@
-<app-header class="sticky top-0 z-50" [links]="header().links" [cta]="header().cta" (ctaClicked)="goToProposal()" />
+<app-ads-bar #adsBarEl />
+<app-header #headerEl class="sticky top-0 z-50" [links]="header().links" [cta]="header().cta" (ctaClicked)="goToProposal()" />
 <app-hero-section />
 <app-clients-section />
 <app-services-section />

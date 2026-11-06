@@ -1,3 +1,4 @@
+import { Icon, IconName } from '../../data-display/icon/icon';
 import { Component, computed, input, output } from '@angular/core';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'inverse' | 'ghost-inverse' | 'glass' | 'danger';
@@ -23,9 +24,20 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
 /** Primary action control. `primary` (orange) for the main CTA, `inverse` on dark surfaces. */
 @Component({
   selector: 'app-button',
+  imports: [Icon],
+  styleUrl: './button.css',
   templateUrl: './button.html',
 })
 export class Button {
+  readonly tone = input<'success' | 'info' | 'warning' | 'danger'>();
+  readonly icon = input<IconName>();
+  readonly iconOnly = input(false);
+  readonly mobileIcon = input(false);
+  readonly label = input<string>();
+  readonly active = input(false);
+  readonly expanded = input<boolean>();
+  readonly controls = input<string>();
+  readonly current = input<'page' | null>(null);
   readonly variant = input<ButtonVariant>('primary');
   readonly size = input<ButtonSize>('md');
   readonly fullWidth = input(false);

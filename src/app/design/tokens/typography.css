@@ -1,9 +1,9 @@
-/* El Dron en la Sopa — Typography tokens */
+/* Jaytech — Typography tokens */
 :root {
   /* ---- Families ---- */
-  --font-display: 'Space Grotesk', system-ui, sans-serif;
-  --font-body: 'Manrope', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+  --font-display: 'Unbounded', system-ui, sans-serif;
+  --font-body: 'Geist', system-ui, sans-serif;
+  --font-mono: var(--font-body);
 
   /* ---- Weights ---- */
   --fw-regular: 400;  /* @kind other */
@@ -22,7 +22,7 @@
   --fs-body: 16px;
   --fs-sm: 14px;
   --fs-xs: 12px;
-  --fs-label: 12px;     /* mono eyebrow / label */
+  --fs-label: 12px;     /* eyebrow / label */
 
   /* ---- Line heights ---- */
   --lh-tight: 1.05;  /* @kind other */
@@ -31,8 +31,8 @@
   --lh-body: 1.6;  /* @kind other */
 
   /* ---- Letter spacing ---- */
-  --ls-tight: -0.03em;   /* large display @kind other */
+  --ls-tight: -0.02em;   /* large display @kind other */
   --ls-heading: -0.01em;  /* @kind other */
   --ls-normal: 0;  /* @kind other */
-  --ls-label: 0.14em;    /* mono uppercase eyebrows @kind other */
+  --ls-label: 0.14em;    /* uppercase eyebrows @kind other */
 }

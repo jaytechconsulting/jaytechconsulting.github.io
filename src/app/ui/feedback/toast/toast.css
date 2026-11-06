@@ -1,29 +1,12 @@
-:host {
-  display: block;
-}
-
-.dl-toast {
-  animation: dl-toast-in var(--dur-base) var(--ease-out);
-}
-
-.dl-toast-ring {
-  animation: dl-ring-spin 2.4s linear infinite;
-}
-
-.dl-toast-bar {
-  animation: dl-toast-bar 4000ms linear forwards;
-}
-
-@keyframes dl-toast-in {
-  from { opacity: 0; transform: translateX(24px); }
-  to { opacity: 1; transform: none; }
-}
-
-@keyframes dl-toast-bar {
-  from { transform: scaleX(1); }
-  to { transform: scaleX(0); }
-}
-
-@keyframes dl-ring-spin {
-  to { transform: rotate(360deg); }
-}
+:host{display:block;font-family:var(--font-body)}
+/* Keep the original layout and animation; only surface/text contrast varies by theme. */
+.dl-toast{--toast-readable:#4058ff;background:rgba(255,255,255,.96);border-color:var(--border-default);color:var(--text-body);box-shadow:0 12px 36px -12px rgb(0 0 0 / .2);animation:dl-toast-in var(--dur-base) var(--ease-out)}
+.dl-toast[data-tone=success]{--toast-readable:#15803d}.dl-toast[data-tone=warning]{--toast-readable:#a16207}.dl-toast[data-tone=error]{--toast-readable:#be123c}
+.toast-kind{color:var(--toast-readable)}.toast-title{color:var(--text-strong)}.toast-message,.toast-close{color:var(--text-muted)}.toast-close:hover{color:var(--text-strong)}.toast-close:focus-visible{outline:2px solid var(--toast-readable);outline-offset:2px}
+:host-context([data-theme=dark]) .dl-toast{background:var(--glass-dark);border-color:var(--glass-border);color:var(--text-on-inverse);box-shadow:0 18px 44px -14px rgba(0,0,0,.6),0 0 22px -8px var(--toast-accent)}
+:host-context([data-theme=dark]) .toast-kind{color:var(--toast-accent)}:host-context([data-theme=dark]) .toast-title{color:var(--text-on-inverse)}:host-context([data-theme=dark]) .toast-message,:host-context([data-theme=dark]) .toast-close{color:var(--text-inverse-muted)}
+.dl-toast-ring{animation:dl-ring-spin 2.4s linear infinite}.dl-toast-bar{animation:dl-toast-bar 4000ms linear forwards}
+@keyframes dl-toast-in{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+@keyframes dl-toast-bar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+@keyframes dl-ring-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.dl-toast,.dl-toast-ring,.dl-toast-bar{animation:none!important}.dl-toast{transition:none!important}}

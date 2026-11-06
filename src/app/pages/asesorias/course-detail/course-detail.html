@@ -1,0 +1,82 @@
+@if (notFound() || !course()) {
+  <div class="flex min-h-screen flex-col items-center justify-center gap-[18px] bg-surface-page p-6 text-center font-body">
+    <div class="text-[46px] opacity-50">◇</div>
+    <h1 class="m-0 font-display text-2xl text-text-strong">Curso no encontrado</h1>
+    <p class="m-0 text-text-muted">El curso que buscas no existe o ya no está disponible.</p>
+    <app-button variant="primary" (clicked)="back()">Ver todos los cursos</app-button>
+  </div>
+} @else if (course(); as c) {
+  <div class="min-h-screen bg-surface-page font-body">
+    <app-header class="sticky top-0 z-50" [links]="header().links" [cta]="header().cta" (ctaClicked)="requestProposal()" />
+
+    <header class="relative overflow-hidden bg-[image:var(--gradient-ink)] text-text-on-inverse">
+      <div
+        class="pointer-events-none absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-50 [mask-image:radial-gradient(circle_at_80%_40%,#000,transparent_78%)]"
+      ></div>
+      <div
+        class="pointer-events-none absolute -top-40 -right-20 h-[560px] w-[560px]"
+        [style.background]="'radial-gradient(circle, ' + c.color + '30, transparent 66%)'"
+      ></div>
+
+      <div class="relative mx-auto max-w-[1200px] px-5 pt-[clamp(24px,4vw,40px)] sm:px-10">
+        <div class="mb-[clamp(32px,5vw,56px)]">
+          <app-breadcrumb [items]="breadcrumb()" [inverse]="true" />
+        </div>
+
+        <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,340px),1fr))] items-center gap-[clamp(32px,5vw,64px)] pb-[clamp(48px,7vw,88px)]">
+          <!-- left: text -->
+          <div>
+            <div class="mb-5 flex flex-wrap items-center gap-2">
+              <app-badge tone="brand">{{ c.level }}</app-badge>
+              <span class="font-mono text-[13px] text-brand-cyan-300">{{ c.duration }}</span>
+            </div>
+            <h1 class="m-0 text-balance font-display text-[clamp(34px,6vw,60px)] font-bold leading-[var(--lh-tight)] tracking-[var(--ls-tight)]">
+              {{ c.title }}
+            </h1>
+            <p class="mt-5 max-w-[520px] text-[clamp(16px,2.2vw,20px)] leading-[var(--lh-snug)] text-text-inverse-muted">
+              {{ c.description }}
+            </p>
+            <div class="mt-8">
+              <app-button variant="primary" size="lg" (clicked)="requestProposal()">
+                Solicitar propuesta
+                <span slot="icon-right">→</span>
+              </app-button>
+            </div>
+          </div>
+
+          <!-- right: artwork -->
+          <div class="flex justify-center">
+            <div class="relative flex aspect-square w-[min(340px,80vw)] items-center justify-center">
+              <div class="absolute inset-[8%] rounded-full border border-dashed border-[var(--glass-border)]"></div>
+              <div class="absolute inset-[22%] rounded-full border border-[var(--glass-border)]"></div>
+              <div class="absolute inset-[28%] rounded-full blur-[6px]" [style.background]="'radial-gradient(circle, ' + c.color + '44, transparent 70%)'"></div>
+              <span class="pd-float relative text-[clamp(80px,16vw,130px)]" [style.color]="c.color" [style.text-shadow]="'0 0 40px ' + c.color + '88'">{{ c.glyph }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- CTA -->
+    <div class="mx-auto max-w-[1200px] px-5 py-[clamp(56px,8vw,88px)] sm:px-10">
+      <div class="relative overflow-hidden rounded-xl bg-[image:var(--gradient-ink)] p-[clamp(36px,5vw,56px)] text-center text-text-on-inverse">
+        <div
+          class="pointer-events-none absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-40 [mask-image:radial-gradient(circle_at_50%_0%,#000,transparent_70%)]"
+        ></div>
+        <div class="relative">
+          <h2 class="m-0 mb-3 text-balance font-display text-[clamp(24px,3.5vw,34px)] font-bold">¿Quieres esta asesoría para tu proyecto?</h2>
+          <p class="mx-auto mb-6 max-w-[440px] text-lg text-text-inverse-muted">
+            Cuéntanos tu caso y te armamos una propuesta a medida.
+          </p>
+          <app-button variant="primary" size="lg" (clicked)="requestProposal()">
+            Solicitar propuesta
+            <span slot="icon-right">→</span>
+          </app-button>
+        </div>
+      </div>
+    </div>
+
+    <app-footer />
+    <app-whatsapp-fab />
+  </div>
+}

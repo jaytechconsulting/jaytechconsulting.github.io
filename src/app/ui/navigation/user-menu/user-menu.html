@@ -1,0 +1,10 @@
+<button type="button" class="account-trigger" [class.is-open]="open()" aria-haspopup="menu" [attr.aria-expanded]="open()" [attr.aria-controls]="menuId" [attr.aria-label]="'Menú de usuario: ' + (auth.currentUser()?.name || 'Mi cuenta')" (click)="toggle()" (keydown)="triggerKey($event)">
+ <span class="account-avatar"><app-avatar [url]="auth.currentUser()?.avatarUrl" [initials]="auth.currentUser()?.initials || ''" [zoom]="auth.currentUser()?.avatarZoom ?? 1" [x]="auth.currentUser()?.avatarX ?? 50" [y]="auth.currentUser()?.avatarY ?? 50"/><span class="online-dot"></span></span>
+
+</button>
+@if(open()){
+ <div class="account-dropdown" [id]="menuId" (keydown)="menuKey($event)">
+  <div class="account-summary"><strong>{{auth.currentUser()?.name || 'Mi cuenta'}}</strong><span>{{auth.currentUser()?.email}}</span><small>{{roleLabel()}}</small></div>
+  <div role="menu" aria-label="Opciones de usuario"><a routerLink="/admin/perfil" role="menuitem" (click)="close()"><span class="menu-icon"><app-icon name="user" /></span><span>Perfil</span><app-icon name="chevronRight" /></a><button type="button" role="menuitem" class="sign-out" (click)="signOut()"><span class="menu-icon"><app-icon name="logout" /></span><span>Cerrar sesión</span></button></div>
+ </div>
+}

@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, forkJoin, map, switchMap, tap } from 'rxjs';
 import { ApiService } from './api.service';
-import type { ApiCms, ApiCompany, ApiPlan, ApiProject, ApiReview, ApiServiceItem, ApiSiteContent } from './models/api.models';
+import type { ApiCms, ApiCompany, ApiPlan, ApiProject, ApiReview, ApiServiceItem, ApiSiteContent, ApiTeamMember } from './models/api.models';
 
 export interface CmsCompany {
   id?: string;
@@ -72,6 +72,18 @@ export interface CmsPlan {
   displayOrder?: string;
 }
 
+export interface CmsTeamMember {
+  id?: string;
+  name: string;
+  role: string;
+  bio: string;
+  photo: string;
+  linkedin: string;
+  color: string;
+  isPublished?: string;
+  displayOrder?: string;
+}
+
 export type CmsSectionId = 'hero' | 'clients' | 'services' | 'pricing' | 'reviews' | 'contact';
 
 export interface CmsPageSection {
@@ -85,14 +97,45 @@ export interface CmsPageSection {
   image: string;
 }
 
+export type CmsHeaderLinkVariant = '' | 'primary' | 'outline';
+
 export interface CmsHeaderLink {
   label: string;
   href: string;
+  variant: CmsHeaderLinkVariant;
 }
 
 export interface CmsFooterColumn {
   title: string;
   links: string;
+}
+
+export interface CmsAnnouncement {
+  message: string;
+  linkLabel: string;
+  linkHref: string;
+  active: boolean;
+  backgroundColor: string;
+  backgroundImage: string;
+}
+
+export type CmsPageDesignId = 'proyectos' | 'propuesta' | 'login' | 'asesorias' | 'capacitaciones' | 'conocenos';
+
+export interface CmsPageDesign {
+  heading: string;
+  description: string;
+  backgroundColor: string;
+  backgroundImage: string;
+}
+
+export interface CmsLoaderConfig {
+  enabled: boolean;
+  color: string;
+}
+
+export interface CmsHeroAnimation {
+  enabled: boolean;
+  videoUrl: string;
 }
 
 export interface CmsContentState {
@@ -101,7 +144,12 @@ export interface CmsContentState {
   services: CmsServiceItem[];
   projects: CmsProjectItem[];
   plans: CmsPlan[];
+  teamMembers: CmsTeamMember[];
   sections: CmsPageSection[];
+  announcement: CmsAnnouncement;
+  pages: Record<CmsPageDesignId, CmsPageDesign>;
+  loader: CmsLoaderConfig;
+  heroAnimation: CmsHeroAnimation;
   header: {
     links: CmsHeaderLink[];
     cta: string;
@@ -223,6 +271,11 @@ const DEFAULT_STATE: CmsContentState = {
       image: '',
     },
   ],
+  teamMembers: [
+    { name: 'Jayro Guerreros', role: 'Fundador · Ingeniería', bio: 'Lidera la arquitectura técnica y el desarrollo de cada proyecto, de principio a fin.', photo: '', linkedin: '', color: '#FF6B35' },
+    { name: 'Valeria Soto', role: 'Diseño de producto', bio: 'Convierte requerimientos complejos en interfaces simples que los equipos realmente usan.', photo: '', linkedin: '', color: '#22D3EE' },
+    { name: 'Marco Huamán', role: 'Automatización & datos', bio: 'Diseña los flujos e integraciones que eliminan el trabajo manual repetitivo.', photo: '', linkedin: '', color: '#F7C948' },
+  ],
   sections: [
     {
       id: 'hero',
@@ -285,17 +338,70 @@ const DEFAULT_STATE: CmsContentState = {
       image: '',
     },
   ],
+  announcement: {
+    message: '',
+    linkLabel: '',
+    linkHref: '',
+    active: false,
+    backgroundColor: '',
+    backgroundImage: '',
+  },
+  pages: {
+    proyectos: {
+      heading: 'Lo que hemos construido para empresas como la tuya',
+      description: '',
+      backgroundColor: '',
+      backgroundImage: '',
+    },
+    propuesta: {
+      heading: 'Tu idea, con precio y plazo en 24 horas',
+      description: 'Cuéntanos qué necesitas. Te devolvemos una propuesta clara de alcance y presupuesto, sin compromiso.',
+      backgroundColor: '',
+      backgroundImage: '',
+    },
+    login: {
+      heading: 'Tu trabajo, siempre a la vista',
+      description: 'Accede para gestionar proyectos, avances, tickets, facturas y archivos en un solo lugar.',
+      backgroundColor: '',
+      backgroundImage: '',
+    },
+    asesorias: {
+      heading: 'Asesoría experta para tu próximo proyecto',
+      description: 'Sesiones y programas de acompañamiento técnico para que tu equipo tome mejores decisiones de software.',
+      backgroundColor: '',
+      backgroundImage: '',
+    },
+    capacitaciones: {
+      heading: 'Capacitaciones para tu equipo',
+      description: 'Muy pronto: programas de formación práctica en desarrollo, automatización y datos.',
+      backgroundColor: '',
+      backgroundImage: '',
+    },
+    conocenos: {
+      heading: 'El equipo detrás de cada proyecto',
+      description: 'Somos un equipo pequeño, directo y técnico — construimos software a medida sin intermediarios.',
+      backgroundColor: '',
+      backgroundImage: '',
+    },
+  },
+  loader: {
+    enabled: false,
+    color: '',
+  },
+  heroAnimation: {
+    enabled: true,
+    videoUrl: '',
+  },
   header: {
     links: [
-      { label: 'Servicios', href: '#servicios' },
-      { label: 'Clientes', href: '#clientes' },
-      { label: 'Proyectos', href: '/proyectos' },
-      { label: 'Planes', href: '#planes' },
+      { label: 'Clientes', href: '#clientes', variant: '' },
+      { label: 'Proyectos', href: '/proyectos', variant: '' },
+      { label: 'Planes', href: '#planes', variant: '' },
     ],
     cta: 'Solicitar propuesta',
   },
   footer: {
-    about: 'El Dron en la Sopa — la tecnología está en todo, hasta en la sopa. Aplicaciones, páginas y automatizaciones a medida.',
+    about: 'Jaytech — software, páginas y automatizaciones a medida. Del prototipo a producción, con acompañamiento cercano en cada paso.',
     email: 'hola@dronlab.pe',
     phone: '+51 993 908 435',
     columns: [
@@ -310,11 +416,51 @@ function cloneState(): CmsContentState {
   return structuredClone(DEFAULT_STATE);
 }
 
-export type CmsCollectionKey = 'companies' | 'reviews' | 'services' | 'projects' | 'plans' | 'sections';
+export type CmsCollectionKey = 'companies' | 'reviews' | 'services' | 'projects' | 'plans' | 'sections' | 'teamMembers';
 export type CmsEntityItem = Record<string, string>;
 
 function text(value: string | null | undefined): string {
   return value ?? '';
+}
+
+function toHeaderLinkVariant(value: string | null | undefined): CmsHeaderLinkVariant {
+  return value === 'primary' || value === 'outline' ? value : '';
+}
+
+function parseAnnouncementDetails(body: string): { linkLabel: string; linkHref: string; backgroundColor: string } {
+  try {
+    const parsed = JSON.parse(body || '{}') as Partial<{ linkLabel: string; linkHref: string; backgroundColor: string }>;
+    return { linkLabel: parsed.linkLabel ?? '', linkHref: parsed.linkHref ?? '', backgroundColor: parsed.backgroundColor ?? '' };
+  } catch {
+    return { linkLabel: '', linkHref: '', backgroundColor: '' };
+  }
+}
+
+function parsePageDesignDetails(body: string): { description: string; backgroundColor: string } {
+  try {
+    const parsed = JSON.parse(body || '{}') as Partial<{ description: string; backgroundColor: string }>;
+    return { description: parsed.description ?? '', backgroundColor: parsed.backgroundColor ?? '' };
+  } catch {
+    return { description: '', backgroundColor: '' };
+  }
+}
+
+function parseLoaderDetails(body: string): { color: string } {
+  try {
+    const parsed = JSON.parse(body || '{}') as Partial<{ color: string }>;
+    return { color: parsed.color ?? '' };
+  } catch {
+    return { color: '' };
+  }
+}
+
+function parseHeroAnimationDetails(body: string): { videoUrl: string } {
+  try {
+    const parsed = JSON.parse(body || '{}') as Partial<{ videoUrl: string }>;
+    return { videoUrl: parsed.videoUrl ?? '' };
+  } catch {
+    return { videoUrl: '' };
+  }
 }
 
 function slugify(value: string): string {
@@ -341,6 +487,10 @@ function toPlan(item: ApiPlan): CmsPlan {
   return { id: item.id, name: item.name, price: item.price, description: item.description, features: (item.features ?? []).join('\n'), featured: item.isFeatured ? 'Sí' : 'No', cta: item.cta, image: '', isPublished: String(item.isPublished), displayOrder: String(item.displayOrder) };
 }
 
+function toTeamMember(item: ApiTeamMember): CmsTeamMember {
+  return { id: item.id, name: item.name, role: item.role, bio: item.bio, photo: text(item.photoUrl), linkedin: text(item.linkedinUrl), color: text(item.accentColor) || '#FF6B35', isPublished: String(item.isPublished), displayOrder: String(item.displayOrder) };
+}
+
 function stateFromApi(cms: ApiCms, content: ApiSiteContent[]): CmsContentState {
   const defaults = cloneState();
   return {
@@ -349,13 +499,58 @@ function stateFromApi(cms: ApiCms, content: ApiSiteContent[]): CmsContentState {
     services: (cms.services ?? []).map(toService),
     projects: (cms.projects ?? []).map(toProject),
     plans: (cms.plans ?? []).map(toPlan),
+    teamMembers: (cms.teamMembers ?? []).map(toTeamMember),
     sections: defaults.sections.map((section) => {
       const stored = content.find((item) => item.key === `home.${section.id}`);
       return stored ? { ...section, title: stored.title || section.title, description: stored.body || section.description, image: text(stored.imageUrl) } : section;
     }),
+    announcement: (() => {
+      const stored = content.find((item) => item.key === 'site.announcement');
+      if (!stored) return defaults.announcement;
+      const details = parseAnnouncementDetails(stored.body);
+      return {
+        message: stored.title || '',
+        linkLabel: details.linkLabel,
+        linkHref: details.linkHref,
+        backgroundColor: details.backgroundColor,
+        backgroundImage: text(stored.imageUrl),
+        active: stored.status === 1,
+      };
+    })(),
+    pages: (() => {
+      const ids: CmsPageDesignId[] = ['proyectos', 'propuesta', 'login', 'asesorias', 'capacitaciones', 'conocenos'];
+      const result = {} as Record<CmsPageDesignId, CmsPageDesign>;
+      for (const id of ids) {
+        const stored = content.find((item) => item.key === `page.${id}`);
+        if (!stored) {
+          result[id] = defaults.pages[id];
+          continue;
+        }
+        const details = parsePageDesignDetails(stored.body);
+        result[id] = {
+          heading: stored.title || defaults.pages[id].heading,
+          description: details.description,
+          backgroundColor: details.backgroundColor,
+          backgroundImage: text(stored.imageUrl),
+        };
+      }
+      return result;
+    })(),
+    loader: (() => {
+      const stored = content.find((item) => item.key === 'site.loader');
+      if (!stored) return defaults.loader;
+      const details = parseLoaderDetails(stored.body);
+      return { enabled: stored.status === 1, color: details.color };
+    })(),
+    heroAnimation: (() => {
+      const stored = content.find((item) => item.key === 'home.heroAnimation');
+      if (!stored) return defaults.heroAnimation;
+      const details = parseHeroAnimationDetails(stored.body);
+      return { enabled: stored.status === 1, videoUrl: details.videoUrl };
+    })(),
     header: {
       cta: cms.header?.cta || defaults.header.cta,
-      links: (cms.header?.links ?? defaults.header.links).map((link) => ({ ...link })),
+      links: (cms.header?.links ?? defaults.header.links).map((link) => ({ label: link.label, href: link.href, variant: toHeaderLinkVariant(link.variant) })),
     },
     footer: {
       about: cms.footer?.about || defaults.footer.about,
@@ -369,14 +564,19 @@ function stateFromApi(cms: ApiCms, content: ApiSiteContent[]): CmsContentState {
 @Injectable({ providedIn: 'root' })
 export class CmsContentService {
   private readonly api = inject(ApiService);
-  private readonly state = signal<CmsContentState>({ ...cloneState(), companies: [], reviews: [], services: [], projects: [], plans: [] });
+  private readonly state = signal<CmsContentState>({ ...cloneState(), companies: [], reviews: [], services: [], projects: [], plans: [], teamMembers: [] });
 
   readonly companies = computed(() => this.state().companies);
   readonly reviews = computed(() => this.state().reviews);
   readonly services = computed(() => this.state().services);
   readonly projects = computed(() => this.state().projects);
   readonly plans = computed(() => this.state().plans);
+  readonly teamMembers = computed(() => this.state().teamMembers);
   readonly sections = computed(() => this.state().sections);
+  readonly announcement = computed(() => this.state().announcement);
+  readonly pages = computed(() => this.state().pages);
+  readonly loader = computed(() => this.state().loader);
+  readonly heroAnimation = computed(() => this.state().heroAnimation);
   readonly header = computed(() => this.state().header);
   readonly footer = computed(() => this.state().footer);
 
@@ -429,6 +629,11 @@ export class CmsContentService {
         request$ = this.api.updateSiteContent(contentKey, { key: contentKey, title: item['title'], body: item['description'], imageUrl: item['image'] || null, status: 1 });
         break;
       }
+      case 'teamMembers': {
+        const input = { name: item['name'], role: item['role'], bio: item['bio'], photoUrl: item['photo'] || null, linkedinUrl: item['linkedin'] || null, accentColor: item['color'], isPublished: item['isPublished'] !== 'false', displayOrder };
+        request$ = isNew ? this.api.createTeamMember(input) : this.api.updateTeamMember(id, input);
+        break;
+      }
     }
     return request$.pipe(switchMap(() => this.load(true)));
   }
@@ -440,6 +645,7 @@ export class CmsContentService {
       services: () => this.api.deleteService(id),
       projects: () => this.api.deleteProject(id),
       plans: () => this.api.deletePlan(id),
+      teamMembers: () => this.api.deleteTeamMember(id),
     };
     return requests[key]().pipe(switchMap(() => this.load(true)));
   }
@@ -452,4 +658,30 @@ export class CmsContentService {
     const input = { ...value, columns: value.columns.map((column) => ({ title: column.title, links: column.links.split('\n').map((link) => link.trim()).filter(Boolean) })) };
     return this.api.updateFooter(input).pipe(switchMap(() => this.load(true)));
   }
+
+  saveAnnouncement(value: CmsAnnouncement): Observable<CmsContentState> {
+    const details = JSON.stringify({ linkLabel: value.linkLabel, linkHref: value.linkHref, backgroundColor: value.backgroundColor });
+    const input = { key: 'site.announcement', title: value.message, body: details, imageUrl: value.backgroundImage || null, status: value.active ? 1 : 0 };
+    return this.api.updateSiteContent('site.announcement', input).pipe(switchMap(() => this.load(true)));
+  }
+
+  savePageDesign(id: CmsPageDesignId, value: CmsPageDesign): Observable<CmsContentState> {
+    const key = `page.${id}`;
+    const details = JSON.stringify({ description: value.description, backgroundColor: value.backgroundColor });
+    const input = { key, title: value.heading, body: details, imageUrl: value.backgroundImage || null, status: 1 };
+    return this.api.updateSiteContent(key, input).pipe(switchMap(() => this.load(true)));
+  }
+
+  saveLoaderConfig(value: CmsLoaderConfig): Observable<CmsContentState> {
+    const details = JSON.stringify({ color: value.color });
+    const input = { key: 'site.loader', title: '', body: details, imageUrl: null, status: value.enabled ? 1 : 0 };
+    return this.api.updateSiteContent('site.loader', input).pipe(switchMap(() => this.load(true)));
+  }
+
+  saveHeroAnimation(value: CmsHeroAnimation): Observable<CmsContentState> {
+    const details = JSON.stringify({ videoUrl: value.videoUrl });
+    const input = { key: 'home.heroAnimation', title: '', body: details, imageUrl: null, status: value.enabled ? 1 : 0 };
+    return this.api.updateSiteContent('home.heroAnimation', input).pipe(switchMap(() => this.load(true)));
+  }
+
 }

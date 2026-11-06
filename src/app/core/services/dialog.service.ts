@@ -44,6 +44,10 @@ export class DialogService {
     });
   }
 
+  question(options: DialogOptions): Promise<boolean> {
+    return this.confirm({ ...options, tone: options.tone ?? 'info' });
+  }
+
   alert(options: DialogOptions): Promise<boolean> {
     return this.confirm({
       ...options,

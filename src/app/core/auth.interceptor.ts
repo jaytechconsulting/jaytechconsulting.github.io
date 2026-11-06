@@ -4,7 +4,7 @@ import { finalize } from 'rxjs';
 import { LoadingService } from './services/loading.service';
 
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
-  const token = localStorage.getItem('dronlab_token');
+  const token = localStorage.getItem('jaytech_token');
   const loading = inject(LoadingService);
   loading.start();
   return next(token ? request.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : request).pipe(

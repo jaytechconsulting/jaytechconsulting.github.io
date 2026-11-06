@@ -21,9 +21,8 @@ export interface SeoConfig {
 const ORGANIZATION_SCHEMA = {
   '@type': 'Organization',
   '@id': `${SITE_URL}/#organization`,
-  name: 'DronLab',
-  alternateName: 'El Dron en la Sopa',
-  legalName: 'El Dron en la Sopa',
+  name: 'Jaytech',
+  legalName: 'Jaytech',
   url: `${SITE_URL}/`,
   logo: `${SITE_URL}/favicon.svg`,
   email: 'hola@dronlab.pe',
@@ -63,10 +62,10 @@ export class SeoService {
     this.title.setTitle(config.title);
     this.meta.updateTag({ name: 'description', content: config.description });
     this.meta.updateTag({ name: 'robots', content: robots });
-    this.meta.updateTag({ name: 'author', content: 'DronLab' });
+    this.meta.updateTag({ name: 'author', content: 'Jaytech' });
 
     this.meta.updateTag({ property: 'og:locale', content: 'es_PE' });
-    this.meta.updateTag({ property: 'og:site_name', content: 'DronLab' });
+    this.meta.updateTag({ property: 'og:site_name', content: 'Jaytech' });
     this.meta.updateTag({ property: 'og:type', content: config.type ?? 'website' });
     this.meta.updateTag({ property: 'og:title', content: config.title });
     this.meta.updateTag({ property: 'og:description', content: config.description });
@@ -74,13 +73,13 @@ export class SeoService {
     this.meta.updateTag({ property: 'og:image', content: imageUrl });
     this.meta.updateTag({ property: 'og:image:width', content: '1200' });
     this.meta.updateTag({ property: 'og:image:height', content: '630' });
-    this.meta.updateTag({ property: 'og:image:alt', content: 'DronLab, software y automatizaciones a medida' });
+    this.meta.updateTag({ property: 'og:image:alt', content: 'Jaytech, software y automatizaciones a medida' });
 
     this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
     this.meta.updateTag({ name: 'twitter:title', content: config.title });
     this.meta.updateTag({ name: 'twitter:description', content: config.description });
     this.meta.updateTag({ name: 'twitter:image', content: imageUrl });
-    this.meta.updateTag({ name: 'twitter:image:alt', content: 'DronLab, software y automatizaciones a medida' });
+    this.meta.updateTag({ name: 'twitter:image:alt', content: 'Jaytech, software y automatizaciones a medida' });
 
     this.setLink('canonical', canonicalUrl);
     this.setLink('alternate', canonicalUrl, 'es-PE');
@@ -130,8 +129,7 @@ export class SeoService {
       '@type': 'WebSite',
       '@id': `${SITE_URL}/#website`,
       url: `${SITE_URL}/`,
-      name: 'DronLab',
-      alternateName: ['El Dron en la Sopa', 'Dron Lab'],
+      name: 'Jaytech',
       inLanguage: 'es-PE',
       publisher: { '@id': `${SITE_URL}/#organization` },
     };

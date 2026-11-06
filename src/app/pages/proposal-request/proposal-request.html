@@ -1,6 +1,6 @@
 <div class="grid min-h-screen grid-cols-1 bg-surface-page font-body lg:grid-cols-2">
   <!-- Aside -->
-  <aside class="relative overflow-hidden bg-[image:var(--gradient-ink)] p-8 text-text-on-inverse sm:p-12 lg:p-14">
+  <aside class="relative overflow-hidden bg-[image:var(--gradient-ink)] p-8 text-text-on-inverse sm:p-12 lg:p-14" [style]="asideStyle()">
     <div
       class="pointer-events-none absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-40 [mask-image:radial-gradient(circle_at_30%_20%,#000,transparent_70%)]"
     ></div>
@@ -13,11 +13,11 @@
 
       <div class="mt-10 mb-3.5 font-mono text-xs tracking-[var(--ls-label)] text-brand-cyan uppercase">// Solicitar propuesta</div>
       <h1 class="m-0 font-display text-[clamp(28px,4vw,38px)] font-bold leading-[var(--lh-heading)] tracking-[var(--ls-tight)]">
-        Tu idea, con precio y plazo en 24 horas
+        {{ pageDesign().heading }}
       </h1>
-      <p class="mt-[18px] text-base leading-[var(--lh-body)] text-text-inverse-muted">
-        Cuéntanos qué necesitas. Te devolvemos una propuesta clara de alcance y presupuesto, sin compromiso.
-      </p>
+      @if (pageDesign().description) {
+        <p class="mt-[18px] text-base leading-[var(--lh-body)] text-text-inverse-muted">{{ pageDesign().description }}</p>
+      }
 
       <ol class="relative m-0 mt-10 flex list-none flex-col gap-1 p-0">
         @for (label of steps; track label; let i = $index) {
@@ -129,15 +129,6 @@
               (valueChange)="message.set($event)"
             />
           </div>
-          @if (captchaEnabled) {
-            <p class="mt-4 text-center text-[11px] leading-4 text-text-faint">
-              Protegido por reCAPTCHA v3 · aplican la
-              <a class="underline" href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Política de Privacidad</a>
-              y los
-              <a class="underline" href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer">Términos</a>
-              de Google.
-            </p>
-          }
         </div>
       }
 

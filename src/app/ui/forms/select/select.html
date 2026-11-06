@@ -1,33 +1,13 @@
-<div class="flex flex-col gap-1.5">
-  @if (label()) {
-    <label [for]="fieldId()" class="font-body text-sm font-semibold text-text-strong">
-      {{ label() }}
-      @if (required()) {
-        <span class="text-danger"> *</span>
-      }
-    </label>
-  }
-  <div class="relative">
-    <select
-      [id]="fieldId()"
-      [value]="value()"
-      [disabled]="disabled()"
-      [required]="required()"
-      [class]="fieldClasses()"
-      (change)="onChange($event)"
-    >
-      @if (placeholder()) {
-        <option value="" disabled>{{ placeholder() }}</option>
-      }
-      @for (opt of normalizedOptions(); track opt.value) {
-        <option [value]="opt.value">{{ opt.label }}</option>
-      }
-    </select>
-    <span class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-text-muted">▾</span>
+<div class="select-field" [class.compact]="compact()" [class.inline-label]="inlineLabel()" [class.hide-label]="hideLabel()">
+  @if(label()){<label [for]="fieldId()">{{label()}} @if(required()){<span class="required">*</span>}</label>}
+  <button #trigger type="button" class="select-trigger" [class.is-open]="open()" [class.has-error]="error()" [id]="fieldId()" [disabled]="disabled()" role="combobox" aria-haspopup="listbox" [attr.aria-expanded]="open()" [attr.aria-controls]="fieldId()+'-list'" [attr.aria-label]="label() || placeholder()" [attr.aria-required]="required()" [attr.aria-invalid]="!!error()" [attr.aria-describedby]="hint() || error() ? fieldId()+'-hint' : null" (click)="toggle()" (keydown)="keydown($event)"><span>{{selectedLabel()}}</span><app-icon name="chevronDown" /></button>
+  <div #panel popover="manual" class="select-panel" [style.left.px]="position().left" [style.top.px]="position().top" [style.width.px]="position().width" [style.max-height.px]="position().maxHeight" tabindex="-1" [attr.role]="!searchable() ? 'combobox' : null" [attr.aria-label]="label() || placeholder()" [attr.aria-expanded]="open()" [attr.aria-controls]="fieldId()+'-list'" [attr.aria-activedescendant]="!searchable() && filtered().length ? fieldId()+'-option-'+activeIndex() : null" (keydown)="keydown($event)">
+    @if(searchable()){<div class="select-search"><app-icon name="search"/><input #searchField type="search" placeholder="Buscar opción…" [value]="query()" (input)="search($any($event.target).value)" role="combobox" aria-expanded="true" [attr.aria-label]="'Buscar en ' + (label() || placeholder())" [attr.aria-controls]="fieldId()+'-list'" [attr.aria-activedescendant]="filtered().length ? fieldId()+'-option-'+activeIndex() : null" autocomplete="off" /></div>}
+    <div class="select-options" appOverlayScroll role="listbox" [id]="fieldId()+'-list'" [attr.aria-label]="label() || placeholder()">
+      @for(option of filtered();track option.value;let i=$index){<div class="select-option" role="option" [id]="fieldId()+'-option-'+i" [attr.aria-selected]="option.value===value()" [class.highlighted]="activeIndex()===i" (pointermove)="activeIndex.set(i)" (click)="choose(option.value)"><span>{{option.label}}</span>@if(option.value===value()){<app-icon name="check"/>}</div>}
+      @empty{<div class="select-empty" role="status">Sin coincidencias</div>}
+    </div>
+    <div class="select-footnote">{{filtered().length}} opciones · ↑↓ navegar · Enter seleccionar</div>
   </div>
-  @if (hint() || error()) {
-    <span class="font-body text-[13px]" [class]="error() ? 'text-danger' : 'text-text-muted'">
-      {{ error() || hint() }}
-    </span>
-  }
+  @if(hint() || error()){<span class="hint" [class.required]="error()" [id]="fieldId()+'-hint'">{{error() || hint()}}</span>}
 </div>

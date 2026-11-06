@@ -1,0 +1,7 @@
+@keyframes pd-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.pd-float {
+  animation: pd-float 4s var(--ease-in-out) infinite;
+}

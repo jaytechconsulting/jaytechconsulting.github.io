@@ -3,7 +3,7 @@ import { Component, DestroyRef, inject, output, signal } from '@angular/core';
 interface BootLine { cmd: string; out: string | null; }
 
 const BOOT_LINES: BootLine[] = [
-  { cmd: '$ init dronlab.system', out: null },
+  { cmd: '$ init jaytech.system', out: null },
   { cmd: '> montando módulos de UI', out: 'ok' },
   { cmd: '> conectando servicios', out: 'ok' },
   { cmd: '> calibrando sensores', out: 'ok' },

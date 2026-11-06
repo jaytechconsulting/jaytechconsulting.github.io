@@ -10,8 +10,7 @@ const TONES: Record<ToastTone, { color: string; label: string; glyph: string }> 
 };
 
 /**
- * Toast — HUD-glass notification. Dark glass surface, neon tone accent,
- * glowing icon chip, mono eyebrow and an auto-countdown scanline.
+ * Toast — glass notification with its original rotating icon ring and countdown.
  * `duration` in ms; 0 disables auto-dismiss.
  */
 @Component({

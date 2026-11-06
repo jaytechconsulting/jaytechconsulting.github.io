@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
 
 const PHONE = '51993908435';
-const MESSAGE = 'Hola DronLab 👋, vengo desde su web y quisiera más información sobre sus servicios.';
+const MESSAGE = 'Hola Jaytech 👋, vengo desde su web y quisiera más información sobre sus servicios.';
 
-/** Floating WhatsApp button. Opens a chat to the DronLab number with a prefilled message. */
+/** Floating WhatsApp button. Opens a chat to the Jaytech number with a prefilled message. */
 @Component({
   selector: 'app-whatsapp-fab',
   templateUrl: './whatsapp-fab.html',

@@ -1,45 +1,14 @@
-<div
-  role="status"
-  class="dl-toast relative flex w-[min(380px,92vw)] items-start gap-3.5 overflow-hidden rounded-lg border border-[var(--glass-border)] bg-[var(--glass-dark)] py-4 pl-[18px] pr-4 text-text-on-inverse backdrop-blur-[var(--blur-glass)] transition-[opacity,transform] duration-[240ms] ease-out"
-  [class.opacity-0]="leaving()"
-  [class.translate-x-4]="leaving()"
-  [style.border-left]="'3px solid ' + toneColor()"
-  [style.box-shadow]="'0 18px 44px -14px rgba(0,0,0,0.6), 0 0 22px -8px ' + toneColor()"
->
-  <span class="relative inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full">
-    <span class="dl-toast-ring absolute inset-[-60%]" [style.background]="ringGradient()"></span>
-    <span
-      class="absolute inset-[2px] inline-flex items-center justify-center rounded-full font-mono text-[15px] font-bold text-ink-950"
-      [style.background]="toneColor()"
-      [style.box-shadow]="'0 0 14px -2px ' + toneColor()"
-    >{{ toneGlyph() }}</span>
-  </span>
-  <div class="min-w-0 flex-1">
-    <div
-      class="font-mono text-[10.5px] uppercase tracking-[var(--ls-label)]"
-      [style.color]="toneColor()"
-      [style.margin-bottom.px]="title() ? 3 : 0"
-    >{{ toneLabel() }}</div>
-    @if (title()) {
-      <div class="text-[15px] font-semibold leading-[1.35] text-text-on-inverse">{{ title() }}</div>
-    }
-    @if (message()) {
-      <div class="mt-[3px] text-[13.5px] leading-[var(--lh-snug)] text-text-inverse-muted">{{ message() }}</div>
-    }
-    <ng-content />
-  </div>
-  <button
-    type="button"
-    aria-label="Cerrar"
-    class="h-[26px] w-[26px] shrink-0 cursor-pointer rounded-sm border-none bg-transparent text-lg leading-none text-text-inverse-muted"
-    (click)="dismiss()"
-  >×</button>
-  @if (duration()) {
-    <span
-      class="dl-toast-bar absolute bottom-0 left-0 h-[2px] w-full origin-left"
-      [style.background]="toneColor()"
-      [style.box-shadow]="'0 0 8px ' + toneColor()"
-      [style.animation-duration.ms]="duration()"
-    ></span>
-  }
+<div role="status" class="dl-toast relative flex w-[min(380px,92vw)] items-start gap-3.5 overflow-hidden rounded-lg border py-4 pl-[18px] pr-4 backdrop-blur-[var(--blur-glass)] transition-[opacity,transform] duration-[240ms] ease-out" [attr.data-tone]="tone()" [class.opacity-0]="leaving()" [class.translate-x-4]="leaving()" [style.--toast-accent]="toneColor()" [style.border-left]="'3px solid ' + toneColor()">
+ <span class="relative inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full">
+  <span class="dl-toast-ring absolute inset-[-60%]" [style.background]="ringGradient()"></span>
+  <span class="absolute inset-[2px] inline-flex items-center justify-center rounded-full font-body text-[15px] font-bold text-ink-950" [style.background]="toneColor()" [style.box-shadow]="'0 0 14px -2px ' + toneColor()">{{toneGlyph()}}</span>
+ </span>
+ <div class="min-w-0 flex-1">
+  <div class="toast-kind font-body text-[10.5px] uppercase tracking-[var(--ls-label)]" [style.margin-bottom.px]="title() ? 3 : 0">{{toneLabel()}}</div>
+  @if(title()){<div class="toast-title text-[15px] font-semibold leading-[1.35]">{{title()}}</div>}
+  @if(message()){<div class="toast-message mt-[3px] text-[13.5px] leading-[var(--lh-snug)]">{{message()}}</div>}
+  <ng-content />
+ </div>
+ <button type="button" aria-label="Cerrar" class="toast-close h-[26px] w-[26px] shrink-0 cursor-pointer rounded-sm border-none bg-transparent text-lg leading-none" (click)="dismiss()">×</button>
+ @if(duration()){<span class="dl-toast-bar absolute bottom-0 left-0 h-[2px] w-full origin-left" [style.background]="toneColor()" [style.box-shadow]="'0 0 8px ' + toneColor()" [style.animation-duration.ms]="duration()"></span>}
 </div>

@@ -1,0 +1,29 @@
+<nav aria-label="Ruta de navegación" class="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[13px]">
+  @for (item of items(); track item.label; let last = $last) {
+    @if (!last && item.href) {
+      <a
+        [routerLink]="item.href"
+        class="no-underline transition-colors duration-150 ease-out"
+        [class]="inverse() ? 'text-text-inverse-muted hover:text-brand-cyan-300' : 'text-text-muted hover:text-brand-orange'"
+      >
+        {{ item.label }}
+      </a>
+    } @else {
+      <span [class]="inverse() ? 'text-text-on-inverse' : 'text-text-strong'" class="font-medium">{{ item.label }}</span>
+    }
+    @if (!last) {
+      <svg
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="h-3 w-3 shrink-0"
+        [class]="inverse() ? 'text-text-inverse-muted' : 'text-text-faint'"
+      >
+        <path d="M6 4l4 4-4 4" />
+      </svg>
+    }
+  }
+</nav>

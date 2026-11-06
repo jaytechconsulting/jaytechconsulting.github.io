@@ -1,12 +1,59 @@
 <header [class]="headerClasses()">
   <div class="flex items-center justify-between px-5 py-4 min-[821px]:px-8">
-    <app-wordmark [tone]="inverse() ? 'light' : 'dark'" />
-    <nav class="hidden items-center gap-7 min-[821px]:flex">
-      @for (link of links(); track link.label) {
-        <a [href]="link.href" [class]="linkClasses()">{{ link.label }}</a>
+    <app-wordmark [tone]="inverse() || theme() === 'dark' ? 'light' : 'dark'" [animated]="true" />
+    <nav class="hidden items-center gap-1 min-[821px]:flex">
+      <a [routerLink]="homeHref" [class]="linkClasses(homeHref)" (click)="selectLink(homeHref)">Inicio</a>
+
+      <div class="group relative">
+        <button type="button" [class]="linkClasses('#servicios') + ' inline-flex cursor-default items-center gap-1'">
+          Servicios
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3 transition-transform duration-150 ease-out group-hover:rotate-180">
+            <path d="M4 6l4 4 4-4" />
+          </svg>
+        </button>
+        <div
+          class="invisible absolute left-0 top-full z-50 pt-2 opacity-0 transition-[opacity,transform] duration-150 ease-out group-hover:visible group-hover:opacity-100 group-hover:[&>div]:translate-y-0"
+        >
+          <div class="services-dropdown-panel min-w-[190px] -translate-y-1 rounded-lg border border-border-subtle bg-surface-card p-1.5 shadow-lg transition-transform duration-150 ease-out">
+            @for (service of servicesDropdown; track service.label) {
+              <a
+                [routerLink]="service.href"
+                class="block rounded-md px-3 py-2 font-body text-sm text-text-body no-underline transition-colors duration-150 ease-out hover:bg-surface-sunken hover:text-brand-orange"
+                (click)="selectLink(service.href)"
+                >{{ service.label }}</a
+              >
+            }
+          </div>
+        </div>
+      </div>
+
+      <a [routerLink]="conocenosHref" [class]="linkClasses(conocenosHref)" (click)="selectLink(conocenosHref)">Conócenos</a>
+
+      @for (link of navLinks(); track link.label) {
+        <a [href]="link.href" [class]="linkClasses(link.href)" (click)="selectLink(link.href)">{{ link.label }}</a>
       }
     </nav>
-    <div class="hidden min-[821px]:block">
+    <div class="hidden items-center gap-3 min-[821px]:flex">
+      @for (link of buttonLinks(); track link.label) {
+        <a [href]="link.href" [class]="extraButtonClasses(link.variant ?? 'primary', 'sm')">{{ link.label }}</a>
+      }
+      <button
+        type="button"
+        class="inline-flex h-10 w-10 items-center justify-center rounded-pill border border-border-subtle bg-transparent text-text-body transition-colors duration-200 ease-out hover:text-brand-orange"
+        [attr.aria-label]="theme() === 'dark' ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'"
+        (click)="toggleTheme()"
+      >
+        @if (theme() === 'dark') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+          </svg>
+        } @else {
+          <svg viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
+            <path d="M20.742 13.045a8.25 8.25 0 0 1-10.787-10.787 8.25 8.25 0 1 0 10.787 10.787Z" />
+          </svg>
+        }
+      </button>
       <app-button variant="primary" size="sm" (clicked)="ctaClicked.emit()">{{ cta() }}</app-button>
     </div>
     <button
@@ -23,9 +70,37 @@
   </div>
   @if (menuOpen()) {
     <nav [class]="mobileNavClasses()">
-      @for (link of links(); track link.label) {
-        <a [href]="link.href" [class]="mobileLinkClasses()" (click)="closeMenu()">{{ link.label }}</a>
+      <a [routerLink]="homeHref" [class]="mobileLinkClasses(homeHref)" (click)="selectLink(homeHref); closeMenu()">Inicio</a>
+
+      <span [class]="mobileLinkClasses('#servicios') + ' cursor-default'">Servicios</span>
+      @for (service of servicesDropdown; track service.label) {
+        <a
+          [routerLink]="service.href"
+          class="rounded-sm py-2 pr-2 pl-6 font-body text-[15px] text-text-muted no-underline transition-colors duration-200 ease-out hover:text-brand-orange"
+          (click)="selectLink(service.href); closeMenu()"
+          >{{ service.label }}</a
+        >
       }
+
+      <a [routerLink]="conocenosHref" [class]="mobileLinkClasses(conocenosHref)" (click)="selectLink(conocenosHref); closeMenu()">Conócenos</a>
+
+      @for (link of links(); track link.label) {
+        <a [href]="link.href" [class]="mobileLinkClasses(link.href)" (click)="selectLink(link.href); closeMenu()">{{ link.label }}</a>
+      }
+      <button type="button" [class]="mobileLinkClasses('') + ' flex items-center gap-2 text-left'" (click)="toggleTheme()">
+        @if (theme() === 'dark') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+          </svg>
+          Tema claro
+        } @else {
+          <svg viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
+            <path d="M20.742 13.045a8.25 8.25 0 0 1-10.787-10.787 8.25 8.25 0 1 0 10.787 10.787Z" />
+          </svg>
+          Tema oscuro
+        }
+      </button>
       <div class="mt-2">
         <app-button variant="primary" size="sm" [fullWidth]="true" (clicked)="onMobileCta()">{{ cta() }}</app-button>
       </div>

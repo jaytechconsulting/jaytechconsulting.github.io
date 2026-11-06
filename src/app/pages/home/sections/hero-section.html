@@ -1,56 +1,117 @@
-<section class="relative overflow-hidden bg-[image:var(--gradient-ink)] px-8 pt-[104px] pb-[118px] text-text-on-inverse">
-  @if (content().image) {
-    <img [src]="content().image" alt="" class="pointer-events-none absolute inset-y-0 right-0 h-full w-full object-cover opacity-55 md:w-[58%]" />
-    <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,var(--ink-950)_0%,rgba(11,15,26,0.92)_42%,rgba(11,15,26,0.28)_100%)]"></div>
-  }
-  <div
-    class="pointer-events-none absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-50 [mask-image:radial-gradient(circle_at_70%_30%,#000_0%,transparent_75%)]"
-  ></div>
-  <div
-    class="pointer-events-none absolute -top-[140px] -right-20 h-[500px] w-[500px] bg-[radial-gradient(circle,rgba(255,107,53,0.28),transparent_66%)]"
-  ></div>
-  <div
-    class="pointer-events-none absolute -bottom-[180px] -left-[120px] h-[480px] w-[480px] bg-[radial-gradient(circle,rgba(34,211,238,0.20),transparent_68%)]"
-  ></div>
+<section class="relative flex min-h-[calc(100dvh-var(--hero-chrome-h,80px))] flex-col justify-center overflow-hidden bg-surface-page px-8 py-10">
+  <div class="pointer-events-none absolute -top-28 -left-28 h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,rgba(255,107,53,0.14),transparent_40%)]"></div>
 
-  <div class="relative mx-auto max-w-[1200px]">
-    <div class="max-w-[780px]">
-      <div
-        class="mb-[22px] inline-flex items-center gap-2 rounded-pill border border-[var(--glass-border)] bg-[var(--glass-dark)] px-3.5 py-[7px] font-mono text-[13px] uppercase tracking-[0.14em] text-brand-cyan backdrop-blur-sm"
+  <!-- background video — bleeds into the page, no card/box; the fade on both sides keeps its edges from ever reading as a rectangle -->
+  @if (heroAnimation().enabled) {
+    <div
+      class="pointer-events-none absolute inset-y-0 right-0 hidden w-[58%] overflow-hidden min-[821px]:block [mask-image:linear-gradient(90deg,transparent_0%,black_24%,black_82%,transparent_100%)]"
+    >
+      @if (heroAnimation().videoUrl) {
+        <video class="h-full w-full object-cover" [autoplay]="!reducedMotion" [muted]="true" loop playsinline [preload]="reducedMotion ? 'auto' : 'metadata'">
+          <source [src]="heroAnimation().videoUrl" />
+        </video>
+      } @else if (theme() === 'dark') {
+        <video class="h-full w-full object-cover" [autoplay]="!reducedMotion" [muted]="true" loop playsinline [preload]="reducedMotion ? 'auto' : 'metadata'">
+          <source src="hero/hero-oscuro.webm" type="video/webm" />
+          <source src="hero/hero-oscuro.mp4" type="video/mp4" />
+        </video>
+      } @else {
+        <video class="h-full w-full object-cover" [autoplay]="!reducedMotion" [muted]="true" loop playsinline [preload]="reducedMotion ? 'auto' : 'metadata'">
+          <source src="hero/hero-claro.webm" type="video/webm" />
+          <source src="hero/hero-claro.mp4" type="video/mp4" />
+        </video>
+      }
+    </div>
+  }
+
+  <div class="relative z-10 mx-auto w-full max-w-[1320px]">
+    <div class="relative max-w-[560px] min-[821px]:ml-[4%]">
+      <svg
+        viewBox="0 0 64 64"
+        fill="none"
+        stroke="var(--brand-cyan)"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="pointer-events-none absolute -top-10 right-6 hidden h-14 w-14 motion-safe:animate-[float-wiggle_5s_ease-in-out_infinite] min-[821px]:block"
       >
-        <span class="h-[7px] w-[7px] rounded-full bg-brand-cyan shadow-[0_0_10px_var(--brand-cyan)]"></span>
+        <path d="M6 38C16 20 34 14 50 24" />
+        <path d="M40 18l10 6-6 10" />
+      </svg>
+
+      <div
+        class="mb-[22px] inline-flex items-center gap-2 rounded-pill border border-border-subtle bg-[rgba(255,107,53,0.07)] px-3.5 py-[7px] font-mono text-[13px] uppercase tracking-[0.14em] text-brand-orange-600"
+      >
+        <span class="h-[7px] w-[7px] rounded-full bg-brand-orange"></span>
         {{ content().eyebrow }}
       </div>
 
-      <h1 class="m-0 font-display text-[74px] font-bold leading-[1.05] tracking-[-0.03em]">
+      <h1 class="m-0 font-display text-[clamp(38px,5vw,60px)] font-extrabold leading-[1.08] tracking-[-0.02em] text-text-strong">
         {{ content().title }}<br />
         @if (content().highlight) {
-          <span class="bg-[image:var(--text-gradient)] bg-clip-text text-transparent">{{ content().highlight }}</span>
+          <span class="relative inline-block">
+            {{ content().highlight }}
+            <svg class="pointer-events-none absolute -bottom-3 left-0 h-3 w-full" viewBox="0 0 200 12" preserveAspectRatio="none" fill="none">
+              <path d="M2 8C40 2 80 2 100 6C130 11 160 2 198 5" stroke="var(--brand-orange)" stroke-width="5" stroke-linecap="round" />
+            </svg>
+          </span>
         }
       </h1>
 
-      <p class="mt-[26px] max-w-[560px] text-xl leading-snug text-text-inverse-muted">
+      <p class="mt-6 max-w-[460px] text-lg leading-snug text-text-muted">
         {{ content().description }}
       </p>
 
-      <div class="mt-9 flex flex-wrap gap-3.5">
+      <div class="mt-8 flex flex-wrap gap-3.5">
         <app-button variant="primary" size="lg" (clicked)="goToProposal()">
           Solicitar propuesta
           <span slot="icon-right">→</span>
         </app-button>
-        <app-button variant="inverse" size="lg" (clicked)="goToProjects()">Ver proyectos</app-button>
-        <app-button variant="ghost-inverse" size="lg" (clicked)="goToClientArea()">Área de cliente</app-button>
+        <app-button variant="outline" size="lg" (clicked)="goToProjects()">Ver proyectos</app-button>
+        <app-button variant="ghost" size="lg" (clicked)="goToClientArea()">Área de cliente</app-button>
       </div>
 
-      <div class="mt-11 flex flex-wrap items-center gap-2.5">
+      <div class="mt-9 flex flex-wrap items-center gap-2.5">
         <span class="font-mono text-xs uppercase tracking-[0.14em] text-text-faint">stack</span>
         @for (tech of stack(); track tech) {
-          <span
-            class="rounded-pill border border-[var(--glass-border)] bg-[var(--glass-dark)] px-3 py-1.5 font-mono text-[13px] text-brand-cyan-300 backdrop-blur-sm"
-            >{{ tech }}</span
-          >
+          <span class="rounded-pill border border-border-subtle bg-surface-sunken px-3 py-1.5 font-mono text-[13px] text-text-muted">{{ tech }}</span>
         }
       </div>
     </div>
+
+    <!-- background video — mobile: full-bleed band below the text, fades in from the top -->
+    @if (heroAnimation().enabled) {
+      <div
+        class="relative -mx-8 mt-12 aspect-[4/3] w-[calc(100%+64px)] overflow-hidden [mask-image:linear-gradient(180deg,transparent_0%,black_20%)] min-[821px]:hidden"
+      >
+        @if (heroAnimation().videoUrl) {
+          <video class="h-full w-full object-cover" [autoplay]="!reducedMotion" [muted]="true" loop playsinline [preload]="reducedMotion ? 'auto' : 'metadata'">
+            <source [src]="heroAnimation().videoUrl" />
+          </video>
+        } @else if (theme() === 'dark') {
+          <video class="h-full w-full object-cover" [autoplay]="!reducedMotion" [muted]="true" loop playsinline [preload]="reducedMotion ? 'auto' : 'metadata'">
+            <source src="hero/hero-oscuro.webm" type="video/webm" />
+            <source src="hero/hero-oscuro.mp4" type="video/mp4" />
+          </video>
+        } @else {
+          <video class="h-full w-full object-cover" [autoplay]="!reducedMotion" [muted]="true" loop playsinline [preload]="reducedMotion ? 'auto' : 'metadata'">
+            <source src="hero/hero-claro.webm" type="video/webm" />
+            <source src="hero/hero-claro.mp4" type="video/mp4" />
+          </video>
+        }
+      </div>
+    }
+  </div>
+
+  <div
+    class="pointer-events-none absolute right-[10%] top-[26%] z-10 hidden items-center gap-2 rounded-pill border border-border-subtle bg-surface-card/90 px-4 py-2 shadow-md backdrop-blur-sm motion-safe:animate-[float-y-sm_5s_ease-in-out_infinite] min-[821px]:flex"
+  >
+    <span class="h-2 w-2 rounded-full bg-success"></span>
+    <span class="font-mono text-xs text-text-muted">99.9% uptime</span>
+  </div>
+  <div
+    class="pointer-events-none absolute right-[16%] bottom-[22%] z-10 hidden items-center gap-2 rounded-pill border border-border-subtle bg-surface-card/90 px-4 py-2 shadow-md backdrop-blur-sm motion-safe:animate-[float-y-sm_6s_ease-in-out_infinite_1s] min-[821px]:flex"
+  >
+    <span class="font-mono text-xs text-brand-cyan-600">+40 proyectos</span>
   </div>
 </section>

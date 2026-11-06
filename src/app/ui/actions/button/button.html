@@ -1,5 +1,6 @@
-<button [type]="type()" [disabled]="disabled()" [class]="classes()" (click)="onClick($event)">
+<button [attr.data-tone]="tone()" class="brand-button" [class.icon-only]="iconOnly()" [class.mobile-icon]="mobileIcon() && !!icon()" [class.is-active]="active()" [attr.aria-label]="label()" [attr.title]="label()" [attr.aria-expanded]="expanded()" [attr.aria-controls]="controls()" [attr.aria-current]="current()" [type]="type()" [disabled]="disabled()" [class]="classes()" (click)="onClick($event)">
+  @if(icon()){<app-icon [name]="icon()!" />}
   <ng-content select="[slot=icon-left]" />
-  <ng-content />
+  <span class="button-content"><ng-content /></span>
   <ng-content select="[slot=icon-right]" />
 </button>

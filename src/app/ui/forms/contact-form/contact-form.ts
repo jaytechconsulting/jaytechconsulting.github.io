@@ -1,10 +1,9 @@
-import { Component, inject, input, output, signal } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Input } from '../input/input';
 import { Textarea } from '../textarea/textarea';
 import { Select } from '../select/select';
 import { Button } from '../../actions/button/button';
-import { RecaptchaService } from '../../../core/services/recaptcha.service';
 
 export interface ContactFormValue {
   name: string;
@@ -22,8 +21,6 @@ const SERVICES = ['Aplicación web', 'Página / landing', 'Automatización', 'In
   templateUrl: './contact-form.html',
 })
 export class ContactForm {
-  private readonly recaptcha = inject(RecaptchaService);
-  readonly captchaEnabled = this.recaptcha.enabled;
   readonly title = input('¿Hablamos de tu proyecto?');
   readonly subtitle = input('Cuéntanos qué necesitas y te respondemos en menos de 24 horas.');
   readonly submitted = output<ContactFormValue>();
@@ -35,7 +32,6 @@ export class ContactForm {
   readonly service = signal('');
   readonly message = signal('');
 
-  constructor() { void this.recaptcha.load().catch(() => undefined); }
 
   onSubmit(): void {
     this.submitted.emit({

@@ -7,6 +7,7 @@ import { Button } from '../../../ui/actions/button/button';
 import { Wordmark } from '../../../ui/brand/wordmark/wordmark';
 import { WhatsAppFab } from '../../../ui/marketing/whatsapp-fab/whatsapp-fab';
 import { ProjectsService } from '../../../core/projects.service';
+import { CmsContentService } from '../../../core/cms-content.service';
 
 const FILTERS = ['Todos', 'Web', 'Landing', 'Automatización', 'Integración'];
 const PAGE_SIZE = 6;
@@ -25,9 +26,19 @@ const STATS: [string, string][] = [
 export class ProjectList implements OnInit {
   private readonly router = inject(Router);
   private readonly projectsService = inject(ProjectsService);
+  private readonly cms = inject(CmsContentService);
 
   readonly filters = FILTERS;
   readonly stats = STATS;
+  readonly pageDesign = computed(() => this.cms.pages().proyectos);
+  readonly headerStyle = computed(() => {
+    const d = this.pageDesign();
+    if (d.backgroundImage) {
+      return { 'background-image': `linear-gradient(rgba(11,15,26,0.72), rgba(11,15,26,0.72)), url(${d.backgroundImage})`, 'background-size': 'cover', 'background-position': 'center' };
+    }
+    if (d.backgroundColor) return { background: d.backgroundColor };
+    return {};
+  });
   readonly projects = signal<import('../../../core/projects-data').Project[]>([]);
   ngOnInit(): void { this.projectsService.list().subscribe(items => this.projects.set(items)); }
 

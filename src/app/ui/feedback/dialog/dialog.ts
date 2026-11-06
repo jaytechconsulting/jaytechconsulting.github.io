@@ -1,31 +1,57 @@
-import { Component, computed, input, output } from '@angular/core';
+import { ThemeService } from '../../../core/theme.service';
+import { closeModal } from '../modal-motion';
+import { Icon, IconName } from '../../data-display/icon/icon';
+import { Component, computed, input, output, AfterViewInit, OnDestroy, ElementRef, HostListener, inject, signal } from '@angular/core';
 import { Button } from '../../actions/button/button';
 
 export type DialogTone = 'brand' | 'success' | 'warning' | 'danger' | 'info';
 
-const TONES: Record<DialogTone, { color: string; glyph: string }> = {
-  brand: { color: 'var(--brand-orange)', glyph: '◆' },
-  success: { color: 'var(--success)', glyph: '✓' },
-  warning: { color: 'var(--brand-yellow)', glyph: '!' },
-  danger: { color: 'var(--danger)', glyph: '×' },
-  info: { color: 'var(--brand-cyan)', glyph: 'i' },
+let dialogUid=0;
+
+const TONES: Record<DialogTone, { color: string; label: string }> = {
+  brand: { color: 'var(--brand-orange)', label: 'Confirmación' },
+  success: { color: 'var(--success)', label: 'Completado' },
+  warning: { color: 'var(--brand-yellow)', label: 'Revisa antes de continuar' },
+  danger: { color: 'var(--danger)', label: 'Acción importante' },
+  info: { color: 'var(--brand-cyan)', label: 'Confirmación' },
 };
 
 /**
- * Dialog — HUD modal for confirmations. Grid-textured blurred overlay,
- * glass panel with a neon tone bar + glow, icon chip and action row.
+ * Dialog — centered brand confirmation with a transparent blur backdrop.
  * `cancelLabel: null` oculta el botón cancelar. Escape/backdrop emiten `cancelled`.
  */
 @Component({
   selector: 'app-dialog',
-  imports: [Button],
+  imports: [Button, Icon],
   templateUrl: './dialog.html',
   styleUrl: './dialog.css',
   host: {
     '(document:keydown.escape)': 'onEscape()',
   },
 })
-export class Dialog {
+export class Dialog implements AfterViewInit, OnDestroy {
+  readonly theme=inject(ThemeService);
+  private readonly host=inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly previousFocus=document.activeElement as HTMLElement | null;
+  private readonly uid=`dialog-${++dialogUid}`;
+  readonly titleId=this.uid+'-title'; readonly messageId=this.uid+'-message';
+  readonly icon=computed<IconName>(()=>this.tone()==='danger' || this.tone()==='warning' ? 'warning' : this.tone()==='success' ? 'check' : this.tone()==='info' ? 'info' : 'question');
+  ngAfterViewInit():void { this.host.nativeElement.querySelector<HTMLElement>('button')?.focus(); }
+  ngOnDestroy():void { requestAnimationFrame(()=>this.previousFocus?.isConnected && this.previousFocus.focus()); }
+  @HostListener('keydown',['$event']) trapFocus(event:KeyboardEvent):void {
+    if(event.key!=='Tab')return;
+    const buttons=Array.from(this.host.nativeElement.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));
+    const first=buttons[0],last=buttons[buttons.length-1];
+    if(event.shiftKey && document.activeElement===first){event.preventDefault();last?.focus();}
+    else if(!event.shiftKey && document.activeElement===last){event.preventDefault();first?.focus();}
+  }
+
+  readonly closing=signal(false);
+  async requestClose(confirmed:boolean):Promise<void>{
+    if(this.closing())return;this.closing.set(true);
+    await closeModal(this.host.nativeElement.querySelector<HTMLElement>('.dl-dialog-panel') ?? undefined);
+    if(confirmed)this.confirmed.emit();else this.cancelled.emit();
+  }
   readonly open = input(true);
   readonly tone = input<DialogTone>('brand');
   readonly title = input('');
@@ -36,22 +62,13 @@ export class Dialog {
   readonly cancelled = output<void>();
 
   readonly toneColor = computed(() => (TONES[this.tone()] ?? TONES.brand).color);
-  readonly toneGlyph = computed(() => (TONES[this.tone()] ?? TONES.brand).glyph);
-  readonly ringGradient = computed(
-    () => `conic-gradient(from 0deg, transparent 0 62%, ${this.toneColor()} 80%, #fff 90%, transparent 100%)`,
-  );
-  readonly cornerGlow = computed(
-    () => `radial-gradient(circle, color-mix(in srgb, ${this.toneColor()} 20%, transparent), transparent 66%)`,
-  );
-  readonly panelShadow = computed(
-    () => `0 30px 80px -20px rgba(0,0,0,0.7), 0 0 40px -16px ${this.toneColor()}`,
-  );
+  readonly contextLabel = computed(() => (TONES[this.tone()] ?? TONES.brand).label);
 
   onEscape(): void {
-    if (this.open()) this.cancelled.emit();
+    if (this.open()) void this.requestClose(false);
   }
 
   onBackdrop(event: MouseEvent): void {
-    if (event.target === event.currentTarget) this.cancelled.emit();
+    if (event.target === event.currentTarget) void this.requestClose(false);
   }
 }

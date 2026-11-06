@@ -73,16 +73,40 @@ export interface ApiPlan {
   isPublished: boolean;
   displayOrder: number;
 }
-export interface ApiHeaderLink { label: string; href: string; }
+export interface ApiTrainingProgram {
+  id: string;
+  title: string;
+  description: string;
+  modality: string;
+  duration: string;
+  imageUrl?: string | null;
+  accentColor?: string | null;
+  isPublished: boolean;
+  displayOrder: number;
+}
+export interface ApiPagedResult<T> { items: T[]; total: number; page: number; pageSize: number; }
+export interface ApiHeaderLink { label: string; href: string; variant?: string | null; }
 export interface ApiFooterColumn { title: string; links: string[]; }
 export interface ApiHeader { cta: string; links: ApiHeaderLink[]; }
 export interface ApiFooter { about: string; email: string; phone: string; columns: ApiFooterColumn[]; }
+export interface ApiTeamMember {
+  id: string;
+  name: string;
+  role: string;
+  bio: string;
+  photoUrl?: string | null;
+  linkedinUrl?: string | null;
+  accentColor?: string | null;
+  isPublished: boolean;
+  displayOrder: number;
+}
 export interface ApiCms {
   companies: ApiCompany[];
   reviews: ApiReview[];
   services: ApiServiceItem[];
   projects: ApiProject[];
   plans: ApiPlan[];
+  teamMembers: ApiTeamMember[];
   header: ApiHeader;
   footer: ApiFooter;
 }
@@ -96,5 +120,29 @@ export interface ApiSiteContent {
   updatedAt: string;
 }
 export interface ApiTicket { id: string; code: string; title: string; description: string; priority: string; status: string; createdAt: string; updatedAt?: string; }
-export interface ApiUser { id: string; name: string; email: string; role: string; token: string; }
-export interface ApiAdminUser { id: string; name: string; email: string; role: string; isActive: boolean; createdAt: string; }
+export interface ApiUser { id: string; name: string; email: string; role: string; token: string; avatarUrl?: string | null; avatarZoom?:number; avatarX?:number; avatarY?:number; }
+export interface ApiAdminUser extends PersonalProfileFields { id: string; name: string; email: string; role: string; isActive: boolean; createdAt: string; }
+
+export interface PersonalProfileFields {
+  avatarUrl?:string|null; avatarZoom?:number; avatarX?:number; avatarY?:number;
+  givenNames?: string | null;
+  paternalSurname?: string | null;
+  maternalSurname?: string | null;
+  documentType?: string | null;
+  documentNumber?: string | null;
+  phone?: string | null;
+  contactEmail?: string | null;
+  sex?: string | null;
+}
+export interface PersonalProfileInput {
+  avatarUrl?:string; avatarZoom?:number; avatarX?:number; avatarY?:number;
+  givenNames: string;
+  paternalSurname: string;
+  maternalSurname: string;
+  documentType: string;
+  documentNumber: string;
+  phone: string;
+  contactEmail: string;
+  sex: string;
+}
+export type ApiProfile = ApiUser & PersonalProfileFields;

@@ -1,0 +1,7 @@
+<div class="icon-picker"><div class="picker-heading"><strong>Ícono del menú</strong><span class="current-icon"><app-icon [name]="$any(value())"/><span>{{label(value())}}</span></span></div>
+@if(!disabled()){<label class="icon-search"><app-icon name="search"/><input type="search" aria-label="Buscar ícono" placeholder="Buscar ícono..." [value]="query()" (input)="query.set($any($event.target).value)" (keydown.enter)="$event.preventDefault()"/></label>}
+<div class="icon-grid-wrap"><div class="icon-grid" appOverlayScroll role="radiogroup" aria-label="Ícono del menú" [attr.aria-disabled]="disabled()">
+ @for(key of filtered();track key;let i=$index){<button type="button" role="radio" [attr.aria-label]="label(key)" [attr.aria-checked]="value()===key" [title]="label(key)" [tabIndex]="value()===key || (!filtered().includes($any(value())) && i===0) ? 0 : -1" [disabled]="disabled()" [class.selected]="value()===key" (click)="choose(key)" (keydown)="keydown($event,i)"><app-icon [name]="key"/>@if(value()===key){<span class="selection-mark"></span>}</button>}
+ @empty{<p class="icon-empty">No hay íconos que coincidan.</p>}
+</div></div>@if(error()){<span class="picker-error" role="alert">{{error()}}</span>}
+</div>

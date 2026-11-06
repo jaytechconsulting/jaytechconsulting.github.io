@@ -1,192 +1,35 @@
-<div class="min-h-screen bg-surface-page bg-[radial-gradient(rgba(11,15,26,0.05)_1.2px,transparent_1.2px)] bg-[length:22px_22px] font-body">
-  <!-- Header -->
-  <header class="relative overflow-hidden bg-[image:var(--gradient-ink)] px-[clamp(20px,5vw,40px)] pt-[clamp(20px,4vw,32px)] pb-[clamp(44px,6vw,64px)] text-text-on-inverse">
-    <div
-      class="pointer-events-none absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-45 [mask-image:radial-gradient(circle_at_70%_0%,#000,transparent_74%)]"
-    ></div>
-    <div
-      class="pointer-events-none absolute -top-[120px] -right-[60px] h-[420px] w-[420px] bg-[radial-gradient(circle,rgba(255,107,53,0.16),transparent_66%)]"
-    ></div>
-
-    <div class="relative mx-auto max-w-[1200px]">
-      <div class="mb-7 flex flex-wrap items-center justify-between gap-4">
-        <app-wordmark tone="light" size="sm" />
-        <app-button variant="inverse" size="sm" (clicked)="goToPanel()">← Panel admin</app-button>
-      </div>
-      <div class="mb-3 font-mono text-xs tracking-[var(--ls-label)] text-brand-cyan uppercase">// Gestión de usuarios</div>
-      <h1 class="m-0 font-display text-[clamp(26px,4.5vw,40px)] font-bold tracking-[var(--ls-tight)] leading-[var(--lh-heading)]">Usuarios y roles</h1>
+<app-admin-shell title="Usuarios" active="usuarios"><div class="p-4 md:p-8"><app-admin-table resource="usuarios" (create)="openNew()" (edit)="editRow($event)" (view)="viewRow($event)"/></div>
+@if(editing();as e){
+ <div class="au-overlay" [class.is-closing]="closing()" (mousedown)="onBackdrop($event)">
+  <div #userModal class="au-drawer" role="dialog" aria-modal="true" aria-labelledby="user-modal-title" [attr.aria-busy]="loading() || saving()" (keydown)="trapFocus($event)">
+   <header class="au-header"><span class="user-title-icon"><app-icon [name]="isNew()?'plus':'user'"/></span><div><h2 id="user-modal-title">{{isNew()?'Crear usuario':readOnly()?'Ver usuario':'Editar usuario'}}</h2><span>{{isNew()?'Nueva cuenta':selectedUser()?.name}}</span></div><button type="button" class="au-close" aria-label="Cerrar formulario" [disabled]="saving() || closing()" (click)="closeDrawer()"><app-icon name="close"/></button></header>
+   <form class="au-form" novalidate (submit)="$event.preventDefault();save()">
+    <div class="au-body" appOverlayScroll>
+     @if(loadFailed()){<p class="au-error" role="alert">No pudimos cargar los datos. Cierra el formulario e inténtalo nuevamente.</p>}
+     <fieldset [disabled]="readOnly() || loading() || saving() || loadFailed()">
+      <section class="au-section"><h3><app-icon name="user"/>Datos personales</h3><div class="au-grid">
+       <app-select label="Tipo de documento" [value]="e.draft.documentType" [options]="documentOptions()" [disabled]="readOnly() || loading() || saving() || loadFailed()" [error]="fieldError('documentType')" (valueChange)="changeDocumentType($event)"/>
+       <app-input label="Número de documento" placeholder="Ingresa el documento" [value]="e.draft.documentNumber" [disabled]="!e.draft.documentType || readOnly() || loading() || saving() || loadFailed()" [maxLength]="documentRule()?.maxLength ?? 100" [inputMode]="e.draft.documentType==='DNI' || documentRule()?.inputKind==='digits'?'numeric':'text'" [required]="!!e.draft.documentType" [error]="fieldError('documentNumber') || lookupError()" (valueChange)="changeDocumentNumber($event)" (focusout)="touch('documentNumber')" (keydown.enter)="$event.preventDefault();lookupDocument()"/>
+       <app-input class="au-full" [label]="e.draft.documentType==='RUC' ? 'Razón social' : 'Nombres'" [autocomplete]="e.draft.documentType==='RUC'?'organization':'given-name'" [placeholder]="e.draft.documentType==='RUC' ? 'Ej. Empresa S.A.C.' : 'Ej. María Fernanda'" [required]="true" [maxLength]="e.draft.documentType==='RUC'?150:100" [disabled]="namesLocked()" [value]="e.draft.givenNames" [error]="fieldError('givenNames')" (valueChange)="setField('givenNames',$event)" (focusout)="touch('givenNames')"/>
+       @if(e.draft.documentType!=='RUC'){
+       <app-input label="Apellido paterno" autocomplete="family-name" placeholder="Ej. García" [maxLength]="100" [disabled]="namesLocked()" [value]="e.draft.paternalSurname" [error]="fieldError('paternalSurname')" (valueChange)="setField('paternalSurname',$event)" (focusout)="touch('paternalSurname')"/>
+       <app-input label="Apellido materno" placeholder="Ej. López" [maxLength]="100" [disabled]="namesLocked()" [value]="e.draft.maternalSurname" [error]="fieldError('maternalSurname')" (valueChange)="setField('maternalSurname',$event)" (focusout)="touch('maternalSurname')"/>
+       }
+       <app-input label="Celular" type="tel" autocomplete="tel" inputMode="tel" placeholder="Ej. +51 999 999 999" [maxLength]="32" [value]="e.draft.phone" [error]="fieldError('phone')" (valueChange)="setField('phone',$event)" (focusout)="touch('phone')"/>
+       <app-select label="Sexo" [value]="e.draft.sex" [options]="sexOptions()" [disabled]="readOnly() || loading() || saving() || loadFailed()" [error]="fieldError('sex')" (valueChange)="setField('sex',$event)"/>
+       <app-input class="au-full" label="Correo de contacto" type="email" autocomplete="email" placeholder="contacto@empresa.com" [maxLength]="254" [value]="e.draft.contactEmail" [error]="fieldError('contactEmail')" (valueChange)="setField('contactEmail',$event)" (focusout)="touch('contactEmail')"/>
+      </div></section>
+      <section class="au-section"><h3><app-icon name="shield"/>Datos de acceso</h3><div class="au-grid">
+       <app-input label="Correo de acceso" type="email" autocomplete="off" placeholder="usuario@empresa.com" [required]="true" [maxLength]="254" [value]="e.draft.email" [error]="fieldError('email')" (valueChange)="setField('email',$event)" (focusout)="touch('email')"/>
+       <app-select label="Tipo de cuenta" [options]="accountTypes" [value]="e.draft.role" [disabled]="readOnly() || loading() || saving() || loadFailed()" [error]="fieldError('role')" (valueChange)="setField('role',$any($event))"/>
+       @if(isNew()){<app-input class="au-full" label="Contraseña temporal" type="password" autocomplete="new-password" placeholder="Crea una contraseña segura" [required]="true" [value]="e.draft.password" [error]="fieldError('password')" (valueChange)="setField('password',$event)" (focusout)="touch('password')"/><app-password-strength class="au-full" [value]="e.draft.password"/>}
+      </div></section>
+      <section class="au-section"><h3><app-icon name="view"/>Imagen de perfil</h3><div class="au-avatar-row"><div class="au-avatar"><app-avatar [url]="!errors()['avatarUrl'] ? e.draft.avatarUrl : ''" [initials]="initials(e.draft.name)" [zoom]="e.draft.avatarZoom ?? 1" [x]="e.draft.avatarX ?? 50" [y]="e.draft.avatarY ?? 50"/></div><app-input label="Enlace de la imagen" type="url" placeholder="https://ejemplo.com/foto.jpg" [value]="e.draft.avatarUrl || ''" [error]="fieldError('avatarUrl')" (valueChange)="setField('avatarUrl',$event)" (focusout)="touch('avatarUrl')"/></div></section>
+     </fieldset>
     </div>
-  </header>
-
-  <div class="mx-auto max-w-[1200px] px-[clamp(20px,5vw,40px)] pb-[clamp(56px,8vw,96px)]">
-    <!-- Toolbar -->
-    <div class="mt-6 mb-6 flex flex-wrap items-center justify-between gap-4">
-      <div class="flex flex-wrap gap-2">
-        <button type="button" [class]="filterClasses('todos')" (click)="filter.set('todos')">
-          Todos <span class="font-mono text-xs opacity-70">{{ counts().todos }}</span>
-        </button>
-        <button type="button" [class]="filterClasses('admin')" (click)="filter.set('admin')">
-          Administradores <span class="font-mono text-xs opacity-70">{{ counts().admin }}</span>
-        </button>
-        <button type="button" [class]="filterClasses('client')" (click)="filter.set('client')">
-          Clientes <span class="font-mono text-xs opacity-70">{{ counts().client }}</span>
-        </button>
-      </div>
-
-      <div class="flex flex-wrap gap-3">
-        <div class="relative min-w-[220px]">
-          <span class="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-[15px] text-text-faint">⌕</span>
-          <input
-            type="text"
-            [value]="query()"
-            (input)="query.set($any($event.target).value)"
-            placeholder="Buscar por nombre o correo…"
-            class="w-full rounded-pill border-[1.5px] border-border-default bg-surface-card py-[11px] pr-3.5 pl-[38px] font-body text-[14.5px] text-text-body outline-none focus:border-brand-cyan focus:shadow-glow-soft-cyan"
-          />
-        </div>
-        <app-button variant="primary" (clicked)="openNew()"><span slot="icon-left">+</span>Nuevo usuario</app-button>
-      </div>
-    </div>
-
-    <!-- Table -->
-    <app-card elevation="sm" padding="0">
-      <div class="overflow-x-auto">
-        <table class="w-full border-collapse text-[14.5px]">
-          <thead>
-            <tr class="text-left font-mono text-[11px] tracking-[var(--ls-label)] text-text-muted uppercase">
-              <th class="px-6 py-3 font-medium">Usuario</th>
-              <th class="px-6 py-3 font-medium">Rol</th>
-              <th class="px-6 py-3 font-medium">Estado</th>
-              <th class="px-6 py-3 font-medium">Creado</th>
-              <th class="px-6 py-3 font-medium"></th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (u of shown(); track u.id) {
-              <tr class="border-t border-border-subtle text-text-body">
-                <td class="px-6 py-3.5">
-                  <div class="flex items-center gap-3">
-                    <span
-                      class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-display text-[13px] font-bold"
-                      [style.background]="roleMeta[u.role].color + '22'"
-                      [style.color]="roleMeta[u.role].color"
-                      >{{ initials(u.name) }}</span
-                    >
-                    <div>
-                      <div class="font-semibold text-text-strong">{{ u.name }}</div>
-                      <div class="text-[12.5px] text-text-muted">{{ u.email }}</div>
-                    </div>
-                  </div>
-                </td>
-                <td class="px-6 py-3.5"><app-badge [tone]="roleMeta[u.role].tone" [dot]="true">{{ roleMeta[u.role].label }}</app-badge></td>
-                <td class="px-6 py-3.5"><app-badge [tone]="u.isActive ? 'success' : 'neutral'">{{ u.isActive ? 'Activo' : 'Inactivo' }}</app-badge></td>
-                <td class="px-6 py-3.5 font-mono text-[13px] whitespace-nowrap text-text-muted">{{ u.createdAt }}</td>
-                <td class="px-6 py-3.5 text-right"><app-button variant="ghost" size="sm" (clicked)="openEdit(u)">Editar</app-button></td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-      @if (shown().length === 0) {
-        <div class="py-12 text-center text-text-muted">Sin usuarios que coincidan.</div>
-      }
-    </app-card>
+    <footer class="au-footer"><div class="au-account-actions">@if(!isNew() && !readOnly()){@if(isInactive(e.id)){@if(access.can('users','update')){<app-button icon="check" size="sm" variant="outline" tone="success" [disabled]="saving() || loading()" (clicked)="activateFromDrawer()">Activar</app-button>}}@else if(access.can('users','delete')){<app-button icon="trash" size="sm" variant="outline" tone="danger" [disabled]="saving() || loading()" (clicked)="deleteFromDrawer()">Inactivar</app-button>}}</div><div class="au-save-actions">@if(readOnly()){<app-button icon="close" variant="outline" (clicked)="closeDrawer()">Cerrar</app-button>@if(access.can('users','update')){<app-button icon="edit" [disabled]="loading() || loadFailed()" (clicked)="enableEditing()">Editar usuario</app-button>}}@else{<app-button icon="close" variant="outline" [disabled]="saving() || closing()" (clicked)="closeDrawer()">Cancelar</app-button><app-button icon="check" type="submit" [disabled]="!draftValid() || saving() || loading() || loadFailed()">{{isNew()?'Crear usuario':'Guardar cambios'}}</app-button>}</div></footer>
+   </form>
   </div>
-
-  <!-- Drawer -->
-  @if (editing(); as e) {
-    <div
-      class="au-overlay fixed inset-0 z-[900] flex justify-end bg-[rgba(6,9,18,0.55)] backdrop-blur-[4px]"
-      (mousedown)="onBackdrop($event)"
-    >
-      <div class="au-drawer flex h-full w-[min(480px,100%)] flex-col overflow-auto border-l border-border-subtle bg-surface-card shadow-lg">
-        <div class="flex items-center justify-between border-b border-border-subtle px-6 py-5">
-          <h2 class="m-0 font-display text-xl font-bold text-text-strong">{{ isNew() ? 'Crear usuario' : 'Editar usuario' }}</h2>
-          <button
-            type="button"
-            aria-label="Cerrar"
-            class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-sm border border-border-subtle bg-surface-page text-lg text-text-muted"
-            (click)="closeDrawer()"
-          >
-            ×
-          </button>
-        </div>
-
-        <div class="flex flex-1 flex-col gap-5 p-6">
-          <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-4">
-            <app-input label="Nombre completo" placeholder="María Fernández" [required]="true" [value]="e.draft.name" (valueChange)="setField('name', $event)" />
-            <app-input
-              label="Email"
-              type="email"
-              placeholder="usuario@empresa.com"
-              [required]="true"
-              [value]="e.draft.email"
-              (valueChange)="setField('email', $event)"
-            />
-          </div>
-
-          @if (isNew()) {
-            <app-input
-              label="Contraseña temporal"
-              type="password"
-              placeholder="Mínimo 8 caracteres"
-              [required]="true"
-              [value]="e.draft.password"
-              (valueChange)="setField('password', $event)"
-            />
-          }
-
-          <div>
-            <label class="mb-2.5 block text-sm font-semibold text-text-strong">Rol</label>
-            <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-3">
-              @for (r of roles; track r) {
-                <button
-                  type="button"
-                  class="cursor-pointer rounded-lg p-4 text-left transition-all duration-150 ease-out"
-                  [style.background]="e.draft.role === r ? roleMeta[r].color + '12' : 'var(--surface-sunken)'"
-                  [style.border]="'1.5px solid ' + (e.draft.role === r ? roleMeta[r].color : 'var(--border-subtle)')"
-                  [style.box-shadow]="e.draft.role === r ? '0 0 0 3px ' + roleMeta[r].color + '22' : 'none'"
-                  (click)="setField('role', r)"
-                >
-                  <div class="mb-2 flex items-center gap-2.5">
-                    <span
-                      class="inline-flex h-[30px] w-[30px] items-center justify-center rounded-sm text-[15px]"
-                      [style.background]="roleMeta[r].color + '22'"
-                      [style.color]="roleMeta[r].color"
-                      >{{ roleMeta[r].icon }}</span
-                    >
-                    <span class="font-display text-[15.5px] font-semibold text-text-strong">{{ roleMeta[r].label }}</span>
-                    @if (e.draft.role === r) {
-                      <span class="ml-auto text-[15px]" [style.color]="roleMeta[r].color">✓</span>
-                    }
-                  </div>
-                  <div class="text-[12.5px] leading-[var(--lh-snug)] text-text-muted">{{ roleMeta[r].description }}</div>
-                </button>
-              }
-            </div>
-          </div>
-
-        </div>
-
-        <div class="flex items-center justify-between gap-3 border-t border-border-subtle px-6 py-[18px]">
-          @if (!isNew()) {
-            <div class="flex gap-3">
-              @if (isInactive(e.id)) {
-                <button type="button" class="cursor-pointer text-sm font-medium text-success" (click)="activateFromDrawer()">Activar</button>
-              }
-              <button type="button" class="cursor-pointer text-sm font-medium text-danger" (click)="deleteFromDrawer()">Eliminar</button>
-            </div>
-          } @else {
-            <span></span>
-          }
-          <div class="flex gap-3">
-            <app-button variant="ghost" (clicked)="closeDrawer()">Cancelar</app-button>
-            <app-button variant="primary" [disabled]="!draftValid() || saving()" (clicked)="save()"
-              >{{ isNew() ? 'Crear usuario' : 'Guardar' }}<span slot="icon-right">→</span></app-button
-            >
-          </div>
-        </div>
-      </div>
-    </div>
-  }
-</div>
+ </div>
+}
+</app-admin-shell>

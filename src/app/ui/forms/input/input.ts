@@ -14,6 +14,10 @@ export class Input {
   readonly id = input<string>();
   readonly type = input('text');
   readonly value = input('');
+  readonly minLength = input<number>();
+  readonly maxLength = input<number>();
+  readonly inputMode = input<string>();
+  readonly autocomplete = input<string>();
   readonly placeholder = input<string>();
   readonly disabled = input(false);
   readonly required = input(false);

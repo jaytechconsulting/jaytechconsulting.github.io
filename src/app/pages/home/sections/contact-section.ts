@@ -2,7 +2,6 @@ import { Component, computed, inject } from '@angular/core';
 import { ContactForm } from '../../../ui/forms/contact-form/contact-form';
 import { ApiService } from '../../../core/api.service';
 import { DialogService } from '../../../core/services/dialog.service';
-import { RecaptchaService } from '../../../core/services/recaptcha.service';
 import { ToastService } from '../../../core/services/toast.service';
 import type { ContactFormValue } from '../../../ui/forms/contact-form/contact-form';
 import { CmsContentService } from '../../../core/cms-content.service';
@@ -11,7 +10,6 @@ import { CmsContentService } from '../../../core/cms-content.service';
 export class ContactSection {
   private readonly api = inject(ApiService);
   private readonly dialog = inject(DialogService);
-  private readonly recaptcha = inject(RecaptchaService);
   private readonly toast = inject(ToastService);
   private readonly cms = inject(CmsContentService);
   private submitting = false;
@@ -32,8 +30,7 @@ export class ContactSection {
 
     this.submitting = true;
     try {
-      const recaptchaToken = await this.recaptcha.execute('contact');
-      this.api.createContact({ name: value.name, company: null, email: value.email, message: `${value.service}: ${value.message}`, recaptchaToken }).subscribe({
+      this.api.createContact({ name: value.name, company: null, email: value.email, message: `${value.service}: ${value.message}` }).subscribe({
         next: () => {
           this.submitting = false;
           this.toast.success('Mensaje enviado', 'Te responderemos en menos de 24 horas.');

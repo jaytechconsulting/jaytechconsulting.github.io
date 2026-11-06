@@ -1,12 +1,12 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Observable, map, tap } from 'rxjs';
 import { ApiService } from './api.service';
-import type { ApiAdminUser } from './models/api.models';
+import type { ApiAdminUser,PersonalProfileFields,PersonalProfileInput } from './models/api.models';
 import type { BadgeTone } from '../ui/data-display/badge/badge';
 
 export type AdminUserRole = 'admin' | 'client';
 
-export interface AdminUser {
+export interface AdminUser extends PersonalProfileFields {
   id: string;
   name: string;
   email: string;
@@ -15,7 +15,7 @@ export interface AdminUser {
   createdAt: string;
 }
 
-export interface AdminUserInput {
+export interface AdminUserInput extends PersonalProfileInput {
   name: string;
   email: string;
   role: AdminUserRole;
@@ -28,19 +28,20 @@ export const ROLE_META: Record<AdminUserRole, { label: string; tone: BadgeTone; 
     tone: 'brand',
     color: '#FF6B35',
     icon: '⬢',
-    description: 'Acceso total: clientes, proyectos, tickets, usuarios y contenido web.',
+    description: 'Accesos segun los roles y permisos asignados.',
   },
   client: {
     label: 'Cliente',
     tone: 'info',
     color: '#22D3EE',
     icon: '◑',
-    description: 'Ve sus propios proyectos, tickets, facturas y archivos.',
+    description: 'Acceso al portal de sus propios proyectos y tickets.',
   },
 };
 
 function toAdminUser(item: ApiAdminUser): AdminUser {
   return {
+    ...item,
     id: item.id,
     name: item.name,
     email: item.email,
@@ -54,7 +55,7 @@ function apiRole(role: AdminUserRole): string {
   return role === 'admin' ? 'Admin' : 'Client';
 }
 
-/** El rol es solo la asignación — el backend aplica los permisos correspondientes. */
+/** Account type is separate from the access roles managed by the security module. */
 @Injectable({ providedIn: 'root' })
 export class UsersService {
   private readonly api = inject(ApiService);
@@ -68,15 +69,18 @@ export class UsersService {
     );
   }
 
+  get(id:string):Observable<AdminUser>{return this.api.adminUser(id).pipe(map(toAdminUser));}
+
   create(input: AdminUserInput): Observable<AdminUser> {
-    return this.api.createAdminUser({ name: input.name, email: input.email, password: input.password, role: apiRole(input.role) }).pipe(
+    return this.api.createAdminUser({...input,role:apiRole(input.role)}).pipe(
       map(toAdminUser),
       tap((user) => this._users.update((list) => [...list, user])),
     );
   }
 
   update(id: string, input: AdminUserInput): Observable<AdminUser> {
-    return this.api.updateAdminUser(id, { name: input.name, email: input.email, role: apiRole(input.role) }).pipe(
+    const {password,...fields}=input;
+    return this.api.updateAdminUser(id, {...fields,role:apiRole(input.role)}).pipe(
       map(toAdminUser),
       tap((user) => this._users.update((list) => list.map((u) => (u.id === id ? user : u)))),
     );

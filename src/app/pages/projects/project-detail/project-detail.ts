@@ -36,8 +36,8 @@ export class ProjectDetail implements OnInit {
       next: project => {
         this.projectState.set(project);
         this.seo.update({
-          title: `${project.title} para ${project.client} | DronLab`,
-          description: project.summary || `Proyecto de ${project.cat.toLowerCase()} desarrollado por DronLab para ${project.client}.`,
+          title: `${project.title} para ${project.client} | Jaytech`,
+          description: project.summary || `Proyecto de ${project.cat.toLowerCase()} desarrollado por Jaytech para ${project.client}.`,
           path: `/proyectos/${project.slug}`,
           image: project.logo,
           type: 'article',
@@ -51,7 +51,7 @@ export class ProjectDetail implements OnInit {
       },
       error: () => {
         this.seo.update({
-          title: 'Proyecto no encontrado | DronLab',
+          title: 'Proyecto no encontrado | Jaytech',
           description: 'El proyecto solicitado no está disponible.',
           path: this.router.url,
           index: false,

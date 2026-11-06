@@ -1,41 +1,20 @@
-@if (open()) {
-  <div
-    class="dl-dialog-overlay fixed inset-0 z-[1000] flex items-center justify-center bg-[rgba(6,9,18,0.62)] p-6 backdrop-blur-[6px] [background-image:var(--texture-grid)] [background-size:var(--texture-grid-size)]"
-    (mousedown)="onBackdrop($event)"
-  >
-    <div
-      role="dialog"
-      aria-modal="true"
-      class="dl-dialog-panel relative w-[min(440px,100%)] overflow-hidden rounded-xl border border-[var(--glass-border)] px-7 pb-6 pt-[30px] text-text-on-inverse [background:var(--gradient-ink)]"
-      [style.box-shadow]="panelShadow()"
-    >
-      <span class="absolute inset-x-0 top-0 h-[3px]" [style.background]="toneColor()" [style.box-shadow]="'0 0 16px ' + toneColor()"></span>
-      <div class="pointer-events-none absolute -right-10 -top-20 h-[220px] w-[220px]" [style.background]="cornerGlow()"></div>
-      <div class="relative">
-        <span class="relative mb-[18px] inline-flex h-12 w-12 items-center justify-center overflow-hidden rounded-md">
-          <span class="dl-dialog-ring absolute inset-[-60%]" [style.background]="ringGradient()"></span>
-          <span
-            class="absolute inset-[1.5px] inline-flex items-center justify-center rounded-[calc(var(--radius-md)-1px)] bg-ink-900 font-mono text-[22px] font-bold"
-            [style.color]="toneColor()"
-            [style.box-shadow]="'inset 0 0 18px -6px ' + toneColor()"
-          >{{ toneGlyph() }}</span>
-        </span>
-        @if (title()) {
-          <h2 class="m-0 mb-2 font-display text-[22px] font-bold tracking-[var(--ls-tight)] text-text-on-inverse">{{ title() }}</h2>
-        }
-        <div class="text-[15px] leading-[var(--lh-body)] text-text-inverse-muted">
-          @if (message()) {
-            {{ message() }}
-          }
-          <ng-content />
-        </div>
-        <div class="mt-7 flex justify-end gap-3">
-          @if (cancelLabel()) {
-            <app-button variant="glass" size="sm" (clicked)="cancelled.emit()">{{ cancelLabel() }}</app-button>
-          }
-          <app-button [variant]="tone() === 'danger' ? 'danger' : 'primary'" size="sm" (clicked)="confirmed.emit()">{{ confirmLabel() }}</app-button>
-        </div>
+@if(open()) {
+  <div class="dl-dialog-overlay" [class.is-closing]="closing()" (mousedown)="onBackdrop($event)">
+    <section role="dialog" aria-modal="true" [attr.aria-labelledby]="titleId" [attr.aria-describedby]="messageId" class="dl-dialog-panel" [style.--dialog-accent]="toneColor()">
+      <header class="dialog-header">
+        <img class="dialog-logo" [src]="theme.theme() === 'dark' ? 'brand/animated/logo-animado-oscuro.svg' : 'brand/animated/logo-animado-claro.svg'" alt="Jaytech" width="112" height="36" />
+        <app-button variant="ghost" size="sm" icon="close" [iconOnly]="true" label="Cerrar diálogo" [disabled]="closing()" (clicked)="requestClose(false)" />
+      </header>
+      <div class="dialog-body">
+        <div class="dialog-symbol" [attr.data-tone]="tone()" aria-hidden="true"><app-icon [name]="icon()" /></div>
+        <span class="dialog-context">{{contextLabel()}}</span>
+        <h2 [id]="titleId">{{title()}}</h2>
+        <div class="dialog-message" [id]="messageId">{{message()}}<ng-content /></div>
       </div>
-    </div>
+      <footer class="dialog-actions" [class.single-action]="!cancelLabel()">
+        @if(cancelLabel()){<app-button variant="outline" size="md" [fullWidth]="true" [disabled]="closing()" (clicked)="requestClose(false)">{{cancelLabel()}}</app-button>}
+        <app-button [variant]="tone() === 'danger' ? 'danger' : 'primary'" size="md" icon="check" [fullWidth]="true" [disabled]="closing()" (clicked)="requestClose(true)">{{confirmLabel()}}</app-button>
+      </footer>
+    </section>
   </div>
 }
