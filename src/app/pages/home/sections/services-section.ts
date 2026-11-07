@@ -1,10 +1,11 @@
 import { Component, inject } from '@angular/core';
 import { Card } from '../../../ui/data-display/card/card';
 import { CmsContentService } from '../../../core/cms-content.service';
+import { Reveal } from '../../../core/directives/reveal';
 
 @Component({
   selector: 'app-services-section',
-  imports: [Card],
+  imports: [Card, Reveal],
   templateUrl: './services-section.html',
 })
 export class ServicesSection {

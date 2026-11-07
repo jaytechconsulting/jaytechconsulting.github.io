@@ -9,6 +9,7 @@ import { DetailModal } from '../../ui/feedback/detail-modal/detail-modal';
 import { Input } from '../../ui/forms/input/input';
 import { Select } from '../../ui/forms/select/select';
 import { CmsContentService } from '../../core/cms-content.service';
+import { Reveal } from '../../core/directives/reveal';
 import { ApiService } from '../../core/api.service';
 import type { ApiTrainingProgram } from '../../core/models/api.models';
 
@@ -48,7 +49,7 @@ const PAGE_SIZE = 6;
  * server-side filtered/sorted/paginated cards, and an FAQ accordion — same pattern as Asesorías. */
 @Component({
   selector: 'app-capacitaciones',
-  imports: [Button, Header, Footer, WhatsAppFab, Input, Select, FeatureCard, DetailModal],
+  imports: [Button, Header, Footer, WhatsAppFab, Input, Select, FeatureCard, DetailModal, Reveal],
   templateUrl: './capacitaciones.html',
 })
 export class Capacitaciones {

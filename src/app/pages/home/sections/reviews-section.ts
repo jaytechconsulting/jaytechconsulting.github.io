@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CmsContentService } from '../../../core/cms-content.service';
+import { Reveal } from '../../../core/directives/reveal';
 
 interface Review {
   quote: string;
@@ -27,6 +28,7 @@ const STARS = [0, 1, 2, 3, 4];
 
 @Component({
   selector: 'app-reviews-section',
+  imports: [Reveal],
   templateUrl: './reviews-section.html',
 })
 export class ReviewsSection {

@@ -1,3 +1,4 @@
+import { ErrorRecovery } from './core/error-recovery';
 import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
 import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
@@ -24,9 +25,11 @@ export class App {
   readonly loaderColor = computed(() => this.cms.loader().color);
   readonly showLoader = signal(!this.adminEntry && this.loaderEnabled());
   readonly showProgressBar = signal(false);
+  readonly pageFade = signal(false);
   readonly inAdmin = signal(window.location.pathname.startsWith('/admin'));
   private readonly booted = signal(this.adminEntry || !this.loaderEnabled());
   private readonly router = inject(Router);
+  private readonly errorRecovery=inject(ErrorRecovery);
   readonly loading = inject(LoadingService);
   readonly dialogs = inject(DialogService);
   private readonly analytics = inject(AnalyticsService);
@@ -34,6 +37,7 @@ export class App {
   private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
+    this.errorRecovery.startTracking();
     this.analytics.init();
     this.seo.init();
     const subscription = this.router.events.pipe(
@@ -54,6 +58,8 @@ export class App {
         this.analytics.pageView(event.urlAfterRedirects);
         this.navigationReady.set(true);
         this.showProgressBar.set(false);
+        this.pageFade.set(false);
+        requestAnimationFrame(() => this.pageFade.set(true));
       }
       if (event instanceof NavigationCancel || event instanceof NavigationError) {
         this.navigationReady.set(true);
@@ -64,7 +70,7 @@ export class App {
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 
-  private readonly navigationReady = signal(false);
+  readonly navigationReady = signal(false);
   private readonly loaderReady = signal(this.adminEntry || !this.loaderEnabled());
 
   finishLoader(): void {
@@ -82,6 +88,6 @@ export class App {
   private isAnchorNavigation(url: string): boolean {
     const path = url.split('#', 1)[0] || '/';
     const currentPath = this.router.url.split('#', 1)[0] || '/';
-    return path === currentPath;
+    return url.includes('#') && url !== this.router.url && path === currentPath;
   }
 }

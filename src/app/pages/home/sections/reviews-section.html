@@ -4,7 +4,7 @@
   ></div>
 
   <div class="relative mx-auto grid max-w-[1200px] items-center gap-16 md:grid-cols-2">
-    <div>
+    <div appReveal>
       <div class="mb-3.5 font-mono text-[13px] uppercase tracking-[0.14em] text-brand-orange-600">// {{ content().eyebrow }}</div>
       <h2 class="m-0 mb-6 font-display text-4xl font-bold leading-[1.15] tracking-[-0.03em] text-text-strong">
         {{ content().title }}@if (content().highlight) { <span class="text-brand-orange"> {{ content().highlight }}</span> }
@@ -51,7 +51,7 @@
       </div>
     </div>
 
-    <div class="relative overflow-hidden rounded-xl bg-[image:var(--gradient-ink)] p-11 text-text-on-inverse shadow-lg">
+    <div appReveal [appRevealDelay]="120" class="relative overflow-hidden rounded-xl bg-[image:var(--gradient-ink)] p-11 text-text-on-inverse shadow-lg">
       <div
         class="pointer-events-none absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-40 [mask-image:radial-gradient(circle_at_80%_10%,#000,transparent_70%)]"
       ></div>

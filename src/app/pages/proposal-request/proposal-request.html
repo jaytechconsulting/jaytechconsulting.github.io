@@ -42,7 +42,7 @@
   <main class="flex items-center p-8 sm:p-12 lg:p-16">
     <div class="mx-auto w-full max-w-[560px]">
       @if (step() === 0) {
-        <div>
+        <div class="page-fade-in">
           <h2 class="m-0 mb-1.5 font-display text-[26px] font-bold text-text-strong">¿Qué quieres construir?</h2>
           <p class="m-0 mb-7 text-[15.5px] text-text-muted">Elige el tipo de proyecto que más se acerca.</p>
           <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
@@ -63,7 +63,7 @@
       }
 
       @if (step() === 1) {
-        <div>
+        <div class="page-fade-in">
           <h2 class="m-0 mb-1.5 font-display text-[26px] font-bold text-text-strong">Alcance del proyecto</h2>
           <p class="m-0 mb-7 text-[15.5px] text-text-muted">Nos ayuda a dimensionar la propuesta. Todo es orientativo.</p>
 
@@ -102,7 +102,7 @@
       }
 
       @if (step() === 2) {
-        <div>
+        <div class="page-fade-in">
           <h2 class="m-0 mb-1.5 font-display text-[26px] font-bold text-text-strong">¿Cómo te contactamos?</h2>
           <p class="m-0 mb-7 text-[15.5px] text-text-muted">Respondemos en menos de 24 horas.</p>
 
@@ -133,7 +133,7 @@
       }
 
       @if (step() === 3) {
-        <div class="py-5 text-center">
+        <div class="page-fade-in py-5 text-center">
           <div
             class="mx-auto mb-6 flex h-[76px] w-[76px] items-center justify-center rounded-full bg-[image:var(--gradient-hud)] text-[34px] font-bold text-ink-950 shadow-glow-soft-cyan"
           >

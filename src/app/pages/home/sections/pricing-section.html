@@ -1,6 +1,6 @@
 <section id="planes" class="border-t border-border-subtle bg-surface-card px-8 py-24">
   <div class="mx-auto max-w-[1200px] text-center">
-    <div class="mb-3.5 font-mono text-[13px] uppercase tracking-[0.14em] text-brand-orange-600">// {{ content().eyebrow }}</div>
+    <div appReveal class="mb-3.5 font-mono text-[13px] uppercase tracking-[0.14em] text-brand-orange-600">// {{ content().eyebrow }}</div>
     <h2 class="m-0 mb-3 font-display text-4xl font-bold tracking-[-0.03em] text-text-strong">
       {{ content().title }}@if (content().highlight) { <span class="text-brand-orange"> {{ content().highlight }}</span> }
     </h2>
@@ -11,8 +11,10 @@
       <img [src]="content().image" alt="" class="mx-auto mb-10 max-h-[260px] w-full max-w-[720px] rounded-lg border border-border-subtle object-cover shadow-sm" />
     }
     <div class="flex flex-wrap items-stretch justify-center gap-6">
-      @for (plan of plans(); track plan.name) {
+      @for (plan of plans(); track plan.name; let i = $index) {
         <app-pricing-card
+          appReveal
+          [appRevealDelay]="i * 80"
           [name]="plan.name"
           [price]="plan.price"
           [period]="plan.price === 'Custom' ? '' : '/proyecto'"

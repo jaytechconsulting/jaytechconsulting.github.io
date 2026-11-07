@@ -1,4 +1,4 @@
-import { Component, DestroyRef, computed, inject, input, output, signal } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, input, output, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { filter, map } from 'rxjs';
@@ -89,7 +89,14 @@ export class Header {
     const onScroll = () => this.scrolled.set(window.scrollY > 8);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
-    inject(DestroyRef).onDestroy(() => window.removeEventListener('scroll', onScroll));
+    const destroyRef = inject(DestroyRef);
+    destroyRef.onDestroy(() => window.removeEventListener('scroll', onScroll));
+
+    // Lock background scroll while the mobile menu is open.
+    effect(() => {
+      document.body.style.overflow = this.menuOpen() ? 'hidden' : '';
+    });
+    destroyRef.onDestroy(() => { document.body.style.overflow = ''; });
   }
 
   toggleTheme(): void {
@@ -137,21 +144,36 @@ export class Header {
     ];
   });
 
-  readonly mobileNavClasses = computed(() =>
-    [
+  readonly mobileNavClasses = computed(() => {
+    const open = this.menuOpen();
+    return [
       'absolute inset-x-0 top-full z-[60] flex min-[821px]:hidden flex-col gap-1 px-[clamp(20px,5vw,32px)] pt-3 pb-5 shadow-lg border-b',
+      'transition-[opacity,transform] duration-200 ease-out',
+      open ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none -translate-y-1.5 opacity-0',
       this.inverse() ? 'bg-surface-inverse border-border-inverse' : 'bg-surface-card border-border-subtle',
-    ].join(' '),
-  );
+    ].join(' ');
+  });
 
   mobileLinkClasses(href: string): string {
     const active = this.activeLink() === href;
     if (active) {
-      return 'rounded-sm px-2 py-3 font-body text-base font-medium no-underline bg-accent-primary text-text-on-brand';
+      return 'rounded-lg px-3.5 py-3 font-body text-base font-semibold no-underline bg-accent-primary text-text-on-brand shadow-brand';
     }
     return [
-      'rounded-sm px-2 py-3 font-body text-base font-medium no-underline transition-colors duration-200 ease-out hover:text-brand-orange',
+      'rounded-lg px-3.5 py-3 font-body text-base font-medium no-underline transition-colors duration-150 ease-out hover:bg-surface-sunken hover:text-brand-orange',
       this.inverse() ? 'text-text-on-inverse' : 'text-text-body',
+    ].join(' ');
+  }
+
+  /** Servicios sub-links: smaller + indented so they read as nested under the "Servicios" label. */
+  mobileSubLinkClasses(href: string): string {
+    const active = this.activeLink() === href;
+    if (active) {
+      return 'rounded-lg py-2.5 pr-3.5 pl-7 font-body text-[14.5px] font-semibold no-underline bg-accent-primary text-text-on-brand';
+    }
+    return [
+      'rounded-lg py-2.5 pr-3.5 pl-7 font-body text-[14.5px] font-medium no-underline transition-colors duration-150 ease-out hover:bg-surface-sunken hover:text-brand-orange',
+      this.inverse() ? 'text-text-inverse-muted' : 'text-text-muted',
     ].join(' ');
   }
 

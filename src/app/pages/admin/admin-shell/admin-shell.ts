@@ -1,8 +1,8 @@
+import { firstValueFrom } from 'rxjs';
 import { AccessService, AccessMenu } from '../../../core/access.service';
 import { Icon } from '../../../ui/data-display/icon/icon';
 import { OverlayScroll } from '../../../ui/behaviors/overlay-scroll';
 import { UserMenu } from '../../../ui/navigation/user-menu/user-menu';
-import { NavProgressBar } from '../../../ui/feedback/nav-progress-bar/nav-progress-bar';
 import { LoadingService } from '../../../core/services/loading.service';
 import { DialogService } from '../../../core/services/dialog.service';
 import { ToastService } from '../../../core/services/toast.service';
@@ -13,7 +13,7 @@ import { AuthService } from '../../../core/auth.service';
 
 @Component({
   selector: 'app-admin-shell',
-  imports: [RouterLink, NavProgressBar, UserMenu, OverlayScroll, Icon],
+  imports: [RouterLink, UserMenu, OverlayScroll, Icon],
   templateUrl: './admin-shell.html',
   styleUrl: './admin-shell.css',
 })
@@ -102,7 +102,8 @@ export class AdminShell {
     this.closeMenu();
     const confirmed = await this.dialogs.question({title:'¿Cerrar sesión?', message:'Tendrás que iniciar sesión nuevamente para acceder al administrador.', confirmLabel:'Cerrar sesión', cancelLabel:'Seguir trabajando'});
     if (!confirmed) return;
-    this.auth.logout(); this.toast.info('Sesión cerrada', 'Has salido del administrador.');
-    await this.router.navigateByUrl('/login');
+    try {await firstValueFrom(this.auth.logout());}catch{this.toast.error('No pudimos cerrar la sesión','Inténtalo nuevamente.');return;}
+    this.toast.info('Sesión cerrada', 'Has salido del administrador.');
+    await this.router.navigateByUrl('/login',{replaceUrl:true});
   }
 }

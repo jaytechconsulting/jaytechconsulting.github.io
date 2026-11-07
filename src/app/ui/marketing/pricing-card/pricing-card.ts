@@ -22,10 +22,10 @@ export class PricingCard {
 
   readonly cardClasses = computed(() =>
     [
-      'relative box-border flex w-[300px] flex-col gap-5 rounded-xl p-8 transition-transform duration-200 ease-out',
+      'relative box-border flex w-[300px] flex-col gap-5 rounded-xl p-8 transition-[transform,box-shadow] duration-200 ease-out',
       this.featured()
-        ? 'scale-[1.03] border border-transparent bg-surface-inverse text-text-on-inverse shadow-lg'
-        : 'border border-border-subtle bg-surface-card text-text-body shadow-sm',
+        ? 'scale-[1.03] border border-transparent bg-surface-inverse text-text-on-inverse shadow-lg hover:-translate-y-1 hover:shadow-[0_28px_60px_-20px_rgba(0,0,0,0.5)]'
+        : 'border border-border-subtle bg-surface-card text-text-body shadow-sm hover:-translate-y-1 hover:shadow-lg',
     ].join(' '),
   );
 }

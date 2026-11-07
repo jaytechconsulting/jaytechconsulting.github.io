@@ -280,10 +280,10 @@ const DEFAULT_STATE: CmsContentState = {
     {
       id: 'hero',
       name: 'Portada',
-      eyebrow: 'Soluciones informáticas a medida',
+      eyebrow: 'Software a medida',
       title: 'Software que hace',
       highlight: 'crecer tu empresa',
-      description: 'Diseñamos y construimos aplicaciones web, páginas y automatizaciones. Del prototipo a producción, con comunicación cercana en cada paso.',
+      description: 'Del prototipo a producción, con comunicación cercana en cada paso.',
       items: 'React\nNode.js\nPython\nPostgreSQL\nn8n\nAWS',
       image: '',
     },

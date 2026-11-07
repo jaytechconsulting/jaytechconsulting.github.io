@@ -2,10 +2,11 @@ import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { PricingCard } from '../../../ui/marketing/pricing-card/pricing-card';
 import { CmsContentService } from '../../../core/cms-content.service';
+import { Reveal } from '../../../core/directives/reveal';
 
 @Component({
   selector: 'app-pricing-section',
-  imports: [PricingCard],
+  imports: [PricingCard, Reveal],
   templateUrl: './pricing-section.html',
 })
 export class PricingSection {

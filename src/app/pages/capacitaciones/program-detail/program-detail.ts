@@ -5,6 +5,7 @@ import { Footer } from '../../../ui/navigation/footer/footer';
 import { Button } from '../../../ui/actions/button/button';
 import { Badge } from '../../../ui/data-display/badge/badge';
 import { Breadcrumb } from '../../../ui/navigation/breadcrumb/breadcrumb';
+import { Reveal } from '../../../core/directives/reveal';
 import { WhatsAppFab } from '../../../ui/marketing/whatsapp-fab/whatsapp-fab';
 import { CmsContentService } from '../../../core/cms-content.service';
 import { ApiService } from '../../../core/api.service';
@@ -15,7 +16,7 @@ import type { ApiTrainingProgram } from '../../../core/models/api.models';
  * image or "ver más detalles" button. Same shared header/footer shell as the listing page. */
 @Component({
   selector: 'app-program-detail',
-  imports: [Header, Footer, Button, Badge, Breadcrumb, WhatsAppFab],
+  imports: [Header, Footer, Button, Badge, Breadcrumb, WhatsAppFab, Reveal],
   templateUrl: './program-detail.html',
   styleUrl: './program-detail.css',
 })

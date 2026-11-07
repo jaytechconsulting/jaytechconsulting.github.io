@@ -1,6 +1,6 @@
 <section id="contacto" class="bg-surface-inverse px-8 py-24">
   <div class="mx-auto grid max-w-[1200px] items-center gap-16 md:grid-cols-2">
-    <div>
+    <div appReveal>
       <div class="mb-4 font-mono text-[13px] uppercase tracking-[0.14em] text-brand-yellow">// {{ content().eyebrow }}</div>
       <h2 class="m-0 mb-[18px] font-display text-[44px] font-bold leading-[1.15] tracking-[-0.03em] text-text-on-inverse">
         {{ content().title }}@if (content().highlight) { <span class="text-brand-orange"> {{ content().highlight }}</span> }
@@ -19,6 +19,6 @@
         <img [src]="content().image" [alt]="content().title" class="mt-8 h-[190px] w-full max-w-[440px] rounded-lg border border-[var(--glass-border)] object-cover" />
       }
     </div>
-    <app-contact-form class="justify-self-end" (submitted)="submit($event)" />
+    <app-contact-form appReveal [appRevealDelay]="100" class="justify-self-end" (submitted)="submit($event)" />
   </div>
 </section>

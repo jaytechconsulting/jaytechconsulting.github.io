@@ -44,7 +44,7 @@ export class ProposalRequest {
   stepCircleClasses(i: number): string { const active = i === this.step(); const done = i < this.step(); if (active) return 'bg-[image:var(--gradient-hud)] text-ink-950 border-brand-cyan shadow-glow-soft-cyan'; if (done) return 'bg-[rgba(34,211,238,0.14)] text-brand-cyan border-brand-cyan'; return 'bg-[var(--glass-dark)] text-text-inverse-muted border-[var(--glass-border)]'; }
   stepConnectorClass(i: number): string { return i < this.step() ? 'bg-brand-cyan' : 'bg-[var(--glass-border)]'; }
   stepLabelClasses(i: number): string { const active = i === this.step(); const done = i < this.step(); return active ? 'font-semibold text-text-on-inverse' : done ? 'font-medium text-brand-cyan-300' : 'font-medium text-text-inverse-muted'; }
-  typeCardClasses(id: string): string { return this.type() === id ? 'bg-[rgba(255,107,53,0.06)] border-brand-orange shadow-brand' : 'bg-surface-card border-border-subtle shadow-xs'; }
+  typeCardClasses(id: string): string { return this.type() === id ? 'bg-[rgba(255,107,53,0.06)] border-brand-orange shadow-brand' : 'bg-surface-card border-border-subtle shadow-xs hover:-translate-y-0.5 hover:border-border-strong hover:shadow-sm'; }
   chipClasses(selected: boolean): string { return selected ? 'bg-brand-orange text-text-on-brand border-brand-orange font-semibold' : 'bg-surface-card text-text-body border-border-default font-medium'; }
   async next(): Promise<void> {
     if (!this.canNext() || this.submitting) return;

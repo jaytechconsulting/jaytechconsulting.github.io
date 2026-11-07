@@ -7,6 +7,7 @@ import { WhatsAppFab } from '../../ui/marketing/whatsapp-fab/whatsapp-fab';
 import { FeatureCard } from '../../ui/marketing/feature-card/feature-card';
 import { DetailModal } from '../../ui/feedback/detail-modal/detail-modal';
 import { CmsContentService } from '../../core/cms-content.service';
+import { Reveal } from '../../core/directives/reveal';
 import { COURSES, type Course } from './courses-data';
 
 interface FaqItem {
@@ -41,7 +42,7 @@ const FAQS: FaqItem[] = [
  * course cards and an FAQ accordion. Reached from the header's "Servicios" hover dropdown. */
 @Component({
   selector: 'app-asesorias',
-  imports: [Button, Header, Footer, WhatsAppFab, FeatureCard, DetailModal],
+  imports: [Button, Header, Footer, WhatsAppFab, FeatureCard, DetailModal, Reveal],
   templateUrl: './asesorias.html',
 })
 export class Asesorias {

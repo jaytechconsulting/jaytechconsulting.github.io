@@ -7,7 +7,7 @@
   ></div>
 
   <div class="relative mx-auto max-w-[1200px]">
-    <div class="mb-11 flex flex-wrap items-end justify-between gap-6">
+    <div appReveal class="mb-11 flex flex-wrap items-end justify-between gap-6">
       <div>
         <div class="mb-3.5 font-mono text-[13px] uppercase tracking-[0.14em] text-brand-cyan">// {{ content().eyebrow }}</div>
         <h2 class="m-0 max-w-[560px] font-display text-4xl font-bold leading-[1.15] tracking-[-0.03em] text-text-on-inverse">
@@ -34,8 +34,10 @@
     </div>
 
     <div class="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-[18px]">
-      @for (client of clients(); track client.name) {
+      @for (client of clients(); track client.name; let i = $index) {
         <div
+          appReveal
+          [appRevealDelay]="(i % 6) * 60"
           class="group relative flex min-h-[156px] flex-col justify-between overflow-hidden rounded-lg border border-[var(--glass-border)] bg-[var(--glass-dark)] px-[22px] py-6 backdrop-blur-[var(--blur-glass)] transition-[border-color,box-shadow,transform] duration-200 ease-out hover:-translate-y-1 hover:border-[var(--tile-color)] hover:shadow-[0_0_30px_-6px_var(--tile-color)]"
           [style.--tile-color]="client.color"
         >

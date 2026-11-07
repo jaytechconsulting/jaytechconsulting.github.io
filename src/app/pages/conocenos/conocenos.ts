@@ -5,6 +5,7 @@ import { Header } from '../../ui/navigation/header/header';
 import { Footer } from '../../ui/navigation/footer/footer';
 import { WhatsAppFab } from '../../ui/marketing/whatsapp-fab/whatsapp-fab';
 import { CmsContentService } from '../../core/cms-content.service';
+import { Reveal } from '../../core/directives/reveal';
 
 interface FeatureSection {
   number: string;
@@ -116,7 +117,7 @@ const FAQS: FaqItem[] = [
  * alternating feature-by-feature breakdown, a real CMS-backed team grid and an FAQ. */
 @Component({
   selector: 'app-conocenos',
-  imports: [Button, Header, Footer, WhatsAppFab],
+  imports: [Button, Header, Footer, WhatsAppFab, Reveal],
   templateUrl: './conocenos.html',
 })
 export class Conocenos {

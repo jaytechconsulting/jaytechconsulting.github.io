@@ -8,10 +8,11 @@ import { WhatsAppFab } from '../../../ui/marketing/whatsapp-fab/whatsapp-fab';
 import { Project } from '../../../core/projects-data';
 import { ProjectsService } from '../../../core/projects.service';
 import { SeoService } from '../../../core/services/seo.service';
+import { Reveal } from '../../../core/directives/reveal';
 
 @Component({
   selector: 'app-project-detail',
-  imports: [Badge, Button, Wordmark, WhatsAppFab],
+  imports: [Badge, Button, Wordmark, WhatsAppFab, Reveal],
   templateUrl: './project-detail.html',
   styleUrl: './project-detail.css',
 })

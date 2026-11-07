@@ -1,6 +1,6 @@
 <section id="servicios" class="bg-surface-page px-8 py-24">
   <div class="mx-auto max-w-[1200px]">
-    <div class="mb-12 flex flex-wrap items-end justify-between gap-6">
+    <div appReveal class="mb-12 flex flex-wrap items-end justify-between gap-6">
       <div>
         <div class="mb-3.5 font-mono text-[13px] uppercase tracking-[0.14em] text-brand-orange-600">// {{ content().eyebrow }}</div>
         <h2 class="m-0 max-w-[640px] font-display text-4xl font-bold leading-[1.15] tracking-[-0.03em] text-text-strong">
@@ -15,8 +15,8 @@
       }
     </div>
     <div class="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-6">
-      @for (service of services(); track service.title) {
-        <app-card elevation="sm" [interactive]="true" [accent]="true">
+      @for (service of services(); track service.title; let i = $index) {
+        <app-card elevation="sm" [interactive]="true" [accent]="true" appReveal [appRevealDelay]="i * 70">
           @if (service.image) {
             <img [src]="service.image" [alt]="service.title" class="mb-5 aspect-[16/9] w-full rounded-md object-cover" />
           }

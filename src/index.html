@@ -77,11 +77,17 @@
       ]
     }
   </script>
+  <style>
+    .boot-progress{position:fixed;inset:0 0 auto;height:4px;overflow:hidden;z-index:2000;background:rgba(70,79,255,.1);pointer-events:none}
+    .boot-progress::after{content:"";position:absolute;width:38%;height:100%;border-radius:999px;background:linear-gradient(90deg,#464fff,#22d3ee);animation:boot-progress-travel 1.6s ease-in-out infinite}
+    @keyframes boot-progress-travel{from{transform:translateX(-110%)}to{transform:translateX(370%)}}
+    @media(prefers-reduced-motion:reduce){.boot-progress::after{animation:none;width:100%}}
+  </style>
 </head>
 <body>
   <!-- Google Tag Manager (noscript) -->
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5ZZKGRDZ" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
-  <app-root></app-root>
+  <app-root><div class="boot-progress" role="progressbar" aria-label="Cargando aplicación"></div></app-root>
 </body>
 </html>

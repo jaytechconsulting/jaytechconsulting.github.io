@@ -1,3 +1,5 @@
+import { ToastService } from '../../core/services/toast.service';
+import { firstValueFrom } from 'rxjs';
 import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { ProjectsService } from '../../core/projects.service';
 import { Router } from '@angular/router';
@@ -59,6 +61,7 @@ const ACTIVITY: ActivityItem[] = [
 })
 export class ClientDashboard implements OnInit {
   private readonly auth = inject(AuthService);
+  private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
   private readonly ticketsService = inject(TicketsService);
   private readonly projectsService = inject(ProjectsService);
@@ -94,8 +97,8 @@ export class ClientDashboard implements OnInit {
     this.router.navigateByUrl('/panel-cliente/tickets/nuevo');
   }
 
-  logout(): void {
-    this.auth.logout();
-    this.router.navigateByUrl('/login');
+  async logout(): Promise<void> {
+    try {await firstValueFrom(this.auth.logout());}catch{this.toast.error('No pudimos cerrar la sesión','Inténtalo nuevamente.');return;}
+    this.router.navigateByUrl('/login',{replaceUrl:true});
   }
 }

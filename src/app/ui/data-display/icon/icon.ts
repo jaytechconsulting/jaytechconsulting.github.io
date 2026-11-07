@@ -45,6 +45,7 @@ export const ICON_PATHS = {
   sort:'m8 4-3 3 M8 4v16 M16 20l3-3 M16 4v16',
   arrowUp:'m6 10 6-6 6 6 M12 4v16',
   arrowDown:'m6 14 6 6 6-6 M12 4v16',
+  send:'m22 2-11 11 M22 2 15 22 11 13 2 9z',
 } as const;
 export type IconName = keyof typeof ICON_PATHS;
 @Component({selector:'app-icon',template:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path [attr.d]="paths[name()] || paths.shield" /></svg>`,styles:`:host{display:inline-flex;flex-shrink:0;width:18px;height:18px}svg{width:100%;height:100%}`})

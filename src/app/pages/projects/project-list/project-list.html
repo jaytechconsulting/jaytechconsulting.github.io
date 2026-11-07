@@ -84,12 +84,14 @@
 
     @if (shown().length > 0) {
       <div class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-6">
-        @for (p of shown(); track p.slug) {
+        @for (p of shown(); track p.slug; let i = $index) {
           <article
+            appReveal
+            [appRevealDelay]="(i % 9) * 60"
             [routerLink]="['/proyectos', p.slug]"
             [attr.aria-label]="'Ver detalle de ' + p.title"
             tabindex="0"
-            class="group relative cursor-pointer overflow-hidden rounded-lg border border-border-subtle bg-surface-card shadow-xs transition-shadow duration-200 ease-out hover:shadow-lg"
+            class="group relative cursor-pointer overflow-hidden rounded-lg border border-border-subtle bg-surface-card shadow-xs transition-[box-shadow,transform] duration-200 ease-out hover:-translate-y-1 hover:shadow-lg"
           >
             <div class="relative flex h-[132px] items-center justify-center overflow-hidden bg-[image:var(--gradient-ink)]">
               <div

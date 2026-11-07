@@ -1,5 +1,7 @@
 <section class="relative flex min-h-[calc(100dvh-var(--hero-chrome-h,80px))] flex-col justify-center overflow-hidden bg-surface-page px-8 py-10">
   <div class="pointer-events-none absolute -top-28 -left-28 h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,rgba(255,107,53,0.14),transparent_40%)]"></div>
+  <div class="pointer-events-none absolute -right-24 -bottom-24 h-[360px] w-[360px] rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.14),transparent_42%)] min-[821px]:hidden"></div>
+  <div class="pointer-events-none absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-[0.07] [mask-image:radial-gradient(circle_at_30%_70%,#000,transparent_65%)] min-[821px]:hidden"></div>
 
   <!-- background video — bleeds into the page, no card/box; the fade on both sides keeps its edges from ever reading as a rectangle -->
   @if (heroAnimation().enabled) {
@@ -62,13 +64,11 @@
         {{ content().description }}
       </p>
 
-      <div class="mt-8 flex flex-wrap gap-3.5">
+      <div class="mt-8">
         <app-button variant="primary" size="lg" (clicked)="goToProposal()">
-          Solicitar propuesta
+          {{ ctaLabel() }}
           <span slot="icon-right">→</span>
         </app-button>
-        <app-button variant="outline" size="lg" (clicked)="goToProjects()">Ver proyectos</app-button>
-        <app-button variant="ghost" size="lg" (clicked)="goToClientArea()">Área de cliente</app-button>
       </div>
 
       <div class="mt-9 flex flex-wrap items-center gap-2.5">
@@ -77,30 +77,18 @@
           <span class="rounded-pill border border-border-subtle bg-surface-sunken px-3 py-1.5 font-mono text-[13px] text-text-muted">{{ tech }}</span>
         }
       </div>
-    </div>
 
-    <!-- background video — mobile: full-bleed band below the text, fades in from the top -->
-    @if (heroAnimation().enabled) {
-      <div
-        class="relative -mx-8 mt-12 aspect-[4/3] w-[calc(100%+64px)] overflow-hidden [mask-image:linear-gradient(180deg,transparent_0%,black_20%)] min-[821px]:hidden"
-      >
-        @if (heroAnimation().videoUrl) {
-          <video class="h-full w-full object-cover" [autoplay]="!reducedMotion" [muted]="true" loop playsinline [preload]="reducedMotion ? 'auto' : 'metadata'">
-            <source [src]="heroAnimation().videoUrl" />
-          </video>
-        } @else if (theme() === 'dark') {
-          <video class="h-full w-full object-cover" [autoplay]="!reducedMotion" [muted]="true" loop playsinline [preload]="reducedMotion ? 'auto' : 'metadata'">
-            <source src="hero/hero-oscuro.webm" type="video/webm" />
-            <source src="hero/hero-oscuro.mp4" type="video/mp4" />
-          </video>
-        } @else {
-          <video class="h-full w-full object-cover" [autoplay]="!reducedMotion" [muted]="true" loop playsinline [preload]="reducedMotion ? 'auto' : 'metadata'">
-            <source src="hero/hero-claro.webm" type="video/webm" />
-            <source src="hero/hero-claro.mp4" type="video/mp4" />
-          </video>
-        }
+      <!-- trust badges: floating over the video on desktop (below), inline here on mobile since there's no video to anchor them to -->
+      <div class="mt-7 flex flex-wrap items-center gap-2.5 min-[821px]:hidden">
+        <div class="inline-flex items-center gap-2 rounded-pill border border-border-subtle bg-surface-card px-3.5 py-2 shadow-sm">
+          <span class="h-2 w-2 rounded-full bg-success"></span>
+          <span class="font-mono text-xs text-text-muted">99.9% uptime</span>
+        </div>
+        <div class="inline-flex items-center gap-2 rounded-pill border border-border-subtle bg-surface-card px-3.5 py-2 shadow-sm">
+          <span class="font-mono text-xs text-brand-cyan-600">+40 proyectos</span>
+        </div>
       </div>
-    }
+    </div>
   </div>
 
   <div

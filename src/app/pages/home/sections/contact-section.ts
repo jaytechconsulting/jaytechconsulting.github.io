@@ -5,8 +5,9 @@ import { DialogService } from '../../../core/services/dialog.service';
 import { ToastService } from '../../../core/services/toast.service';
 import type { ContactFormValue } from '../../../ui/forms/contact-form/contact-form';
 import { CmsContentService } from '../../../core/cms-content.service';
+import { Reveal } from '../../../core/directives/reveal';
 
-@Component({ selector: 'app-contact-section', imports: [ContactForm], templateUrl: './contact-section.html' })
+@Component({ selector: 'app-contact-section', imports: [ContactForm, Reveal], templateUrl: './contact-section.html' })
 export class ContactSection {
   private readonly api = inject(ApiService);
   private readonly dialog = inject(DialogService);

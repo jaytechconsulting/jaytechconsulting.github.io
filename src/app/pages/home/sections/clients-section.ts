@@ -1,8 +1,10 @@
 import { Component, computed, inject } from '@angular/core';
 import { CmsContentService } from '../../../core/cms-content.service';
+import { Reveal } from '../../../core/directives/reveal';
 
 @Component({
   selector: 'app-clients-section',
+  imports: [Reveal],
   templateUrl: './clients-section.html',
 })
 export class ClientsSection {

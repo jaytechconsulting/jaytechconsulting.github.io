@@ -1,7 +1,7 @@
-<div [attr.inert]="dialogs.dialog() ? '' : null" class="app-content" [class.app-content--revealed]="!showLoader()">
+<div [attr.inert]="dialogs.dialog() ? '' : null" class="app-content" [class.app-content--revealed]="!showLoader()" [class.page-fade-in]="pageFade()">
   <router-outlet />
 </div>
-@if(!inAdmin()){<app-nav-progress-bar [visible]="showProgressBar() || loading.hasPendingRequests()" [color]="loaderColor()" />}
+<app-nav-progress-bar [visible]="!navigationReady() || showProgressBar() || loading.hasPendingRequests()" [color]="loaderColor()" />
 <app-toast-stack />
 <app-dialog-outlet />
 

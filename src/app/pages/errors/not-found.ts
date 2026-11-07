@@ -1,3 +1,5 @@
+import { ErrorRecovery } from '../../core/error-recovery';
+import { ActivatedRoute } from '@angular/router';
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ErrorPage } from './error-page';
@@ -13,14 +15,15 @@ import { ErrorPage } from './error-page';
       title="Página no encontrada"
       description="La ruta que buscas no existe o fue movida. Revisa la dirección o vuelve al inicio."
       [log]="log"
-      primaryLabel="Volver al inicio"
-      secondaryLabel="Ir al panel"
-      (primaryClicked)="router.navigateByUrl('/')"
-      (secondaryClicked)="router.navigateByUrl('/panel-cliente')"
+      primaryLabel="Reintentar"
+      secondaryLabel="Volver al inicio"
+      (primaryClicked)="recovery.retry()"
+      (secondaryClicked)="router.navigateByUrl('/')"
     />
   `,
 })
 export class NotFound {
   protected readonly router = inject(Router);
-  protected readonly log = `GET ${(this.router.getCurrentNavigation()?.finalUrl?.toString() ?? this.router.url).split('?')[0] || '/'} → 404 · not_found`;
+  protected readonly recovery=inject(ErrorRecovery);
+  protected readonly log=`GET ${inject(ActivatedRoute).snapshot.queryParamMap.get('path')??'/'} → 404 · not_found`;
 }

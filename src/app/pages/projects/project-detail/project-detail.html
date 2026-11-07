@@ -107,7 +107,7 @@
         class="mb-[clamp(48px,6vw,72px)] grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-[18px]"
       >
         @for (r of project.results; track r[1]; let i = $index) {
-          <div class="relative overflow-hidden rounded-lg border border-border-subtle bg-surface-card p-[26px_24px] shadow-sm">
+          <div appReveal [appRevealDelay]="i * 70" class="relative overflow-hidden rounded-lg border border-border-subtle bg-surface-card p-[26px_24px] shadow-sm">
             <div
               class="absolute top-0 right-0 left-0 h-[3px]"
               [style.background]="i === 0 ? project.color : 'var(--text-strong)'"
@@ -124,7 +124,7 @@
       </div>
 
       <!-- reto / solución timeline -->
-      <div class="mb-[clamp(48px,6vw,72px)]">
+      <div appReveal class="mb-[clamp(48px,6vw,72px)]">
         <div class="flex gap-5">
           <div class="flex shrink-0 flex-col items-center">
             <span
@@ -160,6 +160,7 @@
 
       <!-- meta strip -->
       <div
+        appReveal
         class="relative mb-[clamp(48px,6vw,72px)] flex flex-wrap gap-8 overflow-hidden rounded-lg bg-surface-inverse p-[clamp(24px,3vw,32px)] text-text-on-inverse"
       >
         <div
@@ -180,11 +181,13 @@
         <div class="mb-[clamp(40px,5vw,56px)]">
           <h2 class="m-0 mb-6 font-display text-2xl font-bold text-text-strong">Proyectos relacionados</h2>
           <div class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,260px),1fr))] gap-[18px]">
-            @for (r of related; track r.slug) {
+            @for (r of related; track r.slug; let i = $index) {
               <button
                 type="button"
+                appReveal
+                [appRevealDelay]="i * 60"
                 (click)="openRelated(r.slug)"
-                class="cursor-pointer rounded-lg border border-border-subtle bg-surface-card p-5 text-left shadow-xs"
+                class="cursor-pointer rounded-lg border border-border-subtle bg-surface-card p-5 text-left shadow-xs transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-lg"
               >
                 <div class="mb-2.5 flex items-center gap-2.5">
                   <span class="text-[22px]" [style.color]="r.color">{{ r.glyph }}</span>
@@ -200,6 +203,7 @@
 
       <!-- CTA -->
       <div
+        appReveal
         class="relative overflow-hidden rounded-xl bg-[image:var(--gradient-ink)] p-[clamp(36px,5vw,56px)] text-center text-text-on-inverse"
       >
         <div

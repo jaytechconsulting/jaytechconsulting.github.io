@@ -1,3 +1,4 @@
+import { privateReturnUrl } from '../../../core/auth-navigation';
 import { AccessService } from '../../../core/access.service';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -44,7 +45,7 @@ export class Login {
       next: (user) => {
         this.submitting.set(false);
         const redirectTo = this.route.snapshot.queryParamMap.get('redirectTo');
-        this.access.clear();this.access.load(true).subscribe(session=>{const first=session.menus.find(m=>m.route);const home=session.canAdmin && first ? this.access.link(first) : user.role==='admin'?'/admin/perfil':HOME_BY_ROLE[user.role];this.router.navigateByUrl(redirectTo && !redirectTo.startsWith('/') ? '/' + redirectTo : home);});
+        this.access.clear();this.access.load(true).subscribe(session=>{const first=session.menus.find(m=>m.route);const home=session.canAdmin && first ? this.access.link(first) : user.role==='admin'?'/admin/perfil':HOME_BY_ROLE[user.role];this.router.navigateByUrl(privateReturnUrl(redirectTo) ?? home,{replaceUrl:true});});
       },
       error: () => {
         this.submitting.set(false);

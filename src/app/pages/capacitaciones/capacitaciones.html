@@ -30,7 +30,7 @@
   </header>
 
   <div class="mx-auto max-w-[1200px] px-5 py-[clamp(56px,8vw,88px)] sm:px-10">
-    <div class="mb-10">
+    <div appReveal class="mb-10">
       <div class="mb-3.5 font-mono text-[13px] uppercase tracking-[0.14em] text-brand-orange-600">// Programas</div>
       <h2 class="m-0 max-w-[640px] font-display text-3xl font-bold leading-[1.15] tracking-[-0.02em] text-text-strong">
         Formación a la medida de tu equipo
@@ -38,7 +38,7 @@
       <p class="mt-4 max-w-[580px] text-lg text-text-muted">Sesiones prácticas sobre tus propios procesos y herramientas, no un temario genérico.</p>
     </div>
 
-    <div class="mb-8 flex flex-wrap items-end gap-4 rounded-lg border border-border-subtle bg-surface-card p-4">
+    <div appReveal [appRevealDelay]="80" class="mb-8 flex flex-wrap items-end gap-4 rounded-lg border border-border-subtle bg-surface-card p-4">
       <div class="min-w-[220px] flex-1">
         <app-input label="Buscar" placeholder="Nombre o palabra clave del programa" [value]="search()" (valueChange)="onSearch($event)" />
       </div>
@@ -51,8 +51,10 @@
     </div>
 
     <div class="grid auto-rows-fr grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-7 transition-opacity duration-150 ease-out" [class.opacity-50]="loading()">
-      @for (program of programs(); track program.id) {
+      @for (program of programs(); track program.id; let i = $index) {
         <app-feature-card
+          appReveal
+          [appRevealDelay]="i * 70"
           [image]="program.imageUrl ?? null"
           [accentColor]="program.accentColor || '#FF6B35'"
           [badges]="[program.modality, program.duration]"
@@ -94,12 +96,12 @@
 
   <div class="border-t border-border-subtle bg-surface-sunken px-5 py-[clamp(56px,8vw,88px)] sm:px-10">
     <div class="mx-auto max-w-[800px]">
-      <div class="mb-3.5 font-mono text-[13px] uppercase tracking-[0.14em] text-brand-orange-600">// Preguntas frecuentes</div>
-      <h2 class="m-0 mb-8 font-display text-3xl font-bold leading-[1.15] tracking-[-0.02em] text-text-strong">Lo que más nos preguntan</h2>
+      <div appReveal class="mb-3.5 font-mono text-[13px] uppercase tracking-[0.14em] text-brand-orange-600">// Preguntas frecuentes</div>
+      <h2 appReveal class="m-0 mb-8 font-display text-3xl font-bold leading-[1.15] tracking-[-0.02em] text-text-strong">Lo que más nos preguntan</h2>
 
       <div class="flex flex-col gap-3">
         @for (faq of faqs; track faq.question; let i = $index) {
-          <div class="overflow-hidden rounded-lg border border-border-subtle bg-surface-card">
+          <div appReveal [appRevealDelay]="i * 50" class="overflow-hidden rounded-lg border border-border-subtle bg-surface-card">
             <button
               type="button"
               class="flex w-full cursor-pointer items-center justify-between gap-4 px-5 py-4 text-left"

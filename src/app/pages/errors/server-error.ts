@@ -1,8 +1,9 @@
+import { ErrorRecovery } from '../../core/error-recovery';
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ErrorPage } from './error-page';
 
-/** 500 — fallo del backend. "Reintentar" recarga la página. */
+/** 500 — fallo del backend. "Reintentar" vuelve a la ruta que falló. */
 @Component({
   selector: 'app-server-error',
   imports: [ErrorPage],
@@ -23,7 +24,6 @@ import { ErrorPage } from './error-page';
 export class ServerError {
   protected readonly router = inject(Router);
 
-  reload(): void {
-    window.location.reload();
-  }
+  private readonly recovery=inject(ErrorRecovery);
+  reload():void {void this.recovery.retry();}
 }

@@ -8,6 +8,7 @@ import { Wordmark } from '../../../ui/brand/wordmark/wordmark';
 import { WhatsAppFab } from '../../../ui/marketing/whatsapp-fab/whatsapp-fab';
 import { ProjectsService } from '../../../core/projects.service';
 import { CmsContentService } from '../../../core/cms-content.service';
+import { Reveal } from '../../../core/directives/reveal';
 
 const FILTERS = ['Todos', 'Web', 'Landing', 'Automatización', 'Integración'];
 const PAGE_SIZE = 6;
@@ -20,7 +21,7 @@ const STATS: [string, string][] = [
 /** Public project gallery: category filters, search by name/client/tech and pagination. */
 @Component({
   selector: 'app-project-list',
-  imports: [Badge, Tag, Button, Wordmark, WhatsAppFab, RouterLink],
+  imports: [Badge, Tag, Button, Wordmark, WhatsAppFab, RouterLink, Reveal],
   templateUrl: './project-list.html',
 })
 export class ProjectList implements OnInit {

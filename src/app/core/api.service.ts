@@ -36,10 +36,12 @@ export class ApiService {
     return this.unwrap(this.http.post<ApiResponse<ApiUser>>(`${this.baseUrl}/auth/login`, { email, password }));
   }
 
+  logout():Observable<void> {return this.unwrap(this.http.post<ApiResponse<void>>(`${this.baseUrl}/auth/logout`,{}));}
+
   lookupDocument(documentType:string,documentNumber:string):Observable<{givenNames?:string|null;paternalSurname?:string|null;maternalSurname?:string|null;legalName?:string|null;fullName?:string|null;source:string}> {return this.unwrap(this.http.post<ApiResponse<{givenNames?:string|null;paternalSurname?:string|null;maternalSurname?:string|null;legalName?:string|null;fullName?:string|null;source:string}>>(`${this.baseUrl}/documents/lookup`,{documentType,documentNumber}));}
 
   catalogDetails(code:string):Observable<CatalogDetails> {return this.unwrap(this.http.get<ApiResponse<CatalogDetails>>(`${this.baseUrl}/catalogos/${encodeURIComponent(code)}/detalles`));}
-  currentProfile(): Observable<Omit<ApiProfile, 'token'>> { return this.unwrap(this.http.get<ApiResponse<Omit<ApiProfile, 'token'>>>(`${this.baseUrl}/auth/me`)); }
+  currentProfile(): Observable<ApiProfile> { return this.unwrap(this.http.get<ApiResponse<ApiProfile>>(`${this.baseUrl}/auth/me`)); }
   updateProfile(input: string | PersonalProfileInput): Observable<ApiProfile> { return this.unwrap(this.http.put<ApiResponse<ApiProfile>>(`${this.baseUrl}/auth/me`, typeof input === 'string' ? {name:input} : input)); }
   changeEmail(email: string, currentPassword: string): Observable<ApiUser> { return this.unwrap(this.http.post<ApiResponse<ApiUser>>(`${this.baseUrl}/auth/change-email`, {email,currentPassword})); }
   changePassword(currentPassword: string, newPassword: string): Observable<void> { return this.unwrap(this.http.post<ApiResponse<void>>(`${this.baseUrl}/auth/change-password`, {currentPassword,newPassword})); }

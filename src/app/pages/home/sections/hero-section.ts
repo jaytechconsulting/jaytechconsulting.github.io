@@ -20,15 +20,10 @@ export class HeroSection {
   readonly heroAnimation = this.cms.heroAnimation;
   readonly reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /** Single hero CTA — reuses the header's admin-configurable button text (Admin → Cabecera web). */
+  readonly ctaLabel = computed(() => this.cms.header().cta);
+
   goToProposal(): void {
     this.router.navigateByUrl('/solicitar-propuesta');
-  }
-
-  goToProjects(): void {
-    this.router.navigateByUrl('/proyectos');
-  }
-
-  goToClientArea(): void {
-    this.router.navigateByUrl('/login');
   }
 }

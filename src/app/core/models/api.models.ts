@@ -120,7 +120,7 @@ export interface ApiSiteContent {
   updatedAt: string;
 }
 export interface ApiTicket { id: string; code: string; title: string; description: string; priority: string; status: string; createdAt: string; updatedAt?: string; }
-export interface ApiUser { id: string; name: string; email: string; role: string; token: string; avatarUrl?: string | null; avatarZoom?:number; avatarX?:number; avatarY?:number; }
+export interface ApiUser { id: string; name: string; email: string; role: string; avatarUrl?: string | null; avatarZoom?:number; avatarX?:number; avatarY?:number; }
 export interface ApiAdminUser extends PersonalProfileFields { id: string; name: string; email: string; role: string; isActive: boolean; createdAt: string; }
 
 export interface PersonalProfileFields {
