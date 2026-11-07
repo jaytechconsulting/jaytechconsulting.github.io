@@ -20,7 +20,7 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
  return defer(send).pipe(
   catchError(error=>{
    // This code is returned only by the pre-action CSRF filter; never retry general mutations.
-   if(isApi && unsafe && error.status===403 && error.error?.errors?.code==='csrf_invalid' && version===lifecycle.version){csrf.clear();return send();}
+   if(isApi && unsafe && error.status===403 && (error.error?.errors?.code ?? error.error?.code)==='csrf_invalid' && version===lifecycle.version){csrf.clear();return send();}
    return throwError(()=>error);
   }),
   tap(event=>{

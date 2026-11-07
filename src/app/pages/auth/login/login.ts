@@ -47,8 +47,10 @@ export class Login {
         const redirectTo = this.route.snapshot.queryParamMap.get('redirectTo');
         this.access.clear();this.access.load(true).subscribe(session=>{const first=session.menus.find(m=>m.route);const home=session.canAdmin && first ? this.access.link(first) : user.role==='admin'?'/admin/perfil':HOME_BY_ROLE[user.role];this.router.navigateByUrl(privateReturnUrl(redirectTo) ?? home,{replaceUrl:true});});
       },
-      error: () => {
+      error: (error) => {
         this.submitting.set(false);
+        const code=error?.error?.errors?.code ?? error?.error?.code;
+        if(code==='csrf_invalid'){this.toast.error('No pudimos validar la seguridad del acceso','El navegador no pudo enviar la cookie de seguridad. Revisa las cookies de este sitio.');return;}
         this.toast.error('No pudimos iniciar sesión', 'Revisa tu correo y contraseña.');
       },
     });

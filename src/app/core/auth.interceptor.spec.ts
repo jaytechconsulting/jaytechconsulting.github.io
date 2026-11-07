@@ -29,6 +29,13 @@ describe('Cookie authentication and CSRF boundary',()=>{
  it('refreshes a rejected CSRF token once before retrying the pre-action rejection',()=>{
   http.post(base+'/one',{}).subscribe();csrf();control.expectOne(base+'/one').flush({errors:{code:'csrf_invalid'}},{status:403,statusText:'Forbidden'});csrf('renewed');const retry=control.expectOne(base+'/one');expect(retry.request.headers.get('X-CSRF-TOKEN')).toBe('renewed');retry.flush({});
  });
+ it('recognizes the deployed top-level CSRF rejection and retries only once',()=>{
+  const failed=vi.fn();http.post(base+'/auth/login',{}).subscribe({error:failed});csrf();
+  control.expectOne(base+'/auth/login').flush({code:'csrf_invalid'},{status:403,statusText:'Forbidden'});
+  csrf('renewed');const retry=control.expectOne(base+'/auth/login');expect(retry.request.headers.get('X-CSRF-TOKEN')).toBe('renewed');
+  retry.flush({code:'csrf_invalid'},{status:403,statusText:'Forbidden'});
+  expect(failed).toHaveBeenCalledOnce();control.expectNone(base+'/auth/csrf');expect(TestBed.inject(LoadingService).hasPendingRequests()).toBe(false);
+ });
  it('never retries forbidden business operations',()=>{
   http.post(base+'/one',{}).subscribe({error:()=>{}});csrf();control.expectOne(base+'/one').flush({},{status:403,statusText:'Forbidden'});control.expectNone(base+'/auth/csrf');expect(auth.clearSession).not.toHaveBeenCalled();
  });
