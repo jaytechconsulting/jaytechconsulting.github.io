@@ -159,3 +159,14 @@
 .overlay-scroll-thumb:hover,.overlay-scroll-thumb:active{opacity:1;background:color-mix(in srgb,var(--text-muted) 45%,transparent)}
 .overlay-scroll-thumb:active{cursor:grabbing}
 @media(prefers-reduced-motion:reduce){.overlay-scroll-thumb{transition:none}}
+
+/* iOS zooms focused form controls with small text. Cover native fields and
+   custom-control search inputs without disabling pinch-to-zoom. Component
+   styles also set font sizes, so this touch-only minimum must take precedence. */
+@media (any-pointer: coarse) {
+  input,
+  textarea,
+  select {
+    font-size: max(16px, 1rem) !important;
+  }
+}
