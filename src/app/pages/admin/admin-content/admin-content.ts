@@ -14,7 +14,7 @@ import { ToastService } from '../../../core/services/toast.service';
 import { DialogService } from '../../../core/services/dialog.service';
 import { CmsContentService, type CmsAnnouncement, type CmsContentState, type CmsHeroAnimation, type CmsLoaderConfig, type CmsPageDesign, type CmsPageDesignId } from '../../../core/cms-content.service';
 import { ApiService } from '../../../core/api.service';
-import type { ApiTrainingProgram } from '../../../core/models/api.models';
+import type { ApiCourseAdmin, ApiCourseMaterial, ApiTrainingProgram } from '../../../core/models/api.models';
 
 type FieldType = 'text' | 'textarea' | 'select' | 'color' | 'glyph' | 'image';
 
@@ -319,6 +319,12 @@ export class AdminContent {
   readonly programIsNew = computed(() => this.programSel() === -1);
   private static readonly BLANK_PROGRAM: Partial<ApiTrainingProgram> = { title: '', description: '', modality: 'In-company', duration: '', imageUrl: '', accentColor: '#FF6B35', isPublished: true, displayOrder: 1 };
 
+  readonly courseItems = signal<ApiCourseAdmin[]>([]);
+  readonly courseSel = signal(0);
+  readonly courseDraft = signal<Partial<ApiCourseAdmin>>({});
+  readonly courseIsNew = computed(() => this.courseSel() === -1);
+  private static readonly BLANK_COURSE: Partial<ApiCourseAdmin> = { title: '', description: '', glyph: '◆', accentColor: '#FF6B35', imageUrl: '', price: 0, isPublished: true, displayOrder: 1, materials: [], syllabus: [], reviews: [] };
+
   constructor() {
     inject(ActivatedRoute).data.pipe(takeUntilDestroyed()).subscribe(data => {
       const section = data['contentSection'];
@@ -342,6 +348,14 @@ export class AdminContent {
 
   programRowButtonClasses(i: number): string {
     const on = i === this.programSel();
+    return [
+      'flex w-full cursor-pointer items-center gap-3 border-b border-l-[3px] px-[18px] py-3 text-left transition-colors duration-150 ease-out',
+      on ? 'border-b-border-subtle border-l-brand-orange bg-surface-sunken' : 'border-b-border-subtle border-l-transparent bg-transparent',
+    ].join(' ');
+  }
+
+  courseRowButtonClasses(i: number): string {
+    const on = i === this.courseSel();
     return [
       'flex w-full cursor-pointer items-center gap-3 border-b border-l-[3px] px-[18px] py-3 text-left transition-colors duration-150 ease-out',
       on ? 'border-b-border-subtle border-l-brand-orange bg-surface-sunken' : 'border-b-border-subtle border-l-transparent bg-transparent',
@@ -702,6 +716,194 @@ export class AdminContent {
     });
   }
 
+  pickCourse(i: number): void {
+    this.courseSel.set(i);
+    const item = this.courseItems()[i];
+    this.courseDraft.set({
+      ...item,
+      materials: item.materials.map((m) => ({ ...m })),
+      syllabus: item.syllabus.map((s) => ({ ...s })),
+      reviews: item.reviews.map((r) => ({ ...r })),
+    });
+  }
+
+  addNewCourse(): void {
+    this.courseSel.set(-1);
+    this.courseDraft.set({ ...AdminContent.BLANK_COURSE, displayOrder: this.courseItems().length + 1, materials: [], syllabus: [], reviews: [] });
+  }
+
+  setCourseDraftField(key: 'title' | 'description', value: string): void {
+    this.courseDraft.update((d) => ({ ...d, [key]: value }));
+  }
+
+  setCourseDraftPrice(value: string): void {
+    this.courseDraft.update((d) => ({ ...d, price: Number(value) || 0 }));
+  }
+
+  setCourseDraftColor(color: string): void {
+    this.courseDraft.update((d) => ({ ...d, accentColor: color }));
+  }
+
+  setCourseDraftGlyph(glyph: string): void {
+    this.courseDraft.update((d) => ({ ...d, glyph }));
+  }
+
+  onCourseDraftImageChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      this.toast.error('Archivo no válido', 'Selecciona una imagen JPG, PNG, WebP o SVG.');
+      input.value = '';
+      return;
+    }
+    if (file.size > 1024 * 1024) {
+      this.toast.error('Imagen demasiado grande', 'La imagen debe pesar como máximo 1 MB.');
+      input.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.courseDraft.update((d) => ({ ...d, imageUrl: reader.result as string }));
+      input.value = '';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  clearCourseDraftImage(): void {
+    this.courseDraft.update((d) => ({ ...d, imageUrl: '' }));
+  }
+
+  addMaterialRow(): void {
+    this.courseDraft.update((d) => ({
+      ...d,
+      materials: [...(d.materials ?? []), { title: '', type: 'archivo', url: '', displayOrder: d.materials?.length ?? 0 }],
+    }));
+  }
+
+  removeMaterialRow(i: number): void {
+    this.courseDraft.update((d) => ({ ...d, materials: (d.materials ?? []).filter((_, idx) => idx !== i) }));
+  }
+
+  setMaterialField(i: number, key: 'title' | 'type' | 'url', value: string): void {
+    this.courseDraft.update((d) => ({
+      ...d,
+      materials: (d.materials ?? []).map((m, idx) => (idx === i ? { ...m, [key]: value } : m)),
+    }));
+  }
+
+  addSyllabusRow(): void {
+    this.courseDraft.update((d) => ({
+      ...d,
+      syllabus: [...(d.syllabus ?? []), { title: '', description: '', displayOrder: d.syllabus?.length ?? 0 }],
+    }));
+  }
+
+  removeSyllabusRow(i: number): void {
+    this.courseDraft.update((d) => ({ ...d, syllabus: (d.syllabus ?? []).filter((_, idx) => idx !== i) }));
+  }
+
+  setSyllabusField(i: number, key: 'title' | 'description', value: string): void {
+    this.courseDraft.update((d) => ({
+      ...d,
+      syllabus: (d.syllabus ?? []).map((s, idx) => (idx === i ? { ...s, [key]: value } : s)),
+    }));
+  }
+
+  addReviewRow(): void {
+    this.courseDraft.update((d) => ({
+      ...d,
+      reviews: [...(d.reviews ?? []), { authorName: '', rating: 5, body: '', displayOrder: d.reviews?.length ?? 0 }],
+    }));
+  }
+
+  removeReviewRow(i: number): void {
+    this.courseDraft.update((d) => ({ ...d, reviews: (d.reviews ?? []).filter((_, idx) => idx !== i) }));
+  }
+
+  setReviewField(i: number, key: 'authorName' | 'body', value: string): void {
+    this.courseDraft.update((d) => ({
+      ...d,
+      reviews: (d.reviews ?? []).map((r, idx) => (idx === i ? { ...r, [key]: value } : r)),
+    }));
+  }
+
+  setReviewRating(i: number, rating: number): void {
+    this.courseDraft.update((d) => ({
+      ...d,
+      reviews: (d.reviews ?? []).map((r, idx) => (idx === i ? { ...r, rating } : r)),
+    }));
+  }
+
+  saveCourseDraft(): void {
+    if (this.saving()) return;
+    const value = this.courseDraft();
+    const isNew = this.courseIsNew();
+    const payload = {
+      title: value.title ?? '',
+      description: value.description ?? '',
+      glyph: value.glyph || '◆',
+      accentColor: value.accentColor || '#FF6B35',
+      imageUrl: value.imageUrl || null,
+      price: value.price ?? 0,
+      isPublished: value.isPublished ?? true,
+      displayOrder: value.displayOrder ?? this.courseItems().length + 1,
+      materials: (value.materials ?? []).filter((m) => m.title.trim() && m.url.trim()),
+      syllabus: (value.syllabus ?? []).filter((s) => s.title.trim()),
+      reviews: (value.reviews ?? []).filter((r) => r.authorName.trim() && r.body.trim()),
+    };
+    this.saving.set(true);
+    const request = isNew ? this.api.createCourse(payload) : this.api.updateCourse(value.id!, payload);
+    request.subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.toast.success('Cambios guardados', `"${payload.title}" se actualizó en el backend.`);
+        this.loadCoursesTab();
+      },
+      error: () => {
+        this.saving.set(false);
+        this.toast.error('No pudimos guardar', 'El backend rechazó el cambio. Revisa los campos e inténtalo otra vez.');
+      },
+    });
+  }
+
+  async deleteCourseDraft(): Promise<void> {
+    if (this.courseIsNew() || this.saving() || this.dialog.dialog()) return;
+    const item = this.courseItems()[this.courseSel()];
+    if (!item) return;
+    const confirmed = await this.dialog.confirm({
+      tone: 'danger',
+      title: '¿Eliminar curso?',
+      message: `Se eliminará "${item.title}" de la web. Esta acción no se puede deshacer.`,
+      confirmLabel: 'Sí, eliminar',
+      cancelLabel: 'Cancelar',
+    });
+    if (!confirmed) return;
+    this.saving.set(true);
+    this.api.deleteCourse(item.id).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.toast.success('Curso eliminado', `"${item.title}" se quitó del backend.`);
+        this.loadCoursesTab();
+      },
+      error: () => {
+        this.saving.set(false);
+        this.toast.error('No pudimos eliminar', 'El backend no pudo completar la operación.');
+      },
+    });
+  }
+
+  private loadCoursesTab(): void {
+    this.api.coursesAll().subscribe({
+      next: (items) => {
+        this.courseItems.set(items);
+        this.courseSel.set(items.length ? 0 : -1);
+        this.courseDraft.set({ ...(items[0] ?? AdminContent.BLANK_COURSE) });
+      },
+      error: () => this.toast.error('No pudimos cargar los cursos', 'Verifica tu sesión y la conexión con el backend.'),
+    });
+  }
+
   setHeaderLink(i: number, key: keyof HeaderLink, value: string): void {
     this.headerLinks.update((links) => links.map((l, idx) => (idx === i ? { ...l, [key]: value } : l)));
   }
@@ -805,6 +1007,11 @@ export class AdminContent {
 
     if (tab === 'programas') {
       this.loadProgramsTab();
+      return;
+    }
+
+    if (tab === 'cursos') {
+      this.loadCoursesTab();
       return;
     }
 

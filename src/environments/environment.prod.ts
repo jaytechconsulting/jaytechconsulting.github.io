@@ -3,4 +3,5 @@ export const environment = {
   apiUrl: 'https://personal-appeldronenlasopaservices-gpxoo-5b5ae3-13-140-158-209.sslip.io/api',
   analyticsMeasurementId: 'G-P5ZV1K1X50',
   tagManagerId: 'GTM-5ZZKGRDZ',
+  culqiPublicKey: 'pk_test_REEMPLAZAR',
 } as const;

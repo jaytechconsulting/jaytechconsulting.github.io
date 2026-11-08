@@ -4,6 +4,9 @@
 <app-nav-progress-bar [visible]="!navigationReady() || showProgressBar() || loading.hasPendingRequests()" [color]="loaderColor()" />
 <app-toast-stack />
 <app-dialog-outlet />
+@if (!inAdmin()) {
+  <app-cart-footer />
+}
 
 @if (showLoader()) {
   <div class="fixed inset-0 z-[100]">

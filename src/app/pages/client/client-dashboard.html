@@ -155,6 +155,31 @@
           </tbody>
         </table>
       </app-card>
+
+      <!-- Purchased courses -->
+      @if (coursePurchases().length > 0) {
+        <app-card elevation="sm">
+          <h2 class="m-0 mb-[18px] font-display text-[19px] font-semibold text-text-strong">Mis cursos</h2>
+          <div class="flex flex-col gap-5">
+            @for (c of coursePurchases(); track c.courseId) {
+              <div class="border-b border-border-subtle pb-5 last:border-0 last:pb-0">
+                <div class="mb-3 text-[15.5px] font-semibold text-text-strong">{{ c.courseTitle }}</div>
+                <div class="flex flex-col gap-2">
+                  @for (m of c.materials; track m.url) {
+                    <a [href]="m.url" target="_blank" rel="noopener" class="flex items-center gap-2.5 rounded-md border border-border-subtle px-3.5 py-2.5 text-[14.5px] text-text-body no-underline transition-colors duration-150 ease-out hover:bg-surface-sunken hover:text-brand-orange">
+                      <app-icon [name]="$any(materialIcon(m.type))" />
+                      {{ m.title }}
+                    </a>
+                  }
+                  @if (c.materials.length === 0) {
+                    <p class="m-0 text-sm text-text-muted">El material de este curso aún no está disponible.</p>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </app-card>
+      }
     </div>
   </main>
 </div>

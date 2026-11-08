@@ -8,6 +8,9 @@ import type {
   ApiAdminUser,
   ApiCms,
   ApiCompany,
+  ApiCourse,
+  ApiCourseAdmin,
+  ApiCoursePurchase,
   ApiFooter,
   ApiHeader,
   ApiPagedResult,
@@ -120,6 +123,28 @@ export class ApiService {
   createTrainingProgram(input: unknown): Observable<ApiTrainingProgram> { return this.unwrap(this.http.post<ApiResponse<ApiTrainingProgram>>(`${this.baseUrl}/training-programs`, input)); }
   updateTrainingProgram(id: string, input: unknown): Observable<ApiTrainingProgram> { return this.unwrap(this.http.put<ApiResponse<ApiTrainingProgram>>(`${this.baseUrl}/training-programs/${encodeURIComponent(id)}`, input)); }
   deleteTrainingProgram(id: string): Observable<void> { return this.unwrap(this.http.delete<ApiResponse<void>>(`${this.baseUrl}/training-programs/${encodeURIComponent(id)}`)); }
+
+  courses(): Observable<ApiCourse[]> { return this.unwrap(this.http.get<ApiResponse<ApiCourse[]>>(`${this.baseUrl}/courses`)); }
+  course(id: string): Observable<ApiCourse> { return this.unwrap(this.http.get<ApiResponse<ApiCourse>>(`${this.baseUrl}/courses/${encodeURIComponent(id)}`)); }
+  coursesAll(): Observable<ApiCourseAdmin[]> { return this.unwrap(this.http.get<ApiResponse<ApiCourseAdmin[]>>(`${this.baseUrl}/courses/all`)); }
+  courseAdmin(id: string): Observable<ApiCourseAdmin> { return this.unwrap(this.http.get<ApiResponse<ApiCourseAdmin>>(`${this.baseUrl}/courses/admin/${encodeURIComponent(id)}`)); }
+  createCourse(input: unknown): Observable<ApiCourseAdmin> { return this.unwrap(this.http.post<ApiResponse<ApiCourseAdmin>>(`${this.baseUrl}/courses`, input)); }
+  updateCourse(id: string, input: unknown): Observable<ApiCourseAdmin> { return this.unwrap(this.http.put<ApiResponse<ApiCourseAdmin>>(`${this.baseUrl}/courses/${encodeURIComponent(id)}`, input)); }
+  deleteCourse(id: string): Observable<void> { return this.unwrap(this.http.delete<ApiResponse<void>>(`${this.baseUrl}/courses/${encodeURIComponent(id)}`)); }
+  checkoutCart(input: { courseIds: string[]; token: string; email: string; name: string; provider: string }): Observable<{ success: boolean }> {
+    return this.unwrap(this.http.post<ApiResponse<{ success: boolean }>>(`${this.baseUrl}/courses/checkout`, input));
+  }
+  startMercadoPagoCheckout(input: { courseIds: string[]; email: string; name: string }): Observable<{ redirectUrl: string }> {
+    return this.unwrap(this.http.post<ApiResponse<{ redirectUrl: string }>>(`${this.baseUrl}/courses/checkout/mercadopago/start`, input));
+  }
+  startNiubizSession(input: { courseIds: string[] }): Observable<{ sessionKey: string; merchantId: string; purchaseNumber: string; amount: number; scriptUrl: string }> {
+    return this.unwrap(this.http.post<ApiResponse<{ sessionKey: string; merchantId: string; purchaseNumber: string; amount: number; scriptUrl: string }>>(`${this.baseUrl}/courses/checkout/niubiz/session`, input));
+  }
+  confirmMercadoPagoCheckout(ref: string, paymentId: string): Observable<{ success: boolean }> {
+    const query = new URLSearchParams({ ref, paymentId }).toString();
+    return this.unwrap(this.http.post<ApiResponse<{ success: boolean }>>(`${this.baseUrl}/courses/checkout/mercadopago/confirm?${query}`, {}));
+  }
+  myCoursePurchases(): Observable<ApiCoursePurchase[]> { return this.unwrap(this.http.get<ApiResponse<ApiCoursePurchase[]>>(`${this.baseUrl}/courses/my-purchases`)); }
 
   updateHeader(input: unknown): Observable<ApiHeader> { return this.unwrap(this.http.put<ApiResponse<ApiHeader>>(`${this.baseUrl}/site-settings/header`, input)); }
   updateFooter(input: unknown): Observable<ApiFooter> { return this.unwrap(this.http.put<ApiResponse<ApiFooter>>(`${this.baseUrl}/site-settings/footer`, input)); }

@@ -66,6 +66,21 @@ export const routes: Routes = [
     data: { seo: { title: 'Programa de capacitación | Jaytech', description: 'Detalle de un programa de capacitación de Jaytech.' } },
   },
   {
+    path: 'cursos',
+    loadComponent: () => import('./pages/courses/course-quote/course-quote').then((m) => m.CourseQuote),
+    data: { seo: { title: 'Cursos | Jaytech', description: 'Arma tu selección de cursos de Jaytech con material práctico en video, PDF y archivos.' } },
+  },
+  {
+    path: 'cursos/checkout',
+    loadComponent: () => import('./pages/courses/course-checkout/course-checkout').then((m) => m.CourseCheckout),
+    data: { seo: { title: 'Checkout de cursos | Jaytech', description: 'Finaliza la compra de tus cursos de Jaytech.', index: false } },
+  },
+  {
+    path: 'cursos/:id',
+    loadComponent: () => import('./pages/courses/course-info/course-info').then((m) => m.CourseInfo),
+    data: { seo: { title: 'Curso | Jaytech', description: 'Detalle de un curso virtual de Jaytech: temario, material y reseñas.' } },
+  },
+  {
     path: 'conocenos',
     loadComponent: () => import('./pages/conocenos/conocenos').then((m) => m.Conocenos),
     data: { seo: { title: 'Conócenos | Jaytech', description: 'El equipo, los valores y la forma de trabajo detrás de Jaytech.' } },

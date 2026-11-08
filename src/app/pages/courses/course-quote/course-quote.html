@@ -1,0 +1,61 @@
+<div class="min-h-screen bg-surface-page pb-28 font-body">
+  <app-header class="sticky top-0 z-50" [links]="header().links" [cta]="header().cta" (ctaClicked)="requestProposal()" />
+
+  <section class="px-5 py-14 sm:px-8">
+    <div class="mx-auto max-w-[760px]">
+      <div appReveal class="mb-8">
+        <div class="mb-3.5 font-mono text-[13px] uppercase tracking-[0.14em] text-brand-orange-600">// Cotizador</div>
+        <h1 class="m-0 font-display text-3xl font-bold leading-[1.15] tracking-[-0.03em] text-text-strong">
+          Tus cursos <span class="text-brand-orange">({{ cart.count() }})</span>
+        </h1>
+      </div>
+
+      @if (cart.isEmpty()) {
+        <div appReveal class="rounded-xl border border-dashed border-border-default bg-surface-sunken px-6 py-14 text-center">
+          <p class="m-0 mb-5 text-[15px] text-text-muted">Aún no agregaste ningún curso a tu cotizador.</p>
+          <app-button variant="primary" (clicked)="addMore()">Ver cursos virtuales</app-button>
+        </div>
+      } @else {
+        <div appReveal class="overflow-hidden rounded-xl border border-border-subtle bg-surface-card">
+          @for (c of cart.courses(); track c.id; let last = $last) {
+            <div class="flex items-center gap-4 px-5 py-4" [class.border-b]="!last" [class.border-border-subtle]="!last">
+              <div class="shrink-0 text-xl" [style.color]="c.accentColor">{{ c.glyph }}</div>
+              <div class="min-w-0 flex-1">
+                <div class="truncate text-[15px] font-semibold text-text-strong">{{ c.title }}</div>
+                <div class="font-mono text-[13px] text-text-muted">{{ formatPrice(c.price) }}</div>
+              </div>
+              <button
+                type="button"
+                class="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-faint transition-colors duration-150 ease-out hover:bg-danger-tint hover:text-danger"
+                [attr.aria-label]="'Quitar ' + c.title"
+                (click)="cart.remove(c.id)"
+              >
+                <app-icon name="trash" />
+              </button>
+            </div>
+          }
+        </div>
+
+        <button type="button" class="mt-5 cursor-pointer text-sm font-semibold text-brand-orange-600" (click)="addMore()">+ Agregar más cursos</button>
+      }
+    </div>
+  </section>
+
+  <app-footer />
+  <app-whatsapp-fab />
+
+  @if (!cart.isEmpty()) {
+    <div class="fixed inset-x-0 bottom-0 z-[70] border-t border-border-subtle bg-surface-card/95 px-5 py-4 shadow-lg backdrop-blur-md sm:px-8">
+      <div class="mx-auto flex max-w-[760px] flex-wrap items-center justify-between gap-4">
+        <div>
+          <div class="font-mono text-xs uppercase tracking-[0.1em] text-text-muted">Total</div>
+          <div class="font-display text-xl font-bold text-text-strong">{{ formatPrice(cart.total()) }}</div>
+        </div>
+        <app-button variant="primary" size="lg" (clicked)="goToCheckout()">
+          Siguiente
+          <span slot="icon-right">→</span>
+        </app-button>
+      </div>
+    </div>
+  }
+</div>

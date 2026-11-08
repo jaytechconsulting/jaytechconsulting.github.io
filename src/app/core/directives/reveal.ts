@@ -14,22 +14,25 @@ export class Reveal implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const element = this.el.nativeElement;
-    if (this.appRevealDelay()) element.style.transitionDelay = `${this.appRevealDelay()}ms`;
+    const delay=Number.isFinite(this.appRevealDelay())?Math.min(240,Math.max(0,this.appRevealDelay())):0;
+    element.style.setProperty('--reveal-delay',`${delay}ms`);
 
     if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) {
       element.classList.add('is-revealed');
       return;
     }
 
+    element.classList.add('reveal-pending');
     this.observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (!entry.isIntersecting) continue;
+          element.classList.remove('reveal-pending');
           element.classList.add('is-revealed');
           this.observer?.unobserve(element);
         }
       },
-      { threshold: 0.12, rootMargin: '0px 0px -40px 0px' },
+      { threshold: 0, rootMargin: '0px 0px -24px 0px' },
     );
     this.observer.observe(element);
   }

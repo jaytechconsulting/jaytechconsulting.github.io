@@ -11,10 +11,11 @@ import { LoadingService } from './core/services/loading.service';
 import { AnalyticsService } from './core/services/analytics.service';
 import { SeoService } from './core/services/seo.service';
 import { CmsContentService } from './core/cms-content.service';
+import { CartFooter } from './ui/marketing/cart-footer/cart-footer';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Loader, NavProgressBar, ToastStack, DialogOutlet],
+  imports: [RouterOutlet, Loader, NavProgressBar, ToastStack, DialogOutlet, CartFooter],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

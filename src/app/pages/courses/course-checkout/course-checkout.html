@@ -1,0 +1,142 @@
+<div class="min-h-screen bg-surface-page pb-28 font-body">
+  <app-header class="sticky top-0 z-50" [links]="header().links" [cta]="header().cta" (ctaClicked)="requestProposal()" />
+
+  <section class="px-5 py-10 sm:px-8">
+    <div class="mx-auto max-w-[1000px]">
+      <div class="mb-8">
+        <app-breadcrumb [items]="breadcrumb()" />
+      </div>
+
+      @if (step() === 'success') {
+        <div appReveal class="mx-auto max-w-[480px] rounded-xl border border-border-subtle bg-surface-card p-[clamp(28px,5vw,40px)] text-center shadow-sm">
+          <div class="mb-3 text-[40px]">✓</div>
+          <h1 class="m-0 mb-2 font-display text-2xl font-semibold text-text-strong">¡Compra exitosa!</h1>
+          <p class="m-0 mb-6 text-text-muted">
+            Revisa tu correo <strong>{{ email() }}</strong> para crear tu contraseña y entrar a tu panel, donde encontrarás el material de tus cursos.
+          </p>
+          <app-button variant="primary" [fullWidth]="true" (clicked)="goToLogin()">Ir a iniciar sesión</app-button>
+        </div>
+      } @else {
+        <h1 class="m-0 mb-8 font-display text-3xl font-bold text-text-strong">Finalizar compra</h1>
+
+        <div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_380px]">
+          <!-- Buyer data + payment method -->
+          <div class="flex flex-col gap-6">
+            <div appReveal class="rounded-xl border border-border-subtle bg-surface-card p-6">
+              <div class="mb-4 flex items-center gap-3">
+                <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-orange text-[13px] font-bold text-text-on-brand">1</span>
+                <h2 class="m-0 font-display text-lg font-semibold text-text-strong">Tus datos</h2>
+              </div>
+              <p class="m-0 mb-4 text-sm text-text-muted">Los usamos solo para confirmar tu compra y darte acceso a tu panel.</p>
+              <div class="flex flex-col gap-4">
+                <app-input label="Nombre completo" [value]="name()" (valueChange)="name.set($event)" placeholder="Tu nombre" [required]="true" />
+                <app-input label="Correo" type="email" [value]="email()" (valueChange)="email.set($event)" placeholder="tu@correo.com" [required]="true" />
+              </div>
+            </div>
+
+            <div appReveal class="rounded-xl border border-border-subtle bg-surface-card p-6">
+              <div class="mb-4 flex items-center gap-3">
+                <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-orange text-[13px] font-bold text-text-on-brand">2</span>
+                <h2 class="m-0 font-display text-lg font-semibold text-text-strong">Método de pago</h2>
+              </div>
+
+              <div class="flex flex-col gap-3">
+                @for (method of paymentMethods; track method.id) {
+                  <div
+                    class="overflow-hidden rounded-lg border-2 transition-colors duration-150 ease-out"
+                    [class]="selectedProvider() === method.id ? 'border-brand-orange' : 'border-border-subtle'"
+                  >
+                    <button
+                      type="button"
+                      class="flex w-full cursor-pointer items-center gap-3 px-4 py-3.5 text-left transition-colors duration-150 ease-out"
+                      [class]="selectedProvider() === method.id ? 'bg-[rgba(255,107,53,0.06)]' : 'bg-transparent hover:bg-surface-sunken'"
+                      (click)="selectProvider(method.id)"
+                    >
+                      <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2" [class]="selectedProvider() === method.id ? 'border-brand-orange' : 'border-border-default'">
+                        @if (selectedProvider() === method.id) {
+                          <span class="h-2.5 w-2.5 rounded-full bg-brand-orange"></span>
+                        }
+                      </span>
+                      <div class="min-w-0 flex-1">
+                        <div class="text-[15px] font-semibold text-text-strong">{{ method.label }}</div>
+                        <div class="mt-1 flex items-center gap-1.5 text-[13px] text-text-muted">
+                          <app-icon name="lock" class="h-3.5 w-3.5 text-success" />
+                          Pagos procesados de forma segura
+                        </div>
+                      </div>
+                    </button>
+
+                    @if (selectedProvider() === method.id) {
+                      <div class="border-t border-border-subtle px-4 py-4">
+                        <div class="mb-3 font-mono text-[11px] font-semibold uppercase tracking-[0.08em] text-text-faint">Medios de pago aceptados</div>
+                        <div class="grid grid-cols-4 gap-2 sm:grid-cols-6">
+                          @for (badge of method.badges; track badge) {
+                            <app-payment-badge [name]="badge" />
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Order summary -->
+          <div appReveal class="rounded-xl border border-border-subtle bg-surface-card p-6">
+            <div class="mb-1 flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-orange text-[13px] font-bold text-text-on-brand">3</span>
+                <h2 class="m-0 font-display text-lg font-semibold text-text-strong">Resumen</h2>
+              </div>
+              <button type="button" class="cursor-pointer text-sm font-semibold text-brand-orange-600" (click)="toggleSummary()">
+                {{ summaryExpanded() ? 'Ocultar' : 'Ver detalle' }}
+              </button>
+            </div>
+            <p class="m-0 mb-4 text-sm text-text-muted">{{ cart.count() }} curso{{ cart.count() === 1 ? '' : 's' }}</p>
+
+            @if (summaryExpanded()) {
+              <div class="mb-4 flex flex-col gap-3 border-b border-border-subtle pb-4">
+                @for (c of cart.courses(); track c.id) {
+                  <div class="flex items-start justify-between gap-3">
+                    <span class="text-[14.5px] text-text-body">{{ c.title }}</span>
+                    <span class="shrink-0 text-[14.5px] font-semibold text-text-strong">{{ formatPrice(c.price) }}</span>
+                  </div>
+                }
+              </div>
+            }
+
+            <div class="flex items-center justify-between pt-1">
+              <span class="font-display text-base font-semibold text-text-strong">Total a pagar</span>
+              <span class="font-display text-xl font-bold text-text-strong">{{ formatPrice(cart.total()) }}</span>
+            </div>
+
+            @if (errorMessage()) {
+              <p class="m-0 mt-4 text-sm text-danger">{{ errorMessage() }}</p>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  <app-footer />
+  <app-whatsapp-fab />
+
+  @if (step() === 'form') {
+    <div class="fixed inset-x-0 bottom-0 z-[70] border-t border-border-subtle bg-surface-card/95 px-5 py-4 shadow-lg backdrop-blur-md sm:px-8">
+      <div class="mx-auto flex max-w-[1000px] flex-wrap items-center justify-between gap-4">
+        <div>
+          <div class="font-mono text-xs uppercase tracking-[0.1em] text-text-muted">Total</div>
+          <div class="font-display text-xl font-bold text-text-strong">{{ formatPrice(cart.total()) }}</div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button type="button" class="cursor-pointer whitespace-nowrap text-sm font-semibold text-text-muted" (click)="backToQuote()">+ Agregar más cursos</button>
+          <app-button variant="primary" size="lg" [disabled]="loading()" (clicked)="pay()">
+            {{ loading() ? 'Procesando…' : 'Pagar' }}
+          </app-button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

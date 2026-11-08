@@ -12,6 +12,7 @@ export const ICON_PATHS = {
   cmsanuncio:'M3 10v4h5l12 5V5L8 10z M8 14l2 7h4l-2-5',
   cmspaginas:'M7 3h10v18H7z M7 8h10 M9 12h6 M9 15h6',
   cmsprogramas:'M4 5h16v10H4z M8 19h8 M10 15v4 M14 15v4',
+  cmscursos:'M6 3h12v18l-6-3-6 3z',
   cmscarga:'M12 3v4 M12 17v4 M5 5l3 3 M16 16l3 3 M3 12h4 M17 12h4 M5 19l3-3 M16 8l3-3',
   cmsanimacion:'M5 4h14v16H5z M10 9l6 3-6 3z',
   cmsequipo:'M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0 M20 21v-2a7 7 0 0 0-7-7h-2a7 7 0 0 0-7 7v2',
@@ -46,6 +47,7 @@ export const ICON_PATHS = {
   arrowUp:'m6 10 6-6 6 6 M12 4v16',
   arrowDown:'m6 14 6 6 6-6 M12 4v16',
   send:'m22 2-11 11 M22 2 15 22 11 13 2 9z',
+  lock:'M7 10V7a5 5 0 0 1 10 0v3 M5 10h14v11H5z M12 15v3',
 } as const;
 export type IconName = keyof typeof ICON_PATHS;
 @Component({selector:'app-icon',template:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path [attr.d]="paths[name()] || paths.shield" /></svg>`,styles:`:host{display:inline-flex;flex-shrink:0;width:18px;height:18px}svg{width:100%;height:100%}`})

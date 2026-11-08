@@ -1,0 +1,17 @@
+@if (visible()) {
+  <div animate.enter="cart-enter" animate.leave="cart-leave"
+    class="fixed inset-x-0 bottom-0 z-[70] border-t border-border-subtle bg-surface-card/95 px-5 py-4 shadow-lg backdrop-blur-md sm:px-8"
+    [class.cart-footer-pulse]="pulsing()"
+  >
+    <div class="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-4">
+      <div>
+        <div class="font-mono text-xs uppercase tracking-[0.1em] text-text-muted">{{ cart.count() }} curso{{ cart.count() === 1 ? '' : 's' }} seleccionado{{ cart.count() === 1 ? '' : 's' }}</div>
+        <div class="font-display text-xl font-bold text-text-strong">Total: {{ formatPrice(cart.total()) }}</div>
+      </div>
+      <app-button variant="primary" size="lg" (clicked)="onAction()">
+        Ver cotizador
+        <span slot="icon-right">→</span>
+      </app-button>
+    </div>
+  </div>
+}

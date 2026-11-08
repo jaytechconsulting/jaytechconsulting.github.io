@@ -1,12 +1,13 @@
 import { Component, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { Reveal } from '../../../core/directives/reveal';
 import { Button } from '../../../ui/actions/button/button';
 import { CmsContentService } from '../../../core/cms-content.service';
 import { ThemeService } from '../../../core/theme.service';
 
 @Component({
   selector: 'app-hero-section',
-  imports: [Button],
+  imports: [Button, Reveal],
   templateUrl: './hero-section.html',
 })
 export class HeroSection {

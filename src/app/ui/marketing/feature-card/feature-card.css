@@ -8,3 +8,6 @@
   border-color: var(--fc-accent);
   box-shadow: 0 16px 32px -16px color-mix(in srgb, var(--fc-accent) 40%, transparent);
 }
+
+.fc-card:focus-within .fc-frame{border-color:var(--fc-accent);box-shadow:0 16px 32px -16px color-mix(in srgb,var(--fc-accent) 40%,transparent)}
+@media(prefers-reduced-motion:reduce){.fc-card,.fc-frame,.fc-zoom,.fc-zoom>span{transition:none!important;transform:none!important;translate:none!important}}

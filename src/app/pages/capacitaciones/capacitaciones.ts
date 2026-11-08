@@ -11,7 +11,8 @@ import { Select } from '../../ui/forms/select/select';
 import { CmsContentService } from '../../core/cms-content.service';
 import { Reveal } from '../../core/directives/reveal';
 import { ApiService } from '../../core/api.service';
-import type { ApiTrainingProgram } from '../../core/models/api.models';
+import { CartService } from '../../core/cart.service';
+import type { ApiCourse, ApiTrainingProgram } from '../../core/models/api.models';
 
 interface FaqItem {
   question: string;
@@ -56,8 +57,10 @@ export class Capacitaciones {
   private readonly router = inject(Router);
   private readonly cms = inject(CmsContentService);
   private readonly api = inject(ApiService);
+  private readonly cart = inject(CartService);
 
   readonly header = this.cms.header;
+  readonly virtualCourses = signal<ApiCourse[]>([]);
   readonly faqs = FAQS;
   readonly openFaq = signal<number | null>(0);
   readonly selectedProgram = signal<ApiTrainingProgram | null>(null);
@@ -87,6 +90,26 @@ export class Capacitaciones {
 
   constructor() {
     this.fetchPrograms();
+    this.api.courses().subscribe((courses) => this.virtualCourses.set(courses));
+  }
+
+  formatPrice(price: number): string {
+    return `S/ ${price.toLocaleString('es-PE', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+  }
+
+  readonly selectedCourse = signal<ApiCourse | null>(null);
+
+  openCourseDetails(course: ApiCourse): void {
+    this.selectedCourse.set(course);
+  }
+
+  openCoursePage(course: ApiCourse): void {
+    this.router.navigate(['/cursos', course.id]);
+  }
+
+  addCourseToCart(course: ApiCourse): void {
+    this.cart.add(course);
+    this.router.navigate(['/cursos']);
   }
 
   onSearch(value: string): void {

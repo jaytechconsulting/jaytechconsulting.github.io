@@ -1,0 +1,159 @@
+@if (notFound()) {
+  <div class="flex min-h-screen flex-col items-center justify-center gap-[18px] bg-surface-page p-6 text-center font-body">
+    <div class="text-[46px] opacity-50">◇</div>
+    <h1 class="m-0 font-display text-2xl text-text-strong">Curso no encontrado</h1>
+    <p class="m-0 text-text-muted">El curso que buscas no existe o ya no está disponible.</p>
+    <app-button variant="primary" (clicked)="back()">Ver cursos virtuales</app-button>
+  </div>
+} @else if (course(); as c) {
+  <div class="min-h-screen bg-surface-page font-body">
+    <app-header class="sticky top-0 z-50" [links]="header().links" [cta]="header().cta" (ctaClicked)="requestProposal()" />
+
+    <!-- Hero -->
+    <header class="relative overflow-hidden bg-[image:var(--gradient-ink)] text-text-on-inverse">
+      <div class="pointer-events-none absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-50 [mask-image:radial-gradient(circle_at_80%_40%,#000,transparent_78%)]"></div>
+      <div class="pointer-events-none absolute -top-40 -right-20 h-[560px] w-[560px]" [style.background]="'radial-gradient(circle, ' + c.accentColor + '30, transparent 66%)'"></div>
+
+      <div class="relative mx-auto max-w-[1200px] px-5 pt-[clamp(24px,4vw,40px)] sm:px-10">
+        <div class="mb-[clamp(28px,4vw,48px)]">
+          <app-breadcrumb [items]="breadcrumb()" [inverse]="true" />
+        </div>
+
+        <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,360px),1fr))] items-start gap-[clamp(32px,5vw,64px)] pb-[clamp(48px,7vw,80px)]">
+          <div>
+            <div class="mb-5 flex flex-wrap items-center gap-3">
+              <span class="flex h-11 w-11 items-center justify-center rounded-full text-2xl" [style.background]="c.accentColor + '26'" [style.color]="c.accentColor">{{ c.glyph }}</span>
+              @if (c.reviews.length > 0) {
+                <span class="inline-flex items-center gap-1.5">
+                  <span class="inline-flex gap-0.5 text-base text-brand-yellow" [attr.aria-label]="averageRating() + ' de 5'">
+                    @for (star of stars; track star) {
+                      <span [class.opacity-25]="star > averageRating()">★</span>
+                    }
+                  </span>
+                  <span class="font-mono text-[13px] text-text-inverse-muted">({{ c.reviews.length }})</span>
+                </span>
+              }
+            </div>
+            <h1 class="m-0 text-balance font-display text-[clamp(32px,5.5vw,52px)] font-bold leading-[var(--lh-tight)] tracking-[var(--ls-tight)]">
+              {{ c.title }}
+            </h1>
+            <p class="mt-5 max-w-[560px] text-[clamp(16px,2.2vw,19px)] leading-[var(--lh-snug)] text-text-inverse-muted">
+              {{ c.description }}
+            </p>
+
+            <div class="mt-7 flex flex-wrap items-center gap-2.5">
+              @if (c.materialCounts.videos > 0) {
+                <span class="inline-flex items-center gap-1.5 rounded-pill border border-[var(--glass-border)] bg-[var(--glass-dark)] px-3.5 py-2 text-[13px]">
+                  <app-icon name="cmsanimacion" class="h-4 w-4" />{{ c.materialCounts.videos }} video{{ c.materialCounts.videos === 1 ? '' : 's' }}
+                </span>
+              }
+              @if (c.materialCounts.pdfs > 0) {
+                <span class="inline-flex items-center gap-1.5 rounded-pill border border-[var(--glass-border)] bg-[var(--glass-dark)] px-3.5 py-2 text-[13px]">
+                  <app-icon name="cmspaginas" class="h-4 w-4" />{{ c.materialCounts.pdfs }} PDF{{ c.materialCounts.pdfs === 1 ? '' : 's' }}
+                </span>
+              }
+              @if (c.materialCounts.files > 0) {
+                <span class="inline-flex items-center gap-1.5 rounded-pill border border-[var(--glass-border)] bg-[var(--glass-dark)] px-3.5 py-2 text-[13px]">
+                  <app-icon name="folder" class="h-4 w-4" />{{ c.materialCounts.files }} archivo{{ c.materialCounts.files === 1 ? '' : 's' }}
+                </span>
+              }
+              <span class="inline-flex items-center gap-1.5 rounded-pill border border-[var(--glass-border)] bg-[var(--glass-dark)] px-3.5 py-2 text-[13px]">
+                <app-icon name="lock" class="h-4 w-4" />Acceso de por vida
+              </span>
+            </div>
+          </div>
+
+          <!-- Sticky purchase card -->
+          <div appReveal class="lg:sticky lg:top-24">
+            <div class="overflow-hidden rounded-xl border border-[var(--glass-border)] bg-[var(--glass-dark)] backdrop-blur-md">
+              @if (c.imageUrl) {
+                <img [src]="c.imageUrl" [alt]="c.title" class="aspect-[16/9] w-full object-cover" />
+              } @else {
+                <div class="flex aspect-[16/9] w-full items-center justify-center text-5xl" [style.background]="'linear-gradient(135deg, ' + c.accentColor + '33, transparent)'" [style.color]="c.accentColor">{{ c.glyph }}</div>
+              }
+              <div class="p-6">
+                <div class="font-display text-3xl font-bold">{{ formatPrice(c.price) }}</div>
+                <p class="mt-1 mb-5 text-[13px] text-text-inverse-muted">Pago único · acceso inmediato</p>
+                <app-button variant="primary" size="lg" [fullWidth]="true" (clicked)="addToCart(c)">
+                  Agregar al cotizador
+                  <span slot="icon-right">→</span>
+                </app-button>
+                <ul class="mt-5 flex flex-col gap-2.5 text-[13.5px] text-text-inverse-muted">
+                  <li class="flex items-center gap-2"><span class="text-success">✓</span>Material descargable, tuyo para siempre</li>
+                  <li class="flex items-center gap-2"><span class="text-success">✓</span>Acceso desde tu panel de cliente</li>
+                  <li class="flex items-center gap-2"><span class="text-success">✓</span>Pago seguro (Culqi, Niubiz o Mercado Pago)</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <div class="mx-auto max-w-[1200px] px-5 py-[clamp(48px,7vw,80px)] sm:px-10">
+      <div class="grid grid-cols-1 gap-[clamp(40px,6vw,64px)] lg:grid-cols-[1fr_380px]">
+        <div class="flex flex-col gap-[clamp(40px,6vw,56px)]">
+          @if (c.syllabus.length > 0) {
+            <section appReveal>
+              <div class="mb-6 font-mono text-[13px] uppercase tracking-[0.14em] text-brand-orange-600">// Temario</div>
+              <div class="flex flex-col gap-3">
+                @for (item of c.syllabus; track item.id; let i = $index) {
+                  <div class="flex gap-4 rounded-lg border border-border-subtle bg-surface-card p-5">
+                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-primary text-sm font-bold text-text-on-brand">{{ i + 1 }}</span>
+                    <div class="min-w-0">
+                      <div class="font-display text-[16px] font-semibold text-text-strong">{{ item.title }}</div>
+                      @if (item.description) {
+                        <p class="m-0 mt-1 text-[14.5px] leading-[1.6] text-text-muted">{{ item.description }}</p>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </section>
+          }
+
+          @if (c.reviews.length > 0) {
+            <section appReveal>
+              <div class="mb-6 font-mono text-[13px] uppercase tracking-[0.14em] text-brand-orange-600">// Reseñas</div>
+              <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] gap-5">
+                @for (review of c.reviews; track review.id) {
+                  <div class="rounded-lg border border-border-subtle bg-surface-card p-5">
+                    <span class="inline-flex gap-0.5 text-sm text-brand-yellow">
+                      @for (star of stars; track star) {
+                        <span [class.opacity-25]="star > review.rating">★</span>
+                      }
+                    </span>
+                    <p class="m-0 mt-3 text-[14.5px] leading-[1.6] text-text-body">"{{ review.body }}"</p>
+                    <div class="mt-3 text-[13.5px] font-semibold text-text-strong">{{ review.authorName }}</div>
+                  </div>
+                }
+              </div>
+            </section>
+          }
+        </div>
+
+        <!-- spacer column to balance sticky purchase card from hero on large screens where content is short -->
+        <div></div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="mx-auto max-w-[1200px] px-5 pb-[clamp(56px,8vw,88px)] sm:px-10">
+      <div appReveal class="relative overflow-hidden rounded-xl bg-[image:var(--gradient-ink)] p-[clamp(36px,5vw,56px)] text-center text-text-on-inverse">
+        <div class="pointer-events-none absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-40 [mask-image:radial-gradient(circle_at_50%_0%,#000,transparent_70%)]"></div>
+        <div class="relative">
+          <h2 class="m-0 mb-3 text-balance font-display text-[clamp(24px,3.5vw,34px)] font-bold">¿Listo para empezar?</h2>
+          <p class="mx-auto mb-6 max-w-[440px] text-lg text-text-inverse-muted">{{ formatPrice(c.price) }} · pago único · acceso inmediato a todo el material.</p>
+          <app-button variant="primary" size="lg" (clicked)="addToCart(c)">
+            Agregar al cotizador
+            <span slot="icon-right">→</span>
+          </app-button>
+        </div>
+      </div>
+    </div>
+
+    <app-footer />
+    <app-whatsapp-fab />
+  </div>
+}

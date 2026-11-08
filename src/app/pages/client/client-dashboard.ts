@@ -11,6 +11,9 @@ import { IconButton } from '../../ui/actions/icon-button/icon-button';
 import { Wordmark } from '../../ui/brand/wordmark/wordmark';
 import { AuthService } from '../../core/auth.service';
 import { TicketsService } from '../../core/tickets.service';
+import { ApiService } from '../../core/api.service';
+import { Icon } from '../../ui/data-display/icon/icon';
+import type { ApiCoursePurchase } from '../../core/models/api.models';
 
 interface NavItem {
   id: string;
@@ -36,9 +39,12 @@ const NAV: NavItem[] = [
   { id: 'resumen', label: 'Resumen', icon: '◧' },
   { id: 'proyectos', label: 'Proyectos', icon: '▤' },
   { id: 'tickets', label: 'Tickets', icon: '◇' },
+  { id: 'cursos', label: 'Mis cursos', icon: '▣' },
   { id: 'facturas', label: 'Facturas', icon: '▦' },
   { id: 'archivos', label: 'Archivos', icon: '▥' },
 ];
+
+const MATERIAL_ICON: Record<string, string> = { video: 'cmsanimacion', pdf: 'cmspaginas', archivo: 'folder' };
 
 const PROJECTS: ProjectItem[] = [
   { slug: 'panel-inventario', name: 'App de inventario', progress: 72, status: ['En desarrollo', 'warning'], stack: ['React', 'Node.js', 'PostgreSQL'] },
@@ -56,7 +62,7 @@ const ACTIVITY: ActivityItem[] = [
 /** Client portal: overview, projects, activity and support tickets. */
 @Component({
   selector: 'app-client-dashboard',
-  imports: [Card, Badge, Button, Tag, IconButton, Wordmark],
+  imports: [Card, Badge, Button, Tag, IconButton, Wordmark, Icon],
   templateUrl: './client-dashboard.html',
 })
 export class ClientDashboard implements OnInit {
@@ -65,17 +71,27 @@ export class ClientDashboard implements OnInit {
   private readonly router = inject(Router);
   private readonly ticketsService = inject(TicketsService);
   private readonly projectsService = inject(ProjectsService);
+  private readonly api = inject(ApiService);
 
   readonly nav = NAV;
   readonly projects = signal<ProjectItem[]>([]);
   readonly tickets = this.ticketsService.tickets;
   readonly activity = ACTIVITY;
+  readonly coursePurchases = signal<ApiCoursePurchase[]>([]);
 
   readonly user = this.auth.currentUser;
 
   readonly active = signal('resumen');
   readonly activeLabel = computed(() => this.nav.find((n) => n.id === this.active())?.label ?? '');
-  ngOnInit(): void { this.projectsService.clientList().subscribe(items => this.projects.set(items.map(p => ({ slug: p.slug, name: p.title, progress: p.progress, status: [p.status, p.progress === 100 ? 'success' : 'warning'], stack: p.tags } as ProjectItem)))); this.ticketsService.load(); }
+  ngOnInit(): void {
+    this.projectsService.clientList().subscribe(items => this.projects.set(items.map(p => ({ slug: p.slug, name: p.title, progress: p.progress, status: [p.status, p.progress === 100 ? 'success' : 'warning'], stack: p.tags } as ProjectItem))));
+    this.ticketsService.load();
+    this.api.myCoursePurchases().subscribe((purchases) => this.coursePurchases.set(purchases));
+  }
+
+  materialIcon(type: string): string {
+    return MATERIAL_ICON[type] ?? 'folder';
+  }
 
   navClasses(id: string): string {
     const on = id === this.active();

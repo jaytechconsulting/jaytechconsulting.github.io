@@ -361,6 +361,171 @@
           </div>
         </app-card>
       </div>
+    } @else if (tab() === 'cursos') {
+      <!-- Sellable courses manager — price + downloadable material (Drive/Dropbox links) -->
+      <div class="grid grid-cols-1 lg:grid-cols-[minmax(240px,320px)_1fr] items-start gap-5">
+        <app-card elevation="sm" padding="0">
+          <div class="flex items-center justify-between border-b border-border-subtle px-[18px] py-4">
+            <span class="font-display text-base font-semibold text-text-strong">Cursos</span>
+            <app-badge tone="neutral">{{ courseItems().length }}</app-badge>
+          </div>
+          <div class="flex max-h-[440px] flex-col overflow-auto">
+            @for (c of courseItems(); track c.id; let i = $index) {
+              <button type="button" [class]="courseRowButtonClasses(i)" (click)="pickCourse(i)">
+                @if (c.imageUrl) {
+                  <span class="h-[34px] w-[34px] shrink-0 rounded-sm border border-border-subtle bg-cover bg-center" [style.background-image]="'url(' + c.imageUrl + ')'"></span>
+                } @else {
+                  <span class="inline-flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-sm text-[15px]" [style.background]="(c.accentColor || '#FF6B35') + '22'" [style.color]="c.accentColor || '#FF6B35'">{{ c.glyph }}</span>
+                }
+                <span class="min-w-0 text-left">
+                  <span class="block truncate text-[14.5px] font-semibold text-text-strong">{{ c.title }}</span>
+                  <span class="block truncate text-[12.5px] text-text-muted">S/ {{ c.price }} · {{ c.materials.length }} material(es)</span>
+                </span>
+              </button>
+            }
+          </div>
+          <div class="p-3.5">
+            <app-button variant="outline" size="sm" [fullWidth]="true" (clicked)="addNewCourse()" [appAccessAction]="'create'"><span slot="icon-left">+</span>Añadir curso</app-button>
+          </div>
+        </app-card>
+
+        <app-card elevation="sm">
+          <div class="mb-5 flex items-center justify-between">
+            <h2 class="m-0 font-display text-[18px] font-semibold text-text-strong">{{ courseIsNew() ? 'Nuevo curso' : 'Editar curso' }}</h2>
+            @if (!courseIsNew()) {
+              <button type="button" class="cursor-pointer text-sm font-medium text-danger" (click)="deleteCourseDraft()" [appAccessAction]="'delete'">Eliminar</button>
+            }
+          </div>
+
+          <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-4">
+            <div class="col-span-full">
+              <label class="mb-2.5 block text-sm font-semibold text-text-strong">Imagen de vista previa</label>
+              <div class="flex items-center gap-4">
+                <div
+                  class="flex h-[72px] w-[120px] shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border-[1.5px] border-dashed border-border-default bg-surface-sunken bg-cover bg-center"
+                  [style.background-image]="courseDraft().imageUrl ? 'url(' + courseDraft().imageUrl + ')' : 'none'"
+                  (click)="courseImageInput.click()"
+                >
+                  @if (!courseDraft().imageUrl) {
+                    <span class="text-xl text-brand-cyan">↑</span>
+                  }
+                </div>
+                <div class="flex gap-2">
+                  <app-button variant="outline" size="sm" (clicked)="courseImageInput.click()">{{ courseDraft().imageUrl ? 'Cambiar' : 'Subir' }}</app-button>
+                  @if (courseDraft().imageUrl) {
+                    <button type="button" class="cursor-pointer px-1 text-sm font-medium text-danger" (click)="clearCourseDraftImage()">Quitar</button>
+                  }
+                </div>
+                <input #courseImageInput type="file" accept="image/*" class="hidden" (change)="onCourseDraftImageChange($event)" />
+              </div>
+            </div>
+
+            <app-input label="Título" [value]="courseDraft().title ?? ''" (valueChange)="setCourseDraftField('title', $event)" />
+            <app-input label="Precio (S/)" type="number" placeholder="199" [value]="(courseDraft().price ?? 0).toString()" (valueChange)="setCourseDraftPrice($event)" />
+            <div class="col-span-full">
+              <app-textarea label="Descripción" [rows]="3" [value]="courseDraft().description ?? ''" (valueChange)="setCourseDraftField('description', $event)" />
+            </div>
+            <div class="col-span-full">
+              <label class="mb-2.5 block text-sm font-semibold text-text-strong">Ícono</label>
+              <div class="flex flex-wrap gap-2">
+                @for (g of glyphs; track g) {
+                  <button
+                    type="button"
+                    class="h-10 w-10 cursor-pointer rounded-md border-[1.5px] text-lg transition-all duration-150 ease-out"
+                    [class]="courseDraft().glyph === g ? 'border-brand-orange bg-[rgba(255,107,53,0.08)] text-brand-orange' : 'border-border-subtle bg-surface-sunken text-text-muted'"
+                    (click)="setCourseDraftGlyph(g)"
+                  >{{ g }}</button>
+                }
+              </div>
+            </div>
+            <div class="col-span-full">
+              <label class="mb-2.5 block text-sm font-semibold text-text-strong">Color de acento</label>
+              <div class="flex flex-wrap gap-2.5">
+                @for (c of palette; track c) {
+                  <button
+                    type="button"
+                    [attr.aria-label]="c"
+                    class="h-[34px] w-[34px] cursor-pointer rounded-sm border-2 transition-all duration-150 ease-out"
+                    [class]="courseDraft().accentColor === c ? 'border-text-strong' : 'border-transparent'"
+                    [style.background]="c"
+                    [style.box-shadow]="courseDraft().accentColor === c ? '0 0 0 3px ' + c + '44' : 'none'"
+                    (click)="setCourseDraftColor(c)"
+                  ></button>
+                }
+              </div>
+            </div>
+
+            <div class="col-span-full border-t border-border-subtle pt-4">
+              <div class="mb-3 flex items-center justify-between">
+                <label class="block text-sm font-semibold text-text-strong">Material (videos, PDFs, archivos)</label>
+                <app-button variant="outline" size="sm" (clicked)="addMaterialRow()"><span slot="icon-left">+</span>Añadir material</app-button>
+              </div>
+              @if ((courseDraft().materials ?? []).length === 0) {
+                <p class="m-0 text-sm text-text-muted">Aún no agregaste material. Añade enlaces a Drive, Dropbox o cualquier URL.</p>
+              }
+              <div class="flex flex-col gap-3">
+                @for (m of courseDraft().materials ?? []; track $index; let i = $index) {
+                  <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,160px),1fr))_auto] items-end gap-3 rounded-md border border-border-subtle p-3">
+                    <app-input label="Título" placeholder="Clase 1 - Introducción" [value]="m.title" (valueChange)="setMaterialField(i, 'title', $event)" />
+                    <app-select label="Tipo" [options]="[{value:'video',label:'Video'},{value:'pdf',label:'PDF'},{value:'archivo',label:'Archivo'}]" [value]="m.type" (valueChange)="setMaterialField(i, 'type', $event)" />
+                    <app-input label="URL" placeholder="https://drive.google.com/..." [value]="m.url" (valueChange)="setMaterialField(i, 'url', $event)" />
+                    <button type="button" class="h-10 cursor-pointer whitespace-nowrap px-2 text-sm font-medium text-danger" (click)="removeMaterialRow(i)">Quitar</button>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="col-span-full border-t border-border-subtle pt-4">
+              <div class="mb-3 flex items-center justify-between">
+                <label class="block text-sm font-semibold text-text-strong">Temario</label>
+                <app-button variant="outline" size="sm" (clicked)="addSyllabusRow()"><span slot="icon-left">+</span>Añadir módulo</app-button>
+              </div>
+              @if ((courseDraft().syllabus ?? []).length === 0) {
+                <p class="m-0 text-sm text-text-muted">Aún no agregaste el temario del curso.</p>
+              }
+              <div class="flex flex-col gap-3">
+                @for (s of courseDraft().syllabus ?? []; track $index; let i = $index) {
+                  <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))_auto] items-end gap-3 rounded-md border border-border-subtle p-3">
+                    <app-input label="Título del módulo" placeholder="Módulo 1 - Introducción" [value]="s.title" (valueChange)="setSyllabusField(i, 'title', $event)" />
+                    <app-input label="Descripción" placeholder="Qué se aprende en este módulo" [value]="s.description" (valueChange)="setSyllabusField(i, 'description', $event)" />
+                    <button type="button" class="h-10 cursor-pointer whitespace-nowrap px-2 text-sm font-medium text-danger" (click)="removeSyllabusRow(i)">Quitar</button>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="col-span-full border-t border-border-subtle pt-4">
+              <div class="mb-3 flex items-center justify-between">
+                <label class="block text-sm font-semibold text-text-strong">Reseñas</label>
+                <app-button variant="outline" size="sm" (clicked)="addReviewRow()"><span slot="icon-left">+</span>Añadir reseña</app-button>
+              </div>
+              @if ((courseDraft().reviews ?? []).length === 0) {
+                <p class="m-0 text-sm text-text-muted">Aún no agregaste reseñas de este curso.</p>
+              }
+              <div class="flex flex-col gap-3">
+                @for (r of courseDraft().reviews ?? []; track $index; let i = $index) {
+                  <div class="rounded-md border border-border-subtle p-3">
+                    <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,160px),1fr))_auto] items-end gap-3">
+                      <app-input label="Nombre" placeholder="María Fernández" [value]="r.authorName" (valueChange)="setReviewField(i, 'authorName', $event)" />
+                      <app-select label="Calificación" [options]="[{value:'5',label:'5 estrellas'},{value:'4',label:'4 estrellas'},{value:'3',label:'3 estrellas'},{value:'2',label:'2 estrellas'},{value:'1',label:'1 estrella'}]" [value]="r.rating.toString()" (valueChange)="setReviewRating(i, +$event)" />
+                      <button type="button" class="h-10 cursor-pointer whitespace-nowrap px-2 text-sm font-medium text-danger" (click)="removeReviewRow(i)">Quitar</button>
+                    </div>
+                    <div class="mt-3">
+                      <app-textarea label="Comentario" [rows]="2" [value]="r.body" (valueChange)="setReviewField(i, 'body', $event)" />
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6 flex justify-end gap-3 border-t border-border-subtle pt-5">
+            <app-button variant="primary" [disabled]="saving()" (clicked)="saveCourseDraft()"
+               [appAccessAction]="courseIsNew() ? 'create' : 'update'">{{ saving() ? 'Guardando...' : courseIsNew() ? 'Crear' : 'Guardar cambios' }}<span slot="icon-right">→</span></app-button
+            >
+          </div>
+        </app-card>
+      </div>
     } @else if (tab() === 'header') {
       <!-- Header manager -->
       <app-card elevation="sm" class="block max-w-[720px]">

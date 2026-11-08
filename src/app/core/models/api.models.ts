@@ -84,6 +84,55 @@ export interface ApiTrainingProgram {
   isPublished: boolean;
   displayOrder: number;
 }
+export interface ApiCourseMaterial {
+  id?: string;
+  title: string;
+  type: 'video' | 'pdf' | 'archivo';
+  url: string;
+  displayOrder: number;
+}
+export interface ApiCourseSyllabusItem {
+  id?: string;
+  title: string;
+  description: string;
+  displayOrder: number;
+}
+export interface ApiCourseReview {
+  id?: string;
+  authorName: string;
+  rating: number;
+  body: string;
+  displayOrder: number;
+}
+export interface ApiCourseMaterialCounts {
+  videos: number;
+  pdfs: number;
+  files: number;
+}
+export interface ApiCourse {
+  id: string;
+  title: string;
+  description: string;
+  glyph?: string | null;
+  accentColor?: string | null;
+  imageUrl?: string | null;
+  price: number;
+  isPublished: boolean;
+  displayOrder: number;
+  syllabus: ApiCourseSyllabusItem[];
+  reviews: ApiCourseReview[];
+  materialCounts: ApiCourseMaterialCounts;
+}
+export interface ApiCourseAdmin extends ApiCourse {
+  materials: ApiCourseMaterial[];
+}
+export interface ApiCoursePurchase {
+  courseId: string;
+  courseTitle: string;
+  imageUrl?: string | null;
+  purchasedAt: string;
+  materials: ApiCourseMaterial[];
+}
 export interface ApiPagedResult<T> { items: T[]; total: number; page: number; pageSize: number; }
 export interface ApiHeaderLink { label: string; href: string; variant?: string | null; }
 export interface ApiFooterColumn { title: string; links: string[]; }
