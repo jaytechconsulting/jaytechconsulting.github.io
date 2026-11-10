@@ -9,6 +9,8 @@ import { SessionLifecycle } from './session-lifecycle.service';
 import { loginRedirect, privateReturnUrl } from './auth-navigation';
 import { LoadingService } from '../services/loading.service';
 
+import { PUBLIC_READ } from '../http/api-client';
+
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const base = environment.apiUrl.replace(/\/$/, '');
   const isApi =
@@ -21,13 +23,15 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const csrf = inject(CsrfService);
   const version = lifecycle.version;
   const unsafe = !['GET', 'HEAD', 'OPTIONS'].includes(request.method);
+  const publicRead = !unsafe && request.context.get(PUBLIC_READ);
   const send = () =>
     (isApi && unsafe ? csrf.get() : of('')).pipe(
       switchMap((token) =>
         next(
           isApi
             ? request.clone({
-                withCredentials: true,
+                withCredentials: !publicRead,
+                credentials: publicRead ? 'omit' : 'include',
                 ...(token ? { setHeaders: { 'X-CSRF-TOKEN': token } } : {}),
               })
             : request,
@@ -73,6 +77,7 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
     catchError((error) => {
       if (
         isApi &&
+        !publicRead &&
         error.status === 401 &&
         version === lifecycle.version &&
         request.url !== base + '/auth/login' &&

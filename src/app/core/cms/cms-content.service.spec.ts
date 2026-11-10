@@ -3,173 +3,77 @@ import { firstValueFrom, of, Subject, throwError } from 'rxjs';
 import { vi } from 'vitest';
 import { ApiService } from '../api.service';
 import { CmsContentService } from './cms-content.service';
-import type { ApiCms, ApiSiteContent } from '../models/api.models';
-
-describe('Announcement loading', () => {
-  it('loads first-screen settings separately, deduplicates requests and ignores late collection header data', () => {
-    const content = new Subject<ApiSiteContent[]>(),
-      collections = new Subject<ApiCms>(),
-      layout = new Subject<Pick<ApiCms, 'header' | 'footer'>>();
-    const api = {
-      siteContent: vi.fn(() => content),
-      cms: vi.fn(() => collections),
-      siteSettings: vi.fn(() => layout),
-    };
+import type { ApiCms, ApiSiteContent, ApiPublicSite } from '../models/api.models';
+const snapshot = (title = 'Portada real'): ApiPublicSite => ({
+  cms: {
+    companies: [],
+    reviews: [],
+    services: [],
+    projects: [],
+    plans: [],
+    teamMembers: [],
+    header: { cta: 'Acción real', links: [] },
+    footer: { about: '', email: '', phone: '', columns: [] },
+  } as ApiCms,
+  content: [{ key: 'home.hero', title, body: 'Descripción real', status: 1 } as ApiSiteContent],
+});
+describe('Published site snapshot', () => {
+  it('starts empty, shares one request and publishes all parts together', () => {
+    const source = new Subject<ApiPublicSite>();
+    const api = { publicSite: vi.fn(() => source) };
     TestBed.configureTestingModule({ providers: [{ provide: ApiService, useValue: api }] });
     const cms = TestBed.inject(CmsContentService);
     cms.load(false).subscribe();
-    layout.next({
-      header: { cta: 'Acción definitiva', links: [] },
-      footer: { about: '', email: '', phone: '', columns: [] },
-    });
-    layout.complete();
-    content.next([
-      { key: 'home.hero', title: 'Portada real', body: '', status: 1 } as ApiSiteContent,
-    ]);
-    content.complete();
-    expect(cms.headerStatus()).toBe('ready');
+    expect(cms.section('hero')().title).toBe('');
+    expect(cms.header().cta).toBe('');
+    expect(cms.contentStatus()).toBe('loading');
+    source.next(snapshot());
+    source.complete();
+    expect(cms.section('hero')().title).toBe('Portada real');
+    expect(cms.header().cta).toBe('Acción real');
     expect(cms.contentStatus()).toBe('ready');
-    expect(cms.collectionsStatus()).toBe('loading');
-    collections.next({ header: { cta: 'Versión anterior', links: [] } } as unknown as ApiCms);
-    collections.complete();
-    expect(cms.header().cta).toBe('Acción definitiva');
-    expect(api.siteContent).toHaveBeenCalledOnce();
-    expect(api.siteSettings).toHaveBeenCalledOnce();
-    expect(api.cms).toHaveBeenCalledOnce();
+    expect(cms.collectionsStatus()).toBe('ready');
+    expect(api.publicSite).toHaveBeenCalledOnce();
   });
-  it('keeps critical responses alive if the secondary collections request fails', () => {
-    const content = new Subject<ApiSiteContent[]>(),
-      layout = new Subject<Pick<ApiCms, 'header' | 'footer'>>();
+  it('preserves empty fields without demo content', () => {
     TestBed.configureTestingModule({
-      providers: [
-        {
-          provide: ApiService,
-          useValue: {
-            siteContent: () => content,
-            cms: () => throwError(() => ({ status: 503 })),
-            siteSettings: () => layout,
-          },
-        },
-      ],
-    });
-    const cms = TestBed.inject(CmsContentService);
-    content.next([
-      { key: 'home.hero', title: 'Portada real', body: '', status: 1 } as ApiSiteContent,
-    ]);
-    content.complete();
-    layout.next({
-      header: { cta: 'Real', links: [] },
-      footer: { about: '', email: '', phone: '', columns: [] },
-    });
-    layout.complete();
-    expect(cms.contentStatus()).toBe('ready');
-    expect(cms.headerStatus()).toBe('ready');
-    expect(cms.collectionsStatus()).toBe('error');
-  });
-  it('starts with empty CMS fields instead of example copy', () => {
-    const content = new Subject<ApiSiteContent[]>(),
-      collections = new Subject<ApiCms>();
-    TestBed.configureTestingModule({
-      providers: [
-        {
-          provide: ApiService,
-          useValue: {
-            siteSettings: () => of({}),
-            siteContent: () => content,
-            cms: () => collections,
-          },
-        },
-      ],
+      providers: [{ provide: ApiService, useValue: { publicSite: () => of(snapshot('')) } }],
     });
     const cms = TestBed.inject(CmsContentService);
     expect(cms.section('hero')().title).toBe('');
-    expect(cms.section('hero')().highlight).toBe('');
-    expect(cms.pages().login.heading).toBe('');
-    expect(cms.header().links).toEqual([]);
-    expect(cms.footer().email).toBe('');
-    expect(cms.heroAnimation().enabled).toBe(false);
-    expect(cms.contentStatus()).toBe('loading');
-  });
-  it('publishes real page copy before collections finish and respects deliberately empty fields', () => {
-    const content = new Subject<ApiSiteContent[]>(),
-      collections = new Subject<ApiCms>();
-    TestBed.configureTestingModule({
-      providers: [
-        {
-          provide: ApiService,
-          useValue: {
-            siteSettings: () => of({}),
-            siteContent: () => content,
-            cms: () => collections,
-          },
-        },
-      ],
-    });
-    const cms = TestBed.inject(CmsContentService);
-    content.next([
-      {
-        key: 'home.hero',
-        title: 'Título del CMS',
-        body: 'Descripción real',
-        status: 1,
-      } as ApiSiteContent,
-      { key: 'home.pricing', title: '', body: '', status: 1 } as ApiSiteContent,
-    ]);
-    content.complete();
-    expect(cms.section('hero')().title).toBe('Título del CMS');
-    expect(cms.section('pricing')().title).toBe('');
-    expect(cms.contentStatus()).toBe('ready');
-    expect(cms.collectionsStatus()).toBe('loading');
-    collections.next({} as ApiCms);
-    collections.complete();
-    expect(cms.section('hero')().title).toBe('Título del CMS');
-    expect(cms.contentStatus()).toBe('ready');
     expect(cms.footer().email).toBe('');
   });
-  it('offers a retry after failure and never substitutes demo content', () => {
+  it('recovers after failure without persisting an old snapshot', () => {
     let failed = true;
     const api = {
-      siteContent: vi.fn(() =>
-        failed
-          ? throwError(() => ({ status: 503 }))
-          : of([{ key: 'home.hero', title: 'Recuperado', body: '', status: 1 } as ApiSiteContent]),
-      ),
-      cms: vi.fn(() => of({} as ApiCms)),
+      publicSite: () => (failed ? throwError(() => ({ status: 503 })) : of(snapshot('Recuperado'))),
     };
-    TestBed.configureTestingModule({
-      providers: [{ provide: ApiService, useValue: { siteSettings: () => of({}), ...api } }],
-    });
+    TestBed.configureTestingModule({ providers: [{ provide: ApiService, useValue: api }] });
     const cms = TestBed.inject(CmsContentService);
     expect(cms.contentStatus()).toBe('error');
-    expect(cms.section('hero')().title).toBe('');
     failed = false;
     cms.retryPublic();
-    expect(cms.contentStatus()).toBe('ready');
     expect(cms.section('hero')().title).toBe('Recuperado');
   });
-  it('shows the banner without waiting for CMS collections and reuses the same request', () => {
-    const content = new Subject<ApiSiteContent[]>(),
-      collections = new Subject<ApiCms>();
-    const api = { siteContent: vi.fn(() => content), cms: vi.fn(() => collections) };
-    TestBed.configureTestingModule({
-      providers: [{ provide: ApiService, useValue: { siteSettings: () => of({}), ...api } }],
-    });
+  it('does not allow a late public response to overwrite administrator data', () => {
+    const publicRequest = new Subject<ApiPublicSite>();
+    const api = {
+      publicSite: () => publicRequest,
+      cms: () => of({ header: { cta: 'Privado', links: [] } } as unknown as ApiCms),
+      siteContent: () =>
+        of([{ key: 'home.hero', title: 'Borrador admin', body: '', status: 1 } as ApiSiteContent]),
+    };
+    TestBed.configureTestingModule({ providers: [{ provide: ApiService, useValue: api }] });
     const cms = TestBed.inject(CmsContentService);
-    content.next([
-      { key: 'site.announcement', title: 'Nueva promoción', body: '', status: 1 } as ApiSiteContent,
-    ]);
-    expect(cms.announcement().message).toBe('Nueva promoción');
-    expect(cms.announcement().active).toBe(true);
-    content.complete();
-    collections.next({} as ApiCms);
-    collections.complete();
-    expect(cms.announcement().message).toBe('Nueva promoción');
-    expect(api.siteContent).toHaveBeenCalledOnce();
-    expect(api.cms).toHaveBeenCalledOnce();
+    cms.load(true).subscribe();
+    publicRequest.next(snapshot('Obsoleto'));
+    expect(cms.section('hero')().title).toBe('Borrador admin');
+    expect(publicRequest.observers.length).toBe(0);
   });
   it('round-trips animation, multiple buttons and image framing through the existing content contract', async () => {
     let stored: ApiSiteContent[] = [];
     const api = {
+      publicSite: () => of({ cms: {} as ApiCms, content: stored }),
       cms: vi.fn(() => of({} as ApiCms)),
       siteContent: vi.fn(() => of(stored)),
       updateSiteContent: vi.fn((key: string, value: ApiSiteContent) => {

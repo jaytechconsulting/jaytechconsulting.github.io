@@ -22,7 +22,17 @@ if (!outputDir) throw new Error('No se encontró el index.html compilado de Angu
 const indexPath = resolve(outputDir, 'index.html');
 const buildId = new Date().toISOString();
 const index = await readFile(indexPath, 'utf8');
-const withBuildId = index.replace('</head>', `  <meta name="build-id" content="${buildId}">\n</head>`);
+// Start DNS/TLS while the browser downloads Angular, rather than after bootstrap.
+const productionEnvironment = await readFile(
+  resolve('src/environments/environment.prod.ts'),
+  'utf8',
+);
+const apiUrl = productionEnvironment.match(/apiUrl:\s*['"]([^'"]+)['"]/)[1];
+const apiOrigin = new URL(apiUrl).origin;
+const withBuildId = index.replace(
+  '</head>',
+  `  <link rel="preconnect" href="${escapeAttribute(apiOrigin)}" crossorigin>\n  <meta name="build-id" content="${buildId}">\n</head>`,
+);
 
 const siteUrl = 'https://eldronenlasopa.github.io';
 const defaultImage = `${siteUrl}/og-cover.jpg`;
@@ -30,24 +40,28 @@ const publicRoutes = [
   {
     path: 'proyectos',
     title: 'Proyectos de software y automatización | DronLab',
-    description: 'Conoce proyectos de aplicaciones web, landings, automatizaciones e integraciones desarrollados por DronLab para empresas.',
+    description:
+      'Conoce proyectos de aplicaciones web, landings, automatizaciones e integraciones desarrollados por DronLab para empresas.',
   },
   {
     path: 'proyectos/comercial-andina-panel-de-inventario',
     title: 'Panel de inventario para Comercial Andina | DronLab',
-    description: 'Control de stock en tiempo real con alertas y reportes, desarrollado por DronLab para Comercial Andina.',
+    description:
+      'Control de stock en tiempo real con alertas y reportes, desarrollado por DronLab para Comercial Andina.',
     type: 'article',
   },
   {
     path: 'proyectos/estudio-vega-automatizacion-de-facturas',
     title: 'Automatización de facturas para Estudio Vega | DronLab',
-    description: 'Emisión y envío de comprobantes conectando ventas con la SUNAT, desarrollado por DronLab para Estudio Vega.',
+    description:
+      'Emisión y envío de comprobantes conectando ventas con la SUNAT, desarrollado por DronLab para Estudio Vega.',
     type: 'article',
   },
   {
     path: 'solicitar-propuesta',
     title: 'Solicita una propuesta de software | DronLab',
-    description: 'Cuéntanos tu proyecto de software, página web, automatización o integración y recibe una primera propuesta de alcance y presupuesto.',
+    description:
+      'Cuéntanos tu proyecto de software, página web, automatización o integración y recibe una primera propuesta de alcance y presupuesto.',
   },
 ];
 const privateRoutes = [
@@ -63,18 +77,25 @@ const privateRoutes = [
 ].map(([path, title]) => ({ path, title, description: 'Área privada de DronLab.', index: false }));
 
 function escapeAttribute(value) {
-  return value.replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('"', '&quot;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
 }
 
 function replaceMeta(html, attribute, name, content) {
   const pattern = new RegExp(`<meta\\s+${attribute}="${name}"\\s+content="[^"]*"\\s*\\/?>`, 'i');
   const tag = `<meta ${attribute}="${name}" content="${escapeAttribute(content)}">`;
-  return pattern.test(html) ? html.replace(pattern, tag) : html.replace('</head>', `  ${tag}\n</head>`);
+  return pattern.test(html)
+    ? html.replace(pattern, tag)
+    : html.replace('</head>', `  ${tag}\n</head>`);
 }
 
 function routeHtml(source, route) {
   const canonical = route.path ? `${siteUrl}/${route.path}` : `${siteUrl}/`;
-  const robots = route.index === false ? 'noindex, nofollow' : 'index, follow, max-image-preview:large';
+  const robots =
+    route.index === false ? 'noindex, nofollow' : 'index, follow, max-image-preview:large';
   let html = source.replace(/<title>[^<]*<\/title>/i, `<title>${route.title}</title>`);
   html = replaceMeta(html, 'name', 'description', route.description);
   html = replaceMeta(html, 'name', 'robots', robots);
@@ -86,9 +107,18 @@ function routeHtml(source, route) {
   html = replaceMeta(html, 'name', 'twitter:title', route.title);
   html = replaceMeta(html, 'name', 'twitter:description', route.description);
   html = replaceMeta(html, 'name', 'twitter:image', defaultImage);
-  html = html.replace(/<link rel="canonical" href="[^"]*"\s*\/?>/i, `<link rel="canonical" href="${canonical}">`);
-  html = html.replace(/<link rel="alternate" hreflang="es-PE" href="[^"]*"\s*\/?>/i, `<link rel="alternate" hreflang="es-PE" href="${canonical}">`);
-  html = html.replace(/<link rel="alternate" hreflang="x-default" href="[^"]*"\s*\/?>/i, `<link rel="alternate" hreflang="x-default" href="${canonical}">`);
+  html = html.replace(
+    /<link rel="canonical" href="[^"]*"\s*\/?>/i,
+    `<link rel="canonical" href="${canonical}">`,
+  );
+  html = html.replace(
+    /<link rel="alternate" hreflang="es-PE" href="[^"]*"\s*\/?>/i,
+    `<link rel="alternate" hreflang="es-PE" href="${canonical}">`,
+  );
+  html = html.replace(
+    /<link rel="alternate" hreflang="x-default" href="[^"]*"\s*\/?>/i,
+    `<link rel="alternate" hreflang="x-default" href="${canonical}">`,
+  );
   const pageId = canonical.endsWith('/') ? `${canonical}#webpage` : `${canonical}/#webpage`;
   const pageSchema = {
     '@context': 'https://schema.org',
@@ -123,4 +153,6 @@ const notFound = routeHtml(withBuildId, {
 await writeFile(resolve(outputDir, '404.html'), notFound);
 await writeFile(resolve(outputDir, '.nojekyll'), '');
 
-console.log(`GitHub Pages preparado: ${outputDir} (${buildId}, ${publicRoutes.length + privateRoutes.length} rutas SEO)`);
+console.log(
+  `GitHub Pages preparado: ${outputDir} (${buildId}, ${publicRoutes.length + privateRoutes.length} rutas SEO)`,
+);

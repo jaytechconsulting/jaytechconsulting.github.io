@@ -6,6 +6,7 @@ import { Observable } from 'rxjs';
 import type {
   ApiAdminUser,
   ApiCms,
+  ApiPublicSite,
   ApiCompany,
   ApiCourse,
   ApiCourseAdmin,
@@ -104,6 +105,9 @@ export class ApiService {
     return this.client.post<unknown>(`/contacts`, input);
   }
 
+  publicSite(): Observable<ApiPublicSite> {
+    return this.client.getPublic<ApiPublicSite>('/public-site');
+  }
   cms(includeUnpublished = false): Observable<ApiCms> {
     return this.client.get<ApiCms>(`/cms${includeUnpublished ? '/all' : ''}`);
   }
@@ -253,9 +257,7 @@ export class ApiService {
   }): Observable<{ redirectUrl: string }> {
     return this.client.post<{ redirectUrl: string }>(`/courses/checkout/mercadopago/start`, input);
   }
-  startNiubizSession(input: {
-    courseIds: string[];
-  }): Observable<{
+  startNiubizSession(input: { courseIds: string[] }): Observable<{
     sessionKey: string;
     merchantId: string;
     purchaseNumber: string;

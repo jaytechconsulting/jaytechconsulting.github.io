@@ -1,8 +1,9 @@
 import { vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
-import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpClient, HttpContext, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter, Router } from '@angular/router';
+import { PUBLIC_READ } from '../http/api-client';
 import { authInterceptor } from './auth.interceptor';
 import { AuthService } from './auth.service';
 import { SessionLifecycle } from './session-lifecycle.service';
@@ -47,6 +48,27 @@ describe('Cookie authentication and CSRF boundary', () => {
       expect(request.request.headers.has('Authorization')).toBe(false);
       request.flush({});
     }
+  });
+  it('omits cookies for public reads without expiring a private session on failure', () => {
+    http.get(base + '/public-site', {
+      context: new HttpContext().set(PUBLIC_READ, true),
+    }).subscribe({ error: () => {} });
+    const request = control.expectOne(base + '/public-site');
+    expect(request.request.withCredentials).toBe(false);
+    expect(request.request.credentials).toBe('omit');
+    request.flush({}, { status: 401, statusText: 'Unauthorized' });
+    expect(auth.clearSession).not.toHaveBeenCalled();
+  });
+  it('never lets a public-read flag bypass credentials or CSRF on a mutation', () => {
+    http.post(base + '/one', {}, {
+      context: new HttpContext().set(PUBLIC_READ, true),
+    }).subscribe();
+    csrf();
+    const request = control.expectOne(base + '/one');
+    expect(request.request.withCredentials).toBe(true);
+    expect(request.request.credentials).toBe('include');
+    expect(request.request.headers.get('X-CSRF-TOKEN')).toBe('csrf-test');
+    request.flush({});
   });
   it('shares a CSRF request for concurrent mutations and preserves loading state', () => {
     http.post(base + '/one', {}).subscribe();

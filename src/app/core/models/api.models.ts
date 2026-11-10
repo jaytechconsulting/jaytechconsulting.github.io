@@ -255,3 +255,8 @@ export interface DocumentLookupResult {
   fullName?: string | null;
   source: string;
 }
+
+export interface ApiPublicSite {
+  cms: ApiCms;
+  content: ApiSiteContent[];
+}

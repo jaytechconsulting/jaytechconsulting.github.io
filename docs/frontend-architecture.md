@@ -27,7 +27,7 @@ Angular standalone, rutas diferidas y permisos efectivos del backend. Las seccio
 - `cms.defaults.ts`: estructura y estado inicial vacío. Los ejemplos no se dibujan mientras se consulta la API.
 - `cms.mappers.ts`: conversiones puras del backend a la vista; conserva anuncios anteriores.
 - `cms-collection.repository.ts`: transforma y persiste borradores mediante los endpoints existentes; no mantiene señales de pantalla.
-- `cms-content.service.ts`: coordina carga, reintento, estado y actualización tras guardar. Separa contenido crítico, navegación y colecciones.
+- `cms-content.service.ts`: coordina carga, reintento, estado y actualización tras guardar. Para la web pública consume una sola instantánea coherente de `/api/public-site`; el administrador conserva sus consultas autenticadas. Una respuesta pública pendiente se cancela al entrar al editor para no sobrescribir borradores.
 - `pages/admin/admin-content/content-editor.config.ts`: definición declarativa de campos y opciones del editor, sin consultas ni persistencia.
 
 El servicio reexporta sus tipos para conservar el contrato de los consumidores existentes.
@@ -92,3 +92,8 @@ npm run build -- --configuration production
 ```
 
 TypeScript comprueba declaraciones, parámetros e imports sin uso. Las pruebas HTTP usan `HttpTestingController`; las de recursos verifican cancelación, fallos y destrucción; las de permisos usan la sesión efectiva. No hacer pagos ni enviar mensajes reales para validar una refactorización.
+
+
+## Conexión inicial de producción
+
+El postbuild agrega `preconnect` al origen de `environment.prod.ts` para anticipar DNS/TLS durante la descarga de Angular. El contenido público se revalida con ETag y no se persiste en localStorage para mostrar una versión antigua antes de la actual. Publicar el backend con `/api/public-site` antes del frontend que lo consume.

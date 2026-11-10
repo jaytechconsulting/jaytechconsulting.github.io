@@ -1,8 +1,10 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpContextToken, HttpParams } from '@angular/common/http';
 import { inject, Injectable, InjectionToken } from '@angular/core';
 import { map, type Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type { ApiResponse } from '../models/api.models';
+
+export const PUBLIC_READ = new HttpContextToken<boolean>(() => false);
 
 export type ApiQuery = Readonly<Record<string, string | number | boolean | null | undefined>>;
 export const API_BASE_URL = new InjectionToken<string>('API_BASE_URL', {
@@ -18,6 +20,10 @@ export class ApiClient {
 
   get<T>(path: string, query?: ApiQuery): Observable<T> {
     return this.request<T>('GET', path, undefined, query);
+  }
+  /** Published content does not need to renew an authenticated session. */
+  getPublic<T>(path: string): Observable<T> {
+    return this.request<T>('GET', path, undefined, undefined, new HttpContext().set(PUBLIC_READ, true));
   }
   post<T>(path: string, body: unknown): Observable<T> {
     return this.request<T>('POST', path, body);
@@ -37,6 +43,7 @@ export class ApiClient {
     path: string,
     body?: unknown,
     query?: ApiQuery,
+    context?: HttpContext,
   ): Observable<T> {
     let params = new HttpParams();
     for (const [key, value] of Object.entries(query ?? {})) {
@@ -45,7 +52,7 @@ export class ApiClient {
     const url = `${this.baseUrl}/${path.replace(/^\/+/, '')}`;
     // Empty 204 responses are valid for mutations. HTTP errors propagate unchanged.
     return this.http
-      .request<ApiResponse<T> | null>(method, url, { body, params })
+      .request<ApiResponse<T> | null>(method, url, { body, params, context })
       .pipe(map((response) => response?.data as T));
   }
 }

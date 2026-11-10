@@ -8,11 +8,12 @@ import {
   switchMap,
   tap,
   catchError,
-  of,
   throwError,
   finalize,
   shareReplay,
   timeout,
+  Subject,
+  takeUntil,
 } from 'rxjs';
 import { ApiService } from '../api.service';
 import type { ApiCms } from '../models/api.models';
@@ -38,6 +39,7 @@ export class CmsContentService {
   private readonly collectionsRepository = inject(CmsCollectionRepository);
   private readonly state = signal<CmsContentState>(emptyState());
   private pendingPublic?: Observable<CmsContentState>;
+  private readonly cancelPublic = new Subject<void>();
   readonly headerStatus = signal<'loading' | 'ready' | 'error'>('loading');
   readonly contentStatus = signal<'loading' | 'ready' | 'error'>('loading');
   readonly collectionsStatus = signal<'loading' | 'ready' | 'error'>('loading');
@@ -61,20 +63,12 @@ export class CmsContentService {
   }
 
   load(includeUnpublished: boolean): Observable<CmsContentState> {
-    if (!includeUnpublished && this.pendingPublic) return this.pendingPublic;
-    const markLoading = (status: typeof this.contentStatus) => {
-      if (status() !== 'ready') status.set('loading');
-    };
-    markLoading(this.contentStatus);
-    markLoading(this.collectionsStatus);
-    markLoading(this.headerStatus);
-    const failure = (status: typeof this.contentStatus) => (error: unknown) => {
-      if (status() !== 'ready') status.set('error');
-      return includeUnpublished ? throwError(() => error) : of(null);
-    };
-    const deadline = <T>(source: Observable<T>) =>
-      includeUnpublished ? source : source.pipe(timeout(15000));
-    const content$ = deadline(this.api.siteContent(includeUnpublished)).pipe(
+    if (!includeUnpublished) return this.loadPublic();
+    // A public response started before entering the CMS must not overwrite its draft state.
+    this.cancelPublic.next();
+    const statuses = [this.contentStatus, this.headerStatus, this.collectionsStatus];
+    for (const status of statuses) if (status() !== 'ready') status.set('loading');
+    const content$ = this.api.siteContent(true).pipe(
       tap((content) => {
         const next = stateFromApi({} as ApiCms, content);
         this.state.update((state) => ({
@@ -87,9 +81,8 @@ export class CmsContentService {
         }));
         this.contentStatus.set('ready');
       }),
-      catchError(failure(this.contentStatus)),
     );
-    const collections$ = deadline(this.api.cms(includeUnpublished)).pipe(
+    const collections$ = this.api.cms(true).pipe(
       tap((cms) => {
         const next = stateFromApi(cms, []);
         this.state.update((state) => ({
@@ -100,35 +93,40 @@ export class CmsContentService {
           projects: next.projects,
           plans: next.plans,
           teamMembers: next.teamMembers,
-          ...(includeUnpublished ? { header: next.header, footer: next.footer } : {}),
+          header: next.header,
+          footer: next.footer,
         }));
-        if (includeUnpublished) this.headerStatus.set('ready');
+        this.headerStatus.set('ready');
         this.collectionsStatus.set('ready');
       }),
-      catchError(failure(this.collectionsStatus)),
     );
-    // First-screen settings take one DB read, rather than waiting for all collections.
-    const layout$ = includeUnpublished
-      ? of(null)
-      : deadline(this.api.siteSettings()).pipe(
-          tap((settings) => {
-            const next = stateFromApi(settings as ApiCms, []);
-            this.state.update((state) => ({ ...state, header: next.header, footer: next.footer }));
-            this.headerStatus.set('ready');
-          }),
-          catchError(failure(this.headerStatus)),
-        );
-    const result = forkJoin({ content: content$, cms: collections$, layout: layout$ }).pipe(
+    return forkJoin({ content: content$, cms: collections$ }).pipe(
       map(() => this.state()),
       tap({
         error: () => {
-          for (const status of [this.contentStatus, this.collectionsStatus, this.headerStatus])
-            if (status() !== 'ready') status.set('error');
+          for (const status of statuses) if (status() !== 'ready') status.set('error');
         },
       }),
     );
-    if (includeUnpublished) return result;
-    this.pendingPublic = result.pipe(
+  }
+
+  /** One coherent published snapshot; never persist stale content in browser storage. */
+  private loadPublic(): Observable<CmsContentState> {
+    if (this.pendingPublic) return this.pendingPublic;
+    const statuses = [this.contentStatus, this.headerStatus, this.collectionsStatus];
+    for (const status of statuses) if (status() !== 'ready') status.set('loading');
+    this.pendingPublic = this.api.publicSite().pipe(
+      timeout(15000),
+      takeUntil(this.cancelPublic),
+      map((snapshot) => stateFromApi(snapshot.cms, snapshot.content)),
+      tap((state) => {
+        this.state.set(state);
+        for (const status of statuses) status.set('ready');
+      }),
+      catchError((error) => {
+        for (const status of statuses) if (status() !== 'ready') status.set('error');
+        return throwError(() => error);
+      }),
       finalize(() => (this.pendingPublic = undefined)),
       shareReplay({ bufferSize: 1, refCount: false }),
     );
