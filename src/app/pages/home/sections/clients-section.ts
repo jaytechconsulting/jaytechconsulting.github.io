@@ -1,6 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
-import { CmsContentService } from '../../../core/cms-content.service';
-import { Reveal } from '../../../core/directives/reveal';
+import { CmsContentService } from '../../../core/cms/cms-content.service';
+import { Reveal } from '../../../ui/behaviors/reveal';
 
 @Component({
   selector: 'app-clients-section',
@@ -13,9 +13,12 @@ export class ClientsSection {
   readonly clients = this.cms.companies;
   readonly content = this.cms.section('clients');
   readonly stats = computed<[string, string][]>(() =>
-    this.content().items.split('\n').map((line) => {
-      const [value, label] = line.split('|').map((part) => part.trim());
-      return [value, label || ''] as [string, string];
-    }).filter(([value]) => Boolean(value)),
+    this.content()
+      .items.split('\n')
+      .map((line) => {
+        const [value, label] = line.split('|').map((part) => part.trim());
+        return [value, label || ''] as [string, string];
+      })
+      .filter(([value]) => Boolean(value)),
   );
 }

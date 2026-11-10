@@ -4,7 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Button } from '../../../ui/actions/button/button';
 import { Input } from '../../../ui/forms/input/input';
 import { Wordmark } from '../../../ui/brand/wordmark/wordmark';
-import { AuthService } from '../../../core/auth.service';
+import { AuthService } from '../../../core/auth/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
 
 interface StrengthLevel {
@@ -60,12 +60,17 @@ export class ResetPassword {
 
   readonly requirements = computed<Requirement[]>(() => [
     { label: 'Mínimo 8 caracteres', ok: this.password().length >= 8 },
-    { label: 'Mayúsculas y minúsculas', ok: /[A-Z]/.test(this.password()) && /[a-z]/.test(this.password()) },
+    {
+      label: 'Mayúsculas y minúsculas',
+      ok: /[A-Z]/.test(this.password()) && /[a-z]/.test(this.password()),
+    },
     { label: 'Al menos un número', ok: /\d/.test(this.password()) },
   ]);
 
   readonly match = computed(() => this.password().length > 0 && this.password() === this.confirm());
-  readonly confirmError = computed(() => (this.confirm().length > 0 && !this.match() ? 'Las contraseñas no coinciden' : undefined));
+  readonly confirmError = computed(() =>
+    this.confirm().length > 0 && !this.match() ? 'Las contraseñas no coinciden' : undefined,
+  );
   readonly valid = computed(() => this.strength() >= 2 && this.match());
 
   submit(): void {

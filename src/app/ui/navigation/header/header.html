@@ -1,20 +1,35 @@
 <header [class]="headerClasses()">
   <div class="flex items-center justify-between px-5 py-4 min-[821px]:px-8">
     <app-wordmark [tone]="inverse() || theme() === 'dark' ? 'light' : 'dark'" [animated]="true" />
-    <nav class="hidden items-center gap-1 min-[821px]:flex">
-      <a [routerLink]="homeHref" [class]="linkClasses(homeHref)" (click)="selectLink(homeHref)">Inicio</a>
+    <nav class="hidden items-center gap-1 min-[821px]:flex" [attr.aria-busy]="loading()">
+      <a [routerLink]="homeHref" [class]="linkClasses(homeHref)" (click)="selectLink(homeHref)"
+        >Inicio</a
+      >
 
       <div class="group relative">
-        <button type="button" [class]="linkClasses('#servicios') + ' inline-flex cursor-default items-center gap-1'">
+        <button
+          type="button"
+          [class]="linkClasses('#servicios') + ' inline-flex cursor-default items-center gap-1'"
+        >
           Servicios
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3 transition-transform duration-150 ease-out group-hover:rotate-180">
+          <svg
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="h-3 w-3 transition-transform duration-150 ease-out group-hover:rotate-180"
+          >
             <path d="M4 6l4 4 4-4" />
           </svg>
         </button>
         <div
           class="invisible absolute left-0 top-full z-50 pt-2 opacity-0 transition-[opacity,transform] duration-150 ease-out group-hover:visible group-hover:opacity-100 group-hover:[&>div]:translate-y-0"
         >
-          <div class="services-dropdown-panel min-w-[190px] -translate-y-1 rounded-lg border border-border-subtle bg-surface-card p-1.5 shadow-lg transition-transform duration-150 ease-out">
+          <div
+            class="services-dropdown-panel min-w-[190px] -translate-y-1 rounded-lg border border-border-subtle bg-surface-card p-1.5 shadow-lg transition-transform duration-150 ease-out"
+          >
             @for (service of servicesDropdown; track service.label) {
               <a
                 [routerLink]="service.href"
@@ -27,15 +42,31 @@
         </div>
       </div>
 
-      <a [routerLink]="conocenosHref" [class]="linkClasses(conocenosHref)" (click)="selectLink(conocenosHref)">Conócenos</a>
+      <a
+        [routerLink]="conocenosHref"
+        [class]="linkClasses(conocenosHref)"
+        (click)="selectLink(conocenosHref)"
+        >Conócenos</a
+      >
 
+      @if (loading()) {
+        <span class="nav-skeleton" aria-label="Cargando enlaces"><i></i><i></i></span>
+      }
       @for (link of navLinks(); track link.label) {
-        <a [href]="link.href" [class]="linkClasses(link.href)" (click)="selectLink(link.href)">{{ link.label }}</a>
+        <a [href]="link.href" [class]="linkClasses(link.href)" (click)="selectLink(link.href)">{{
+          link.label
+        }}</a>
       }
     </nav>
     <div class="flex items-center gap-2.5 min-[821px]:gap-3">
       @for (link of buttonLinks(); track link.label) {
-        <a [href]="link.href" [class]="extraButtonClasses(link.variant ?? 'primary', 'sm') + ' hidden min-[821px]:inline-flex'">{{ link.label }}</a>
+        <a
+          [href]="link.href"
+          [class]="
+            extraButtonClasses(link.variant ?? 'primary', 'sm') + ' hidden min-[821px]:inline-flex'
+          "
+          >{{ link.label }}</a
+        >
       }
       <button
         type="button"
@@ -44,9 +75,19 @@
         (click)="toggleTheme()"
       >
         @if (theme() === 'dark') {
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="h-5 w-5"
+          >
             <circle cx="12" cy="12" r="4" />
-            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+            <path
+              d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
+            />
           </svg>
         } @else {
           <svg viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
@@ -54,7 +95,15 @@
           </svg>
         }
       </button>
-      <app-button variant="primary" size="sm" icon="send" [mobileIcon]="true" [label]="cta()" (clicked)="ctaClicked.emit()">{{ cta() }}</app-button>
+      <a
+        class="client-portal-link"
+        routerLink="/panel-cliente"
+        [class]="extraButtonClasses('primary', 'sm')"
+        aria-label="Acceder al portal de clientes"
+        title="Cliente"
+        (click)="closeMenu()"
+        ><app-icon name="dashboard" /><span class="hidden min-[821px]:inline">Cliente</span></a
+      >
       <button
         type="button"
         class="inline-flex h-10 w-10 shrink-0 flex-col items-center justify-center gap-[5px] rounded-pill border-0 bg-transparent p-0 min-[821px]:hidden"
@@ -69,23 +118,53 @@
     </div>
   </div>
   <nav [class]="mobileNavClasses()" [attr.inert]="menuOpen() ? null : ''">
-    <a [routerLink]="homeHref" [class]="mobileLinkClasses(homeHref)" (click)="selectLink(homeHref); closeMenu()">Inicio</a>
+    <a
+      [routerLink]="homeHref"
+      [class]="mobileLinkClasses(homeHref)"
+      (click)="selectLink(homeHref); closeMenu()"
+      >Inicio</a
+    >
 
-    <div class="mt-2 px-3.5 pb-1 font-mono text-[11px] font-semibold tracking-[0.1em] text-text-faint uppercase">Servicios</div>
+    <div
+      class="mt-2 px-3.5 pb-1 font-mono text-[11px] font-semibold tracking-[0.1em] text-text-faint uppercase"
+    >
+      Servicios
+    </div>
     <div class="flex flex-col gap-0.5 border-l-2 border-border-subtle ml-3.5 mb-1">
       @for (service of servicesDropdown; track service.label) {
-        <a [routerLink]="service.href" [class]="mobileSubLinkClasses(service.href)" (click)="selectLink(service.href); closeMenu()">{{ service.label }}</a>
+        <a
+          [routerLink]="service.href"
+          [class]="mobileSubLinkClasses(service.href)"
+          (click)="selectLink(service.href); closeMenu()"
+          >{{ service.label }}</a
+        >
       }
     </div>
 
-    <a [routerLink]="conocenosHref" [class]="mobileLinkClasses(conocenosHref)" (click)="selectLink(conocenosHref); closeMenu()">Conócenos</a>
+    <a
+      [routerLink]="conocenosHref"
+      [class]="mobileLinkClasses(conocenosHref)"
+      (click)="selectLink(conocenosHref); closeMenu()"
+      >Conócenos</a
+    >
 
     @for (link of links(); track link.label) {
-      <a [href]="link.href" [class]="mobileLinkClasses(link.href)" (click)="selectLink(link.href); closeMenu()">{{ link.label }}</a>
+      <a
+        [href]="link.href"
+        [class]="mobileLinkClasses(link.href)"
+        (click)="selectLink(link.href); closeMenu()"
+        >{{ link.label }}</a
+      >
     }
 
     <div class="mt-3 border-t border-border-subtle pt-3.5">
-      <app-button variant="primary" size="sm" [fullWidth]="true" (clicked)="onMobileCta()">{{ cta() }}</app-button>
+      <a
+        class="client-portal-link"
+        routerLink="/panel-cliente"
+        [class]="extraButtonClasses('primary', 'sm') + ' w-full'"
+        (click)="closeMenu()"
+        ><app-icon name="dashboard" />Cliente</a
+      >
     </div>
   </nav>
 </header>

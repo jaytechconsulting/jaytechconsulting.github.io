@@ -6,7 +6,7 @@ import { Button } from '../../../ui/actions/button/button';
 import { Input } from '../../../ui/forms/input/input';
 import { Select } from '../../../ui/forms/select/select';
 import { Textarea } from '../../../ui/forms/textarea/textarea';
-import { TicketsService, TicketPriority } from '../../../core/tickets.service';
+import { TicketsService, TicketPriority } from '../../../core/support/tickets.service';
 
 const PRIORITIES: TicketPriority[] = ['Alta', 'Media', 'Baja'];
 
@@ -31,11 +31,13 @@ export class NewTicket {
 
   onSubmit(): void {
     if (!this.title().trim()) return;
-    this.ticketsService.addTicket({
-      title: this.title(),
-      priority: this.priority(),
-      description: this.description(),
-    }).subscribe({ next: () => this.router.navigateByUrl('/panel-cliente') });
+    this.ticketsService
+      .addTicket({
+        title: this.title(),
+        priority: this.priority(),
+        description: this.description(),
+      })
+      .subscribe({ next: () => this.router.navigateByUrl('/panel-cliente') });
   }
 
   onCancel(): void {

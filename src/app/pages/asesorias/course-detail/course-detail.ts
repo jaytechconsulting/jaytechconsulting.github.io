@@ -5,9 +5,9 @@ import { Footer } from '../../../ui/navigation/footer/footer';
 import { Button } from '../../../ui/actions/button/button';
 import { Badge } from '../../../ui/data-display/badge/badge';
 import { Breadcrumb } from '../../../ui/navigation/breadcrumb/breadcrumb';
-import { Reveal } from '../../../core/directives/reveal';
+import { Reveal } from '../../../ui/behaviors/reveal';
 import { WhatsAppFab } from '../../../ui/marketing/whatsapp-fab/whatsapp-fab';
-import { CmsContentService } from '../../../core/cms-content.service';
+import { CmsContentService } from '../../../core/cms/cms-content.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { COURSES, type Course } from '../courses-data';
 
@@ -41,9 +41,18 @@ export class CourseDetail implements OnInit {
       this.course.set(course);
       this.notFound.set(!course);
       if (course) {
-        this.seo.update({ title: `${course.title} | Jaytech`, description: course.description, path: `/asesorias/${course.slug}` });
+        this.seo.update({
+          title: `${course.title} | Jaytech`,
+          description: course.description,
+          path: `/asesorias/${course.slug}`,
+        });
       } else {
-        this.seo.update({ title: 'Curso no encontrado | Jaytech', description: 'El curso solicitado no está disponible.', path: this.router.url, index: false });
+        this.seo.update({
+          title: 'Curso no encontrado | Jaytech',
+          description: 'El curso solicitado no está disponible.',
+          path: this.router.url,
+          index: false,
+        });
       }
     });
   }

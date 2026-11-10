@@ -133,11 +133,31 @@ export interface ApiCoursePurchase {
   purchasedAt: string;
   materials: ApiCourseMaterial[];
 }
-export interface ApiPagedResult<T> { items: T[]; total: number; page: number; pageSize: number; }
-export interface ApiHeaderLink { label: string; href: string; variant?: string | null; }
-export interface ApiFooterColumn { title: string; links: string[]; }
-export interface ApiHeader { cta: string; links: ApiHeaderLink[]; }
-export interface ApiFooter { about: string; email: string; phone: string; columns: ApiFooterColumn[]; }
+export interface ApiPagedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+export interface ApiHeaderLink {
+  label: string;
+  href: string;
+  variant?: string | null;
+}
+export interface ApiFooterColumn {
+  title: string;
+  links: string[];
+}
+export interface ApiHeader {
+  cta: string;
+  links: ApiHeaderLink[];
+}
+export interface ApiFooter {
+  about: string;
+  email: string;
+  phone: string;
+  columns: ApiFooterColumn[];
+}
 export interface ApiTeamMember {
   id: string;
   name: string;
@@ -168,12 +188,40 @@ export interface ApiSiteContent {
   status: number;
   updatedAt: string;
 }
-export interface ApiTicket { id: string; code: string; title: string; description: string; priority: string; status: string; createdAt: string; updatedAt?: string; }
-export interface ApiUser { id: string; name: string; email: string; role: string; avatarUrl?: string | null; avatarZoom?:number; avatarX?:number; avatarY?:number; }
-export interface ApiAdminUser extends PersonalProfileFields { id: string; name: string; email: string; role: string; isActive: boolean; createdAt: string; }
+export interface ApiTicket {
+  id: string;
+  code: string;
+  title: string;
+  description: string;
+  priority: string;
+  status: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+export interface ApiUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  avatarUrl?: string | null;
+  avatarZoom?: number;
+  avatarX?: number;
+  avatarY?: number;
+}
+export interface ApiAdminUser extends PersonalProfileFields {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+}
 
 export interface PersonalProfileFields {
-  avatarUrl?:string|null; avatarZoom?:number; avatarX?:number; avatarY?:number;
+  avatarUrl?: string | null;
+  avatarZoom?: number;
+  avatarX?: number;
+  avatarY?: number;
   givenNames?: string | null;
   paternalSurname?: string | null;
   maternalSurname?: string | null;
@@ -184,7 +232,10 @@ export interface PersonalProfileFields {
   sex?: string | null;
 }
 export interface PersonalProfileInput {
-  avatarUrl?:string; avatarZoom?:number; avatarX?:number; avatarY?:number;
+  avatarUrl?: string;
+  avatarZoom?: number;
+  avatarX?: number;
+  avatarY?: number;
   givenNames: string;
   paternalSurname: string;
   maternalSurname: string;
@@ -195,3 +246,12 @@ export interface PersonalProfileInput {
   sex: string;
 }
 export type ApiProfile = ApiUser & PersonalProfileFields;
+
+export interface DocumentLookupResult {
+  givenNames?: string | null;
+  paternalSurname?: string | null;
+  maternalSurname?: string | null;
+  legalName?: string | null;
+  fullName?: string | null;
+  source: string;
+}

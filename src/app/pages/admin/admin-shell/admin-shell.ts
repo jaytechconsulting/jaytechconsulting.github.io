@@ -1,15 +1,27 @@
 import { firstValueFrom } from 'rxjs';
-import { AccessService, AccessMenu } from '../../../core/access.service';
+import { AccessService, AccessMenu } from '../../../core/access/access.service';
 import { Icon } from '../../../ui/data-display/icon/icon';
 import { OverlayScroll } from '../../../ui/behaviors/overlay-scroll';
 import { UserMenu } from '../../../ui/navigation/user-menu/user-menu';
 import { LoadingService } from '../../../core/services/loading.service';
 import { DialogService } from '../../../core/services/dialog.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { Component, ElementRef, HostListener, inject, input, signal, computed, effect, untracked, afterRenderEffect } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  inject,
+  input,
+  signal,
+  computed,
+  effect,
+  untracked,
+  afterRenderEffect,
+} from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { ThemeService } from '../../../core/theme.service';
-import { AuthService } from '../../../core/auth.service';
+import { ThemeService } from '../../../core/services/theme.service';
+import { AuthService } from '../../../core/auth/auth.service';
+import { AdminNavigationState } from './admin-navigation-state';
 
 @Component({
   selector: 'app-admin-shell',
@@ -32,78 +44,183 @@ export class AdminShell {
   readonly sidebarMotion = signal<'expanding' | 'collapsing' | null>(null);
   readonly mobile = signal(matchMedia('(max-width: 767px)').matches);
   @HostListener('window:resize') onResize(): void {
-    const next=matchMedia('(max-width: 767px)').matches;if(next===this.mobile())return;
-    const sidebarFocused=this.element.nativeElement.querySelector('.admin-sidebar')?.contains(document.activeElement);const wasOpen=this.mobileOpen();this.mobile.set(next);
-    if(!next)this.mobileOpen.set(false);
-    if(next && sidebarFocused)requestAnimationFrame(()=>this.element.nativeElement.querySelector<HTMLElement>('.hamburger')?.focus({preventScroll:true}));
-    else if(!next && wasOpen && !this.access.currentMenu())requestAnimationFrame(()=>this.element.nativeElement.querySelector<HTMLElement>('.admin-brand')?.focus({preventScroll:true}));
+    const next = matchMedia('(max-width: 767px)').matches;
+    if (next === this.mobile()) return;
+    const sidebarFocused = this.element.nativeElement
+      .querySelector('.admin-sidebar')
+      ?.contains(document.activeElement);
+    const wasOpen = this.mobileOpen();
+    this.mobile.set(next);
+    if (!next) this.mobileOpen.set(false);
+    if (next && sidebarFocused)
+      requestAnimationFrame(() =>
+        this.element.nativeElement
+          .querySelector<HTMLElement>('.hamburger')
+          ?.focus({ preventScroll: true }),
+      );
+    else if (!next && wasOpen && !this.access.currentMenu())
+      requestAnimationFrame(() =>
+        this.element.nativeElement
+          .querySelector<HTMLElement>('.admin-brand')
+          ?.focus({ preventScroll: true }),
+      );
   }
-  readonly access=inject(AccessService);
-  readonly expanded=signal<Record<string,boolean>>({});
-  readonly nav=computed(()=>{
-    const menus=this.access.session().menus;const result:(AccessMenu & {depth:number;hasChildren:boolean;expanded:boolean})[]=[];
-    const walk=(parentId:string|null,depth:number)=>{for(const menu of menus.filter(m=>m.parentId===parentId)){const hasChildren=menus.some(m=>m.parentId===menu.id);const ancestorOfCurrent=this.isAncestor(menu,this.access.currentMenu());const expanded=this.expanded()[menu.id] ?? ancestorOfCurrent;result.push({...menu,depth,hasChildren,expanded});if(hasChildren && expanded)walk(menu.id,depth+1);}};walk(null,0);return result;
+  readonly access = inject(AccessService);
+  private readonly navigationState = inject(AdminNavigationState);
+  private restoreNavigationPosition = true;
+  readonly expanded = this.navigationState.expanded;
+  rememberMenuScroll(event: Event): void {
+    this.navigationState.scrollTop = (event.target as HTMLElement).scrollTop;
+  }
+  readonly nav = computed(() => {
+    const menus = this.access.session().menus;
+    const result: (AccessMenu & { depth: number; hasChildren: boolean; expanded: boolean })[] = [];
+    const walk = (parentId: string | null, depth: number) => {
+      for (const menu of menus.filter((m) => m.parentId === parentId)) {
+        const hasChildren = menus.some((m) => m.parentId === menu.id);
+        const ancestorOfCurrent = this.isAncestor(menu, this.access.currentMenu());
+        const expanded = this.expanded()[menu.id] ?? ancestorOfCurrent;
+        result.push({ ...menu, depth, hasChildren, expanded });
+        if (hasChildren && expanded) walk(menu.id, depth + 1);
+      }
+    };
+    walk(null, 0);
+    return result;
   });
-  private isAncestor(menu:AccessMenu,current:AccessMenu|undefined):boolean{let parent=current?.parentId;const menus=this.access.session().menus;while(parent){if(parent===menu.id)return true;parent=menus.find(m=>m.id===parent)?.parentId;}return false;}
-  toggleGroup(id:string):void{const open=this.nav().find(item=>item.id===id)?.expanded ?? false;this.expanded.update(current=>({...current,[id]:!open}));if(this.collapsed()&&!this.mobile())this.toggleCollapsed();}
-  private readonly activeMenuId=computed(()=>this.access.currentMenu()?.id);
-  private readonly pendingActiveFocus=signal(false);
-  private expandActiveAncestors():void {
-    const menus=this.access.session().menus;let parent=this.access.currentMenu()?.parentId;const expanded={...this.expanded()};const visited=new Set<string>();
-    while(parent && !visited.has(parent)){visited.add(parent);expanded[parent]=true;parent=menus.find(menu=>menu.id===parent)?.parentId;}
+  private isAncestor(menu: AccessMenu, current: AccessMenu | undefined): boolean {
+    let parent = current?.parentId;
+    const menus = this.access.session().menus;
+    while (parent) {
+      if (parent === menu.id) return true;
+      parent = menus.find((m) => m.id === parent)?.parentId;
+    }
+    return false;
+  }
+  toggleGroup(id: string): void {
+    const open = this.nav().find((item) => item.id === id)?.expanded ?? false;
+    this.expanded.update((current) => ({ ...current, [id]: !open }));
+    if (this.collapsed() && !this.mobile()) this.toggleCollapsed();
+  }
+  private readonly activeMenuId = computed(() => this.access.currentMenu()?.id);
+  private readonly pendingActiveFocus = signal(false);
+  private expandActiveAncestors(): void {
+    const menus = this.access.session().menus;
+    let parent = this.access.currentMenu()?.parentId;
+    const expanded = { ...this.expanded() };
+    const visited = new Set<string>();
+    while (parent && !visited.has(parent)) {
+      visited.add(parent);
+      expanded[parent] = true;
+      parent = menus.find((menu) => menu.id === parent)?.parentId;
+    }
     this.expanded.set(expanded);
   }
-  revealActiveMenu():void {
-    if(this.mobile() && !this.mobileOpen())return;
-    const nav=this.element.nativeElement.querySelector<HTMLElement>('nav');
-    const active=nav?.querySelector<HTMLElement>('.nav-item.is-active');if(!nav || !active)return;
-    const viewport=nav.getBoundingClientRect(),item=active.getBoundingClientRect();const padding=12;
-    let top=nav.scrollTop;
-    if(item.top<viewport.top+padding)top+=item.top-viewport.top-padding;
-    else if(item.bottom>viewport.bottom-padding)top+=item.bottom-viewport.bottom+padding;
-    active.focus({preventScroll:true});
-    top=Math.max(0,top);
-    if(top!==nav.scrollTop)nav.scrollTo({top,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
+  revealActiveMenu(): void {
+    if (this.mobile() && !this.mobileOpen()) return;
+    const nav = this.element.nativeElement.querySelector<HTMLElement>('nav');
+    const active = nav?.querySelector<HTMLElement>('.nav-item.is-active');
+    if (!nav || !active) return;
+    const viewport = nav.getBoundingClientRect(),
+      item = active.getBoundingClientRect();
+    const padding = 12;
+    let top = nav.scrollTop;
+    if (item.top < viewport.top + padding) top += item.top - viewport.top - padding;
+    else if (item.bottom > viewport.bottom - padding)
+      top += item.bottom - viewport.bottom + padding;
+    active.focus({ preventScroll: true });
+    top = Math.max(0, top);
+    if (top !== nav.scrollTop)
+      nav.scrollTo({
+        top,
+        behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+      });
   }
-  constructor(){
-    if(!this.access.loaded())this.access.load().subscribe();
-    effect(()=>{
-      const id=this.activeMenuId();const visible=!this.mobile() || this.mobileOpen();
-      if(id && visible)untracked(()=>{this.expandActiveAncestors();this.pendingActiveFocus.set(true);});
+  constructor() {
+    if (!this.access.loaded()) this.access.load().subscribe();
+    effect(() => {
+      const id = this.activeMenuId();
+      const visible = !this.mobile() || this.mobileOpen();
+      if (id && visible)
+        untracked(() => {
+          this.expandActiveAncestors();
+          this.pendingActiveFocus.set(true);
+        });
     });
-    afterRenderEffect(()=>{
-      if(!this.pendingActiveFocus() || this.loading.hasPendingRequests() || (this.mobile() && !this.mobileOpen()))return;
-      this.revealActiveMenu();this.pendingActiveFocus.set(false);
+    afterRenderEffect(() => {
+      if (
+        !this.pendingActiveFocus() ||
+        this.loading.hasPendingRequests() ||
+        (this.mobile() && !this.mobileOpen())
+      )
+        return;
+      if (this.restoreNavigationPosition) {
+        const nav = this.element.nativeElement.querySelector<HTMLElement>('nav');
+        if (nav) {
+          nav.scrollTop = this.navigationState.scrollTop;
+          this.restoreNavigationPosition = false;
+        }
+      }
+      this.revealActiveMenu();
+      this.pendingActiveFocus.set(false);
     });
   }
   toggleCollapsed(): void {
     this.sidebarMotion.set(this.collapsed() ? 'expanding' : 'collapsing');
-    this.collapsed.update(value => !value);
+    this.collapsed.update((value) => !value);
     localStorage.setItem('jaytech-admin-collapsed', String(this.collapsed()));
   }
   openMenu(): void {
     this.mobileOpen.set(true);
-    if(!this.access.currentMenu())requestAnimationFrame(() => this.element.nativeElement.querySelector<HTMLElement>('.mobile-close')?.focus({preventScroll:true}));
+    if (!this.access.currentMenu())
+      requestAnimationFrame(() =>
+        this.element.nativeElement
+          .querySelector<HTMLElement>('.mobile-close')
+          ?.focus({ preventScroll: true }),
+      );
   }
   @HostListener('document:keydown.escape') closeMenu(): void {
     const wasOpen = this.mobileOpen();
     this.mobileOpen.set(false);
-    if (wasOpen) this.element.nativeElement.querySelector<HTMLElement>('.hamburger')?.focus({preventScroll:true});
+    if (wasOpen)
+      this.element.nativeElement
+        .querySelector<HTMLElement>('.hamburger')
+        ?.focus({ preventScroll: true });
   }
   @HostListener('document:keydown', ['$event']) trapFocus(event: KeyboardEvent): void {
-    if (this.dialogs.dialog() || !this.mobile() || !this.mobileOpen() || event.key !== 'Tab') return;
-    const controls = Array.from(this.element.nativeElement.querySelectorAll<HTMLElement>('.admin-sidebar a, .admin-sidebar button')).filter(el => el.getClientRects().length);
-    const first = controls[0], last = controls[controls.length - 1];
-    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
-    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    if (this.dialogs.dialog() || !this.mobile() || !this.mobileOpen() || event.key !== 'Tab')
+      return;
+    const controls = Array.from(
+      this.element.nativeElement.querySelectorAll<HTMLElement>(
+        '.admin-sidebar a, .admin-sidebar button',
+      ),
+    ).filter((el) => el.getClientRects().length);
+    const first = controls[0],
+      last = controls[controls.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last?.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first?.focus();
+    }
   }
   async logout(): Promise<void> {
     if (this.loading.hasPendingRequests() || this.dialogs.dialog()) return;
     this.closeMenu();
-    const confirmed = await this.dialogs.question({title:'¿Cerrar sesión?', message:'Tendrás que iniciar sesión nuevamente para acceder al administrador.', confirmLabel:'Cerrar sesión', cancelLabel:'Seguir trabajando'});
+    const confirmed = await this.dialogs.question({
+      title: '¿Cerrar sesión?',
+      message: 'Tendrás que iniciar sesión nuevamente para acceder al administrador.',
+      confirmLabel: 'Cerrar sesión',
+      cancelLabel: 'Seguir trabajando',
+    });
     if (!confirmed) return;
-    try {await firstValueFrom(this.auth.logout());}catch{this.toast.error('No pudimos cerrar la sesión','Inténtalo nuevamente.');return;}
+    try {
+      await firstValueFrom(this.auth.logout());
+    } catch {
+      this.toast.error('No pudimos cerrar la sesión', 'Inténtalo nuevamente.');
+      return;
+    }
     this.toast.info('Sesión cerrada', 'Has salido del administrador.');
-    await this.router.navigateByUrl('/login',{replaceUrl:true});
+    await this.router.navigateByUrl('/login', { replaceUrl: true });
   }
 }

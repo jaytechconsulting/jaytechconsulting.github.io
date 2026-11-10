@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { CmsContentService } from '../../../core/cms-content.service';
-import { Reveal } from '../../../core/directives/reveal';
+import { CmsContentService } from '../../../core/cms/cms-content.service';
+import { Reveal } from '../../../ui/behaviors/reveal';
 
 interface Review {
   quote: string;
@@ -48,12 +48,16 @@ export class ReviewsSection {
   readonly stars = STARS;
   readonly content = this.cms.section('reviews');
   readonly summary = computed(() => {
-    const [score, caption] = this.content().items.split('|').map((part) => part.trim());
+    const [score, caption] = this.content()
+      .items.split('|')
+      .map((part) => part.trim());
     return { score: score || '4.9', caption: caption || 'basado en proyectos publicados' };
   });
 
   readonly active = signal(0);
-  readonly activeReview = computed(() => this.reviews()[this.active()] ?? this.reviews()[0] ?? EMPTY_REVIEW);
+  readonly activeReview = computed(
+    () => this.reviews()[this.active()] ?? this.reviews()[0] ?? EMPTY_REVIEW,
+  );
 
   select(index: number): void {
     this.active.set(index);
@@ -71,11 +75,20 @@ export class ReviewsSection {
     const on = index === this.active();
     return [
       'm-0.5 inline-flex h-12 w-12 items-center justify-center rounded-full font-display text-base font-bold',
-      on ? 'bg-[image:var(--gradient-hud)] text-ink-950 opacity-100' : 'bg-surface-sunken text-text-muted opacity-75',
+      on
+        ? 'bg-[image:var(--gradient-hud)] text-ink-950 opacity-100'
+        : 'bg-surface-sunken text-text-muted opacity-75',
     ].join(' ');
   }
 
   private initials(name: string): string {
-    return name.split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase() || '?';
+    return (
+      name
+        .split(' ')
+        .map((part) => part[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase() || '?'
+    );
   }
 }

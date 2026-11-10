@@ -1,0 +1,502 @@
+<div class="announcement-editor">
+  <app-card elevation="sm">
+    <div class="editor-heading">
+      <div class="heading-icon"><app-icon name="cmsanuncio" /></div>
+      <div>
+        <h2>Diseña tu anuncio</h2>
+        <p>Mensaje, acciones y fondo de la barra superior.</p>
+      </div>
+      <span class="status" [class.published]="draft().active">{{
+        draft().active ? 'Publicado' : 'Oculto'
+      }}</span>
+    </div>
+    <fieldset [disabled]="saving()" class="editor-fields">
+      <div class="publication">
+        <app-checkbox
+          label="Publicación"
+          text="Mostrar anuncio en la web"
+          [checked]="draft().active"
+          (checkedChange)="set('active', $event)"
+        />
+      </div>
+      <app-textarea
+        label="Mensaje del anuncio"
+        placeholder="Descubre nuestros nuevos productos y promociones"
+        [rows]="2"
+        [value]="draft().message"
+        (valueChange)="set('message', $event)"
+      />
+      <div class="editor-grid">
+        <section class="editor-section">
+          <div class="section-heading">
+            <app-icon name="cmsanimacion" />
+            <h3>Apariencia</h3>
+          </div>
+          <app-select
+            label="Tipo de fondo"
+            [searchable]="false"
+            [options]="mediaOptions"
+            [value]="draft().mediaType"
+            (valueChange)="setMedia($event)"
+          />
+          <div class="color-field">
+            <label for="announcement-color">Color de fondo</label>
+            <div class="swatches">
+              @for (color of palette; track color) {
+                <button
+                  type="button"
+                  [style.background]="color"
+                  [class.selected]="draft().backgroundColor === color"
+                  [attr.aria-label]="'Usar color ' + color"
+                  [attr.aria-pressed]="draft().backgroundColor === color"
+                  (click)="set('backgroundColor', color)"
+                ></button>
+              }
+              <input
+                id="announcement-color"
+                type="color"
+                aria-label="Color personalizado"
+                [value]="draft().backgroundColor || '#4654FF'"
+                (input)="set('backgroundColor', $any($event.target).value)"
+              />
+            </div>
+          </div>
+          @if (draft().mediaType === 'animation') {
+            <app-select
+              label="Efecto animado"
+              [searchable]="false"
+              [options]="animationOptions"
+              [value]="draft().animation"
+              (valueChange)="setAnimation($event)"
+            />
+          }
+          @if (draft().mediaType === 'image') {
+            <div class="upload-box">
+              <app-icon name="cmsproyectos" />
+              <div>
+                <strong>{{
+                  draft().backgroundImage ? 'Imagen seleccionada' : 'Elige tu imagen'
+                }}</strong
+                ><span>JPG, PNG, WebP o GIF · hasta 1 MB</span>
+              </div>
+              <app-button variant="outline" size="sm" icon="plus" (clicked)="file.click()">{{
+                draft().backgroundImage ? 'Cambiar' : 'Subir'
+              }}</app-button>
+            </div>
+            <input
+              #file
+              #backgroundReader="imageFile"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              hidden
+              appImageFile
+              [imageResetKey]="imageSourceVersion()"
+              [imageTypes]="imageTypes"
+              [verifyImage]="true"
+              (imageSelected)="upload($event)"
+              (imageError)="imageUploadError($event)"
+            />
+            @if (draft().backgroundImage) {
+              <div
+                class="image-adjustment"
+                aria-label="Encuadre de imagen"
+                (pointerdown)="startDrag($event)"
+                (pointermove)="moveDrag($event)"
+                (pointerup)="endDrag()"
+                (pointercancel)="endDrag()"
+                (lostpointercapture)="endDrag()"
+              >
+                <div
+                  class="crop-image"
+                  [style.background-image]="'url(' + draft().backgroundImage + ')'"
+                  [style.background-position]="draft().imageX + '% ' + draft().imageY + '%'"
+                  [style.transform]="'scale(' + draft().imageZoom + ')'"
+                  [style.transform-origin]="draft().imageX + '% ' + draft().imageY + '%'"
+                ></div>
+                <span>Arrastra para encuadrar</span>
+              </div>
+              <div class="range-grid">
+                <label
+                  >Zoom <output>{{ draft().imageZoom.toFixed(1) }}×</output
+                  ><input
+                    type="range"
+                    min="1"
+                    max="3"
+                    step="0.05"
+                    [value]="draft().imageZoom"
+                    (input)="number('imageZoom', $event)" /></label
+                ><label
+                  >Horizontal <output>{{ draft().imageX.toFixed(0) }}%</output
+                  ><input
+                    type="range"
+                    min="0"
+                    max="100"
+                    [value]="draft().imageX"
+                    (input)="number('imageX', $event)" /></label
+                ><label
+                  >Vertical <output>{{ draft().imageY.toFixed(0) }}%</output
+                  ><input
+                    type="range"
+                    min="0"
+                    max="100"
+                    [value]="draft().imageY"
+                    (input)="number('imageY', $event)"
+                /></label>
+              </div>
+              <div class="inline-actions">
+                <app-button variant="outline" size="sm" icon="reset" (clicked)="resetImage()"
+                  >Restablecer encuadre</app-button
+                ><app-button
+                  variant="ghost"
+                  size="sm"
+                  icon="trash"
+                  (clicked)="backgroundReader.cancel(); clearImage()"
+                  >Quitar</app-button
+                >
+              </div>
+            }
+          }
+          <div class="range-grid">
+            <label
+              >Oscurecer fondo <output>{{ draft().overlay }}%</output
+              ><input
+                type="range"
+                min="0"
+                max="85"
+                [value]="draft().overlay"
+                (input)="number('overlay', $event)" /></label
+            ><label
+              >Altura mínima <output>{{ draft().minHeight }} px</output
+              ><input
+                type="range"
+                min="40"
+                max="180"
+                step="4"
+                [value]="draft().minHeight"
+                (input)="number('minHeight', $event)"
+            /></label>
+          </div>
+        </section>
+        <section class="editor-section">
+          <div class="section-heading">
+            <app-icon name="send" />
+            <h3>Botones de acción</h3>
+            <span class="counter">{{ draft().buttons.length }}/5</span>
+          </div>
+          @for (button of draft().buttons; track $index; let i = $index) {
+            <div class="action-editor">
+              <div class="action-heading">
+                <strong>Botón {{ i + 1 }}</strong>
+                <div class="inline-actions">
+                  <app-button
+                    variant="ghost"
+                    size="sm"
+                    icon="arrowUp"
+                    [iconOnly]="true"
+                    label="Subir botón"
+                    [disabled]="i === 0"
+                    (clicked)="moveButton(i, -1)"
+                  /><app-button
+                    variant="ghost"
+                    size="sm"
+                    icon="arrowDown"
+                    [iconOnly]="true"
+                    label="Bajar botón"
+                    [disabled]="i === draft().buttons.length - 1"
+                    (clicked)="moveButton(i, 1)"
+                  /><app-button
+                    variant="ghost"
+                    size="sm"
+                    icon="trash"
+                    [iconOnly]="true"
+                    label="Quitar botón"
+                    (clicked)="removeButton(i)"
+                  />
+                </div>
+              </div>
+              <app-input
+                label="Texto"
+                placeholder="Ver productos"
+                [value]="button.label"
+                (valueChange)="changeButton(i, 'label', $event)"
+              />
+              <app-input
+                label="Enlace"
+                placeholder="/cursos o https://ejemplo.com"
+                [value]="button.href"
+                (valueChange)="changeButton(i, 'href', $event)"
+              />
+              <app-select
+                label="Estilo"
+                [searchable]="false"
+                [options]="buttonOptions"
+                [value]="button.variant"
+                (valueChange)="changeButton(i, 'variant', $event)"
+              />
+              <app-checkbox
+                [label]="'Nueva pestaña para botón ' + (i + 1)"
+                text="Abrir en nueva pestaña"
+                [checked]="button.newTab"
+                (checkedChange)="changeButton(i, 'newTab', $event)"
+              />
+              <div class="visibility-options">
+                <app-checkbox
+                  [label]="'Botón ' + (i + 1) + ' en móvil'"
+                  text="Mostrar en móvil"
+                  [checked]="button.mobileVisible !== false"
+                  (checkedChange)="changeButton(i, 'mobileVisible', $event)"
+                /><app-checkbox
+                  [label]="'Botón ' + (i + 1) + ' en escritorio'"
+                  text="Mostrar en escritorio"
+                  [checked]="button.desktopVisible !== false"
+                  (checkedChange)="changeButton(i, 'desktopVisible', $event)"
+                />
+              </div>
+            </div>
+          } @empty {
+            <div class="empty-actions">
+              <app-icon name="plus" /><strong>Un anuncio también puede invitar a actuar</strong
+              ><span>Agrega botones para dirigir a productos, cursos o promociones.</span>
+            </div>
+          }
+          <app-button
+            variant="outline"
+            size="sm"
+            icon="plus"
+            [disabled]="draft().buttons.length >= 5"
+            (clicked)="addButton()"
+            >Agregar botón</app-button
+          >
+        </section>
+      </div>
+      <section class="editor-section">
+        <div class="section-heading">
+          <app-icon name="cmsproyectos" />
+          <h3>Imágenes junto al mensaje</h3>
+          <span class="counter">{{ draft().inlineImages.length }}/3</span>
+        </div>
+        <div class="foreground-grid">
+          @for (image of draft().inlineImages; track image.id; let i = $index) {
+            <div class="action-editor">
+              <div class="action-heading">
+                <strong>Imagen {{ i + 1 }}</strong
+                ><app-button
+                  variant="ghost"
+                  size="sm"
+                  icon="trash"
+                  [iconOnly]="true"
+                  label="Quitar imagen"
+                  (clicked)="removeInlineImage(image.id)"
+                />
+              </div>
+              <div class="foreground-upload">
+                @if (image.src) {
+                  <img [src]="image.src" [alt]="image.alt" />
+                } @else {
+                  <app-icon name="cmsproyectos" />
+                }
+                <app-button
+                  variant="outline"
+                  size="sm"
+                  icon="plus"
+                  (clicked)="inlineFile.click()"
+                  >{{ image.src ? 'Cambiar imagen' : 'Subir imagen' }}</app-button
+                ><input
+                  #inlineFile
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  hidden
+                  appImageFile
+                  [imageResetKey]="imageSourceVersion()"
+                  [imageTypes]="imageTypes"
+                  [verifyImage]="true"
+                  (imageSelected)="uploadInline($event, image.id)"
+                  (imageError)="imageUploadError($event)"
+                />
+              </div>
+              <app-input
+                label="O utiliza un enlace de imagen"
+                placeholder="https://ejemplo.com/producto.webp"
+                [value]="image.src.startsWith('data:') ? '' : image.src"
+                (valueChange)="changeInlineImage(image.id, 'src', $event)"
+              />
+              <app-input
+                label="Descripción de la imagen"
+                placeholder="Producto de la promoción"
+                [maxLength]="160"
+                [value]="image.alt"
+                (valueChange)="changeInlineImage(image.id, 'alt', $event)"
+              />
+              <app-select
+                label="Ubicación"
+                [searchable]="false"
+                [options]="positionOptions"
+                [value]="image.position"
+                (valueChange)="changeInlineImage(image.id, 'position', $any($event))"
+              />
+              <div class="range-grid">
+                <label
+                  >Ancho <output>{{ image.width }} px</output
+                  ><input
+                    type="range"
+                    min="32"
+                    max="200"
+                    step="4"
+                    [value]="image.width"
+                    (input)="changeInlineImage(image.id, 'width', +$any($event.target).value)"
+                /></label>
+              </div>
+              <div class="visibility-options">
+                <app-checkbox
+                  [label]="'Imagen ' + (i + 1) + ' en móvil'"
+                  text="Mostrar en móvil"
+                  [checked]="image.mobileVisible"
+                  (checkedChange)="changeInlineImage(image.id, 'mobileVisible', $event)"
+                /><app-checkbox
+                  [label]="'Imagen ' + (i + 1) + ' en escritorio'"
+                  text="Mostrar en escritorio"
+                  [checked]="image.desktopVisible"
+                  (checkedChange)="changeInlineImage(image.id, 'desktopVisible', $event)"
+                />
+              </div>
+            </div>
+          }
+        </div>
+        <app-button
+          variant="outline"
+          size="sm"
+          icon="plus"
+          [disabled]="draft().inlineImages.length >= 3"
+          (clicked)="addInlineImage()"
+          >Agregar imagen</app-button
+        >
+      </section>
+      <div class="editor-grid">
+        <section class="editor-section">
+          <div class="section-heading">
+            <app-icon name="cmsprogramas" />
+            <h3>Diseño responsive</h3>
+          </div>
+          <app-select
+            label="Distribución en móvil"
+            [searchable]="false"
+            [options]="layoutOptions"
+            [value]="draft().mobileLayout"
+            (valueChange)="set('mobileLayout', $any($event))"
+          />
+          <div class="visibility-matrix">
+            @for (screen of screens; track screen.key) {
+              <div class="visibility-column">
+                <h4>{{ screen.label }}</h4>
+                @for (row of visibilityRows; track row.key) {
+                  <app-checkbox
+                    [label]="row.label + ' en ' + screen.label"
+                    [text]="row.label"
+                    [checked]="draft().visibility[screen.key][row.key]"
+                    (checkedChange)="changeVisibility(screen.key, row.key, $event)"
+                  />
+                }
+              </div>
+            }
+          </div>
+        </section>
+        <section class="editor-section">
+          <div class="section-heading">
+            <app-icon name="cmscarga" />
+            <h3>Vencimiento de la promoción</h3>
+          </div>
+          <app-checkbox
+            label="Temporizador"
+            text="Activar cuenta regresiva"
+            [checked]="draft().countdown.enabled"
+            (checkedChange)="setCountdown('enabled', $event)"
+          />
+          @if (draft().countdown.enabled) {
+            <app-input
+              label="Fecha y hora de finalización"
+              type="datetime-local"
+              [value]="endsAtLocal()"
+              (valueChange)="setEndsAt($event)"
+            />
+            <p class="timezone">Zona horaria: {{ timeZone }}</p>
+            <app-input
+              label="Texto del temporizador"
+              placeholder="La promoción termina en"
+              [maxLength]="80"
+              [value]="draft().countdown.label"
+              (valueChange)="setCountdown('label', $event)"
+            />
+            <app-select
+              label="Al finalizar"
+              [searchable]="false"
+              [options]="expiryOptions"
+              [value]="draft().countdown.expiredAction"
+              (valueChange)="setCountdown('expiredAction', $any($event))"
+            />
+            @if (draft().countdown.expiredAction === 'message') {
+              <app-input
+                label="Mensaje al finalizar"
+                placeholder="Esta promoción ha finalizado"
+                [maxLength]="200"
+                [value]="draft().countdown.expiredMessage"
+                (valueChange)="setCountdown('expiredMessage', $event)"
+              />
+            }
+          }
+        </section>
+      </div>
+    </fieldset>
+    @if (submitted() && errors().length) {
+      <div class="validation" role="alert">
+        @for (error of errors(); track error) {
+          <p>{{ error }}</p>
+        }
+      </div>
+    }
+    <div class="editor-footer">
+      <app-button
+        variant="primary"
+        icon="check"
+        [disabled]="saving()"
+        (clicked)="submit()"
+        [appAccessAction]="'update'"
+        >{{ saving() ? 'Guardando…' : 'Guardar anuncio' }}</app-button
+      >
+    </div>
+  </app-card>
+  <app-card elevation="sm">
+    <div class="preview-heading">
+      <div>
+        <h2>Vista previa</h2>
+        <p>Los cambios se muestran aquí antes de guardarlos, incluso si el anuncio está oculto.</p>
+      </div>
+      <div class="preview-switch" role="group" aria-label="Tamaño de vista previa">
+        <button
+          type="button"
+          [attr.aria-pressed]="!mobilePreview()"
+          (click)="mobilePreview.set(false)"
+        >
+          <app-icon name="cmsprogramas" />Escritorio</button
+        ><button
+          type="button"
+          [attr.aria-pressed]="mobilePreview()"
+          (click)="mobilePreview.set(true)"
+        >
+          <app-icon name="cmspaginas" />Móvil
+        </button>
+      </div>
+    </div>
+    <div class="preview-stage">
+      <div class="preview-frame" [class.is-mobile]="mobilePreview()">
+        <app-announcement-banner [config]="draft()" [preview]="true" />
+        <div class="preview-navigation">
+          <app-wordmark
+            size="sm"
+            [tone]="theme.theme() === 'dark' ? 'light' : 'dark'"
+          /><span></span><app-icon name="user" />
+        </div>
+        <div class="preview-page"><i></i><i></i><i></i></div>
+      </div>
+    </div>
+  </app-card>
+</div>

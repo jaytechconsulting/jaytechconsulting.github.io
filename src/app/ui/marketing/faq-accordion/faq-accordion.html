@@ -1,0 +1,65 @@
+<div class="flex flex-col gap-3">
+  @for (faq of items(); track faq.question; let i = $index) {
+    <div
+      appReveal
+      [appRevealDelay]="i * 50"
+      class="overflow-hidden rounded-lg border transition-colors duration-200 ease-out"
+      [class]="
+        openIndex() === i
+          ? 'border-brand-orange/40 bg-[rgba(255,107,53,0.04)]'
+          : 'border-border-subtle bg-surface-card hover:border-border-strong'
+      "
+    >
+      <button
+        type="button"
+        class="flex w-full cursor-pointer items-center gap-4 px-5 py-4 text-left"
+        [attr.aria-expanded]="openIndex() === i"
+        (click)="toggle(i)"
+      >
+        <span
+          class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-mono text-[12px] font-bold transition-colors duration-200 ease-out"
+          [class]="
+            openIndex() === i
+              ? 'bg-accent-primary text-text-on-brand'
+              : 'bg-surface-sunken text-text-faint'
+          "
+          >{{ (i + 1).toString().padStart(2, '0') }}</span
+        >
+        <span class="flex-1 font-display text-base font-semibold text-text-strong">{{
+          faq.question
+        }}</span>
+        <span
+          class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition-[transform,border-color,color] duration-200 ease-out"
+          [class]="
+            openIndex() === i
+              ? 'rotate-45 border-brand-orange text-brand-orange'
+              : 'border-border-subtle text-text-faint'
+          "
+        >
+          <svg
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            class="h-3.5 w-3.5"
+          >
+            <path d="M8 3v10M3 8h10" />
+          </svg>
+        </span>
+      </button>
+      <div
+        class="grid transition-[grid-template-rows] duration-300 ease-out"
+        [style.grid-template-rows]="openIndex() === i ? '1fr' : '0fr'"
+      >
+        <div class="overflow-hidden">
+          <p
+            class="m-0 border-t border-border-subtle px-5 py-4 pl-[60px] text-[15px] leading-[1.6] text-text-muted"
+          >
+            {{ faq.answer }}
+          </p>
+        </div>
+      </div>
+    </div>
+  }
+</div>

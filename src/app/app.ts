@@ -1,6 +1,13 @@
-import { ErrorRecovery } from './core/error-recovery';
+import { ErrorRecovery } from './core/errors/error-recovery';
 import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
-import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router, RouterOutlet } from '@angular/router';
+import {
+  NavigationCancel,
+  NavigationEnd,
+  NavigationError,
+  NavigationStart,
+  Router,
+  RouterOutlet,
+} from '@angular/router';
 import { filter } from 'rxjs';
 import { Loader } from './ui/brand/loader/loader';
 import { NavProgressBar } from './ui/feedback/nav-progress-bar/nav-progress-bar';
@@ -10,7 +17,7 @@ import { DialogService } from './core/services/dialog.service';
 import { LoadingService } from './core/services/loading.service';
 import { AnalyticsService } from './core/services/analytics.service';
 import { SeoService } from './core/services/seo.service';
-import { CmsContentService } from './core/cms-content.service';
+import { CmsContentService } from './core/cms/cms-content.service';
 import { CartFooter } from './ui/marketing/cart-footer/cart-footer';
 
 @Component({
@@ -30,7 +37,7 @@ export class App {
   readonly inAdmin = signal(window.location.pathname.startsWith('/admin'));
   private readonly booted = signal(this.adminEntry || !this.loaderEnabled());
   private readonly router = inject(Router);
-  private readonly errorRecovery=inject(ErrorRecovery);
+  private readonly errorRecovery = inject(ErrorRecovery);
   readonly loading = inject(LoadingService);
   readonly dialogs = inject(DialogService);
   private readonly analytics = inject(AnalyticsService);
@@ -41,33 +48,44 @@ export class App {
     this.errorRecovery.startTracking();
     this.analytics.init();
     this.seo.init();
-    const subscription = this.router.events.pipe(
-      filter(event => event instanceof NavigationStart || event instanceof NavigationEnd || event instanceof NavigationCancel || event instanceof NavigationError),
-    ).subscribe(event => {
-      if (event instanceof NavigationStart) {
-        this.inAdmin.set(event.url.startsWith('/admin'));
-        if (this.isAnchorNavigation(event.url)) return;
-        if (this.booted() || !this.loaderEnabled()) {
-          this.showProgressBar.set(true);
-        } else {
-          this.navigationReady.set(false);
-          this.loaderReady.set(false);
-          this.showLoader.set(true);
+    const subscription = this.router.events
+      .pipe(
+        filter(
+          (event) =>
+            event instanceof NavigationStart ||
+            event instanceof NavigationEnd ||
+            event instanceof NavigationCancel ||
+            event instanceof NavigationError,
+        ),
+      )
+      .subscribe((event) => {
+        if (event instanceof NavigationStart) {
+          this.inAdmin.set(event.url.startsWith('/admin'));
+          if (this.isAnchorNavigation(event.url)) return;
+          if (this.booted() || !this.loaderEnabled()) {
+            this.showProgressBar.set(true);
+          } else {
+            this.navigationReady.set(false);
+            this.loaderReady.set(false);
+            this.showLoader.set(true);
+          }
         }
-      }
-      if (event instanceof NavigationEnd) {
-        this.analytics.pageView(event.urlAfterRedirects);
-        this.navigationReady.set(true);
-        this.showProgressBar.set(false);
-        this.pageFade.set(false);
-        requestAnimationFrame(() => this.pageFade.set(true));
-      }
-      if (event instanceof NavigationCancel || event instanceof NavigationError) {
-        this.navigationReady.set(true);
-        this.showProgressBar.set(false);
-      }
+        if (event instanceof NavigationEnd) {
+          this.analytics.pageView(event.urlAfterRedirects);
+          this.navigationReady.set(true);
+          this.showProgressBar.set(false);
+          this.pageFade.set(false);
+          requestAnimationFrame(() => this.pageFade.set(true));
+        }
+        if (event instanceof NavigationCancel || event instanceof NavigationError) {
+          this.navigationReady.set(true);
+          this.showProgressBar.set(false);
+        }
+      });
+    effect(() => {
+      this.loading.hasPendingRequests();
+      this.tryHideLoader();
     });
-    effect(() => { this.loading.hasPendingRequests(); this.tryHideLoader(); });
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 

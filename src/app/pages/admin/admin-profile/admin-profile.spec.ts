@@ -1,6 +1,6 @@
 import { Avatar } from '../../../ui/data-display/avatar/avatar';
 import { ApiService } from '../../../core/api.service';
-import { CatalogService } from '../../../core/catalog.service';
+import { CatalogService } from '../../../core/catalog/catalog.service';
 import { PasswordStrength } from '../../../ui/forms/password-strength/password-strength';
 import { Select } from '../../../ui/forms/select/select';
 import { Component, input, signal } from '@angular/core';
@@ -8,7 +8,7 @@ import { TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
 import { vi } from 'vitest';
 import { AdminProfile } from './admin-profile';
-import { AuthService } from '../../../core/auth.service';
+import { AuthService } from '../../../core/auth/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { DialogService } from '../../../core/services/dialog.service';
 import { Input } from '../../../ui/forms/input/input';

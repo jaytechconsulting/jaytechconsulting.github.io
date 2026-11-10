@@ -1,10 +1,117 @@
-import { AccessService } from '../../../core/access.service';
+import { AccessService } from '../../../core/access/access.service';
 import { Component, input, output, inject } from '@angular/core';
 import { Button } from '../button/button';
-@Component({selector:'app-module-actions',imports:[Button],template:`<div class="module-actions" role="toolbar" aria-label="Acciones del módulo"><div class="actions"><ng-content />@if(canCreate() && access.allowed('create')){<app-button [mobileIcon]="true" variant="outline" tone="success" size="sm" icon="plus" label="Agregar registro" [disabled]="busy()" (clicked)="create.emit()">Agregar</app-button>}@if(access.allowed('read')){<app-button [mobileIcon]="true" variant="outline" tone="info" size="sm" icon="view" label="Ver registro" [disabled]="busy() || !selected()" (clicked)="view.emit()">Ver</app-button>}@if(canEdit() && access.allowed('update')){<app-button [mobileIcon]="true" variant="outline" tone="warning" size="sm" icon="edit" label="Editar registro" [disabled]="busy() || !selected()" (clicked)="edit.emit()">Editar</app-button>}@if(canRemove() && access.allowed('delete')){<app-button [mobileIcon]="true" variant="outline" tone="danger" size="sm" icon="trash" [label]="removeLabel() + ' registro'" [disabled]="busy() || !selected()" (clicked)="remove.emit()">{{removeLabel()}}</app-button>}</div><span role="status">{{selected() ? selected() : 'Selecciona un registro para habilitar las acciones'}}</span></div>`,styles:`:host{display:block;margin-bottom:16px}.module-actions{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}.actions{display:flex;flex-wrap:wrap;gap:8px}span{font:12px var(--font-body);color:var(--text-muted);max-width:100%;overflow-wrap:anywhere}@media(max-width:767px){.module-actions{gap:10px}.actions{flex-wrap:nowrap;gap:7px}span{font-size:11px;line-height:1.4}}`})
+@Component({
+  selector: 'app-module-actions',
+  imports: [Button],
+  template: `<div class="module-actions" role="toolbar" aria-label="Acciones del módulo">
+    <div class="actions">
+      <ng-content />
+      @if (canCreate() && access.allowed('create')) {
+        <app-button
+          [mobileIcon]="true"
+          variant="outline"
+          tone="success"
+          size="sm"
+          icon="plus"
+          label="Agregar registro"
+          [disabled]="busy()"
+          (clicked)="create.emit()"
+          >Agregar</app-button
+        >
+      }
+      @if (access.allowed('read')) {
+        <app-button
+          [mobileIcon]="true"
+          variant="outline"
+          tone="info"
+          size="sm"
+          icon="view"
+          label="Ver registro"
+          [disabled]="busy() || !selected()"
+          (clicked)="view.emit()"
+          >Ver</app-button
+        >
+      }
+      @if (canEdit() && access.allowed('update')) {
+        <app-button
+          [mobileIcon]="true"
+          variant="outline"
+          tone="warning"
+          size="sm"
+          icon="edit"
+          label="Editar registro"
+          [disabled]="busy() || !selected()"
+          (clicked)="edit.emit()"
+          >Editar</app-button
+        >
+      }
+      @if (canRemove() && access.allowed('delete')) {
+        <app-button
+          [mobileIcon]="true"
+          variant="outline"
+          tone="danger"
+          size="sm"
+          icon="trash"
+          [label]="removeLabel() + ' registro'"
+          [disabled]="busy() || !selected()"
+          (clicked)="remove.emit()"
+          >{{ removeLabel() }}</app-button
+        >
+      }
+    </div>
+    <span role="status">{{
+      selected() ? selected() : 'Selecciona un registro para habilitar las acciones'
+    }}</span>
+  </div>`,
+  styles: `
+    :host {
+      display: block;
+      margin-bottom: 16px;
+    }
+    .module-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    span {
+      font: 12px var(--font-body);
+      color: var(--text-muted);
+      max-width: 100%;
+      overflow-wrap: anywhere;
+    }
+    @media (max-width: 767px) {
+      .module-actions {
+        gap: 10px;
+      }
+      .actions {
+        flex-wrap: nowrap;
+        gap: 7px;
+      }
+      span {
+        font-size: 11px;
+        line-height: 1.4;
+      }
+    }
+  `,
+})
 export class ModuleActions {
- readonly access=inject(AccessService);
- readonly canEdit=input(true);
- readonly selected=input('');readonly busy=input(false);readonly canCreate=input(true);readonly canRemove=input(true);readonly removeLabel=input('Eliminar');
- readonly create=output<void>();readonly view=output<void>();readonly edit=output<void>();readonly remove=output<void>();
+  readonly access = inject(AccessService);
+  readonly canEdit = input(true);
+  readonly selected = input('');
+  readonly busy = input(false);
+  readonly canCreate = input(true);
+  readonly canRemove = input(true);
+  readonly removeLabel = input('Eliminar');
+  readonly create = output<void>();
+  readonly view = output<void>();
+  readonly edit = output<void>();
+  readonly remove = output<void>();
 }

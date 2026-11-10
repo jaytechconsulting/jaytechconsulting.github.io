@@ -1,13 +1,12 @@
 import { Component, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { Reveal } from '../../../core/directives/reveal';
 import { Button } from '../../../ui/actions/button/button';
-import { CmsContentService } from '../../../core/cms-content.service';
-import { ThemeService } from '../../../core/theme.service';
+import { CmsContentService } from '../../../core/cms/cms-content.service';
+import { ThemeService } from '../../../core/services/theme.service';
 
 @Component({
   selector: 'app-hero-section',
-  imports: [Button, Reveal],
+  imports: [Button],
   templateUrl: './hero-section.html',
 })
 export class HeroSection {
@@ -16,7 +15,12 @@ export class HeroSection {
   private readonly themeService = inject(ThemeService);
 
   readonly content = this.cms.section('hero');
-  readonly stack = computed(() => this.content().items.split('\n').map((item) => item.trim()).filter(Boolean));
+  readonly stack = computed(() =>
+    this.content()
+      .items.split('\n')
+      .map((item) => item.trim())
+      .filter(Boolean),
+  );
   readonly theme = this.themeService.theme;
   readonly heroAnimation = this.cms.heroAnimation;
   readonly reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;

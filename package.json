@@ -7,7 +7,9 @@
     "build": "ng build",
     "postbuild": "node scripts/prepare-github-pages.mjs",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "check": "tsc --project tsconfig.app.json --noEmit",
+    "test:ci": "ng test --watch=false"
   },
   "private": true,
   "packageManager": "npm@11.16.0",

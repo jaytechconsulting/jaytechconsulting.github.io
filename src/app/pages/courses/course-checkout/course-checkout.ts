@@ -1,3 +1,4 @@
+import { formatSoles } from '../../../core/formatting/money';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Header } from '../../../ui/navigation/header/header';
@@ -6,21 +7,29 @@ import { Button } from '../../../ui/actions/button/button';
 import { Input } from '../../../ui/forms/input/input';
 import { Breadcrumb } from '../../../ui/navigation/breadcrumb/breadcrumb';
 import { WhatsAppFab } from '../../../ui/marketing/whatsapp-fab/whatsapp-fab';
-import { Reveal } from '../../../core/directives/reveal';
+import { Reveal } from '../../../ui/behaviors/reveal';
 import { Icon } from '../../../ui/data-display/icon/icon';
-import { CmsContentService } from '../../../core/cms-content.service';
+import { CmsContentService } from '../../../core/cms/cms-content.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { ApiService } from '../../../core/api.service';
-import { CartService } from '../../../core/cart.service';
+import { CartService } from '../../../core/commerce/cart.service';
 import { environment } from '../../../../environments/environment';
 import type { ApiCourse } from '../../../core/models/api.models';
-import { PaymentBadge, type PaymentBadgeName } from '../../../ui/data-display/payment-badge/payment-badge';
+import {
+  PaymentBadge,
+  type PaymentBadgeName,
+} from '../../../ui/data-display/payment-badge/payment-badge';
 
 declare global {
   interface Window {
     Culqi?: {
       publicKey: string;
-      settings: (options: { title: string; currency: string; amount: number; description?: string }) => void;
+      settings: (options: {
+        title: string;
+        currency: string;
+        amount: number;
+        description?: string;
+      }) => void;
       options: (options: Record<string, unknown>) => void;
       open: () => void;
       close: () => void;
@@ -44,9 +53,24 @@ interface PaymentMethodOption {
 }
 
 const PAYMENT_METHODS: PaymentMethodOption[] = [
-  { id: 'culqi', label: 'Tarjeta (Culqi)', description: 'Pago directo con tarjeta, sin salir del sitio.', badges: ['visa', 'mastercard', 'diners', 'amex', 'yape', 'plin', 'pagoefectivo', 'cuotealo'] },
-  { id: 'niubiz', label: 'Niubiz', description: 'Pago directo con tarjeta vía Niubiz (VisaNet).', badges: ['visa', 'mastercard', 'amex', 'diners'] },
-  { id: 'mercadopago', label: 'Mercado Pago', description: 'Serás redirigido a Mercado Pago para completar el pago.', badges: ['visa', 'mastercard', 'yape', 'pagoefectivo'] },
+  {
+    id: 'culqi',
+    label: 'Tarjeta (Culqi)',
+    description: 'Pago directo con tarjeta, sin salir del sitio.',
+    badges: ['visa', 'mastercard', 'diners', 'amex', 'yape', 'plin', 'pagoefectivo', 'cuotealo'],
+  },
+  {
+    id: 'niubiz',
+    label: 'Niubiz',
+    description: 'Pago directo con tarjeta vía Niubiz (VisaNet).',
+    badges: ['visa', 'mastercard', 'amex', 'diners'],
+  },
+  {
+    id: 'mercadopago',
+    label: 'Mercado Pago',
+    description: 'Serás redirigido a Mercado Pago para completar el pago.',
+    badges: ['visa', 'mastercard', 'yape', 'pagoefectivo'],
+  },
 ];
 
 @Component({
@@ -73,7 +97,9 @@ export class CourseCheckout {
 
   readonly paymentMethods = PAYMENT_METHODS;
   readonly selectedProvider = signal<PaymentProvider>('culqi');
-  readonly selectedMethod = computed(() => this.paymentMethods.find((m) => m.id === this.selectedProvider())!);
+  readonly selectedMethod = computed(() =>
+    this.paymentMethods.find((m) => m.id === this.selectedProvider())!,
+  );
 
   private readonly returningFromMercadoPago: boolean;
 
@@ -84,7 +110,12 @@ export class CourseCheckout {
   ]);
 
   constructor() {
-    this.seo.update({ title: 'Checkout de cursos | Jaytech', description: 'Completa tu compra de cursos de Jaytech.', path: '/cursos/checkout', index: false });
+    this.seo.update({
+      title: 'Checkout de cursos | Jaytech',
+      description: 'Completa tu compra de cursos de Jaytech.',
+      path: '/cursos/checkout',
+      index: false,
+    });
 
     const params = this.route.snapshot.queryParamMap;
     const ref = params.get('ref');
@@ -101,7 +132,9 @@ export class CourseCheckout {
         },
         error: (err) => {
           this.loading.set(false);
-          this.errorMessage.set(err?.error?.message ?? 'No pudimos confirmar tu pago. Si ya pagaste, escríbenos.');
+          this.errorMessage.set(
+            err?.error?.message ?? 'No pudimos confirmar tu pago. Si ya pagaste, escríbenos.',
+          );
         },
       });
     } else if (ref && params.get('mpFailed')) {
@@ -111,7 +144,8 @@ export class CourseCheckout {
     }
 
     effect(() => {
-      if (this.cart.isEmpty() && this.step() === 'form' && !this.returningFromMercadoPago) this.router.navigate(['/cursos']);
+      if (this.cart.isEmpty() && this.step() === 'form' && !this.returningFromMercadoPago)
+        this.router.navigate(['/cursos']);
     });
   }
 
@@ -135,9 +169,7 @@ export class CourseCheckout {
     this.selectedProvider.set(provider);
   }
 
-  formatPrice(price: number): string {
-    return `S/ ${price.toLocaleString('es-PE', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
-  }
+  readonly formatPrice = formatSoles;
 
   async pay(): Promise<void> {
     const courses = this.cart.courses();
@@ -180,7 +212,18 @@ export class CourseCheckout {
       amount: Math.round(total * 100),
       description: courses.length === 1 ? courses[0].title : `${courses.length} cursos`,
     });
-    culqi.options({ lang: 'auto', installments: false, paymentMethods: { tarjeta: true, yape: true, bancaMovil: false, agente: false, billetera: false, cuotealo: false } });
+    culqi.options({
+      lang: 'auto',
+      installments: false,
+      paymentMethods: {
+        tarjeta: true,
+        yape: true,
+        bancaMovil: false,
+        agente: false,
+        billetera: false,
+        cuotealo: false,
+      },
+    });
 
     window.culqi = () => {
       const token = window.Culqi?.token?.id;
@@ -189,7 +232,11 @@ export class CourseCheckout {
         this.errorMessage.set(window.Culqi?.error?.user_message ?? 'No se pudo completar el pago.');
         return;
       }
-      this.confirmPurchase(courses.map((c) => c.id), token, 'culqi');
+      this.confirmPurchase(
+        courses.map((c) => c.id),
+        token,
+        'culqi',
+      );
     };
 
     culqi.open();
@@ -223,7 +270,11 @@ export class CourseCheckout {
               this.errorMessage.set('No se pudo completar el pago con Niubiz.');
               return;
             }
-            this.confirmPurchase(courses.map((c) => c.id), response.transactionToken, 'niubiz');
+            this.confirmPurchase(
+              courses.map((c) => c.id),
+              response.transactionToken,
+              'niubiz',
+            );
           },
         });
         this.loading.set(false);
@@ -238,30 +289,48 @@ export class CourseCheckout {
 
   private payMercadoPago(courses: ApiCourse[]): void {
     this.loading.set(true);
-    this.api.startMercadoPagoCheckout({ courseIds: courses.map((c) => c.id), email: this.email().trim(), name: this.name().trim() }).subscribe({
-      next: (res) => {
-        window.location.href = res.redirectUrl;
-      },
-      error: (err) => {
-        this.loading.set(false);
-        this.errorMessage.set(err?.error?.message ?? 'No se pudo iniciar el pago con Mercado Pago.');
-      },
-    });
+    this.api
+      .startMercadoPagoCheckout({
+        courseIds: courses.map((c) => c.id),
+        email: this.email().trim(),
+        name: this.name().trim(),
+      })
+      .subscribe({
+        next: (res) => {
+          window.location.href = res.redirectUrl;
+        },
+        error: (err) => {
+          this.loading.set(false);
+          this.errorMessage.set(
+            err?.error?.message ?? 'No se pudo iniciar el pago con Mercado Pago.',
+          );
+        },
+      });
   }
 
   private confirmPurchase(courseIds: string[], token: string, provider: PaymentProvider): void {
     this.loading.set(true);
-    this.api.checkoutCart({ courseIds, token, email: this.email().trim(), name: this.name().trim(), provider }).subscribe({
-      next: () => {
-        this.loading.set(false);
-        this.cart.clear();
-        this.step.set('success');
-      },
-      error: (err) => {
-        this.loading.set(false);
-        this.errorMessage.set(err?.error?.message ?? 'No se pudo procesar el pago. Inténtalo nuevamente.');
-      },
-    });
+    this.api
+      .checkoutCart({
+        courseIds,
+        token,
+        email: this.email().trim(),
+        name: this.name().trim(),
+        provider,
+      })
+      .subscribe({
+        next: () => {
+          this.loading.set(false);
+          this.cart.clear();
+          this.step.set('success');
+        },
+        error: (err) => {
+          this.loading.set(false);
+          this.errorMessage.set(
+            err?.error?.message ?? 'No se pudo procesar el pago. Inténtalo nuevamente.',
+          );
+        },
+      });
   }
 
   private readonly loadedScripts = new Set<string>();

@@ -1,11 +1,13 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { backgroundStyle } from '../../ui/styles/background-style';
+import { Component, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Button } from '../../ui/actions/button/button';
 import { Header } from '../../ui/navigation/header/header';
 import { Footer } from '../../ui/navigation/footer/footer';
 import { WhatsAppFab } from '../../ui/marketing/whatsapp-fab/whatsapp-fab';
-import { CmsContentService } from '../../core/cms-content.service';
-import { Reveal } from '../../core/directives/reveal';
+import { FaqAccordion } from '../../ui/marketing/faq-accordion/faq-accordion';
+import { CmsContentService } from '../../core/cms/cms-content.service';
+import { Reveal } from '../../ui/behaviors/reveal';
 
 interface FeatureSection {
   number: string;
@@ -24,7 +26,8 @@ const FEATURES: FeatureSection[] = [
     glyph: '◆',
     color: '#FF6B35',
     title: 'Cada proyecto pasa por manos con experiencia real',
-    description: 'No improvisamos sobre la marcha: la arquitectura se piensa antes de escribir la primera línea de código.',
+    description:
+      'No improvisamos sobre la marcha: la arquitectura se piensa antes de escribir la primera línea de código.',
     bullets: [
       'Revisión de arquitectura y alcance antes de empezar a construir.',
       'Código mantenible pensado para crecer, no soluciones desechables.',
@@ -92,23 +95,28 @@ interface FaqItem {
 const FAQS: FaqItem[] = [
   {
     question: '¿Por qué elegir Jaytech en lugar de un freelancer o una agencia grande?',
-    answer: 'Con un freelancer dependes de una sola persona; con una agencia grande hablas con gestores, no con quien programa. Con nosotros tienes la cercanía de un freelancer y la solidez de un equipo real.',
+    answer:
+      'Con un freelancer dependes de una sola persona; con una agencia grande hablas con gestores, no con quien programa. Con nosotros tienes la cercanía de un freelancer y la solidez de un equipo real.',
   },
   {
     question: '¿Cómo garantizan la calidad del código?',
-    answer: 'Revisamos la arquitectura antes de construir, seguimos buenas prácticas del stack elegido y documentamos las decisiones clave, para que el proyecto sea mantenible por cualquier equipo, no solo por nosotros.',
+    answer:
+      'Revisamos la arquitectura antes de construir, seguimos buenas prácticas del stack elegido y documentamos las decisiones clave, para que el proyecto sea mantenible por cualquier equipo, no solo por nosotros.',
   },
   {
     question: '¿Qué pasa si necesito cambios después de la entrega?',
-    answer: 'Es parte del trabajo. Ofrecemos soporte y mejoras continuas después del lanzamiento — no desaparecemos cuando el proyecto sale a producción.',
+    answer:
+      'Es parte del trabajo. Ofrecemos soporte y mejoras continuas después del lanzamiento — no desaparecemos cuando el proyecto sale a producción.',
   },
   {
     question: '¿Trabajan con empresas de cualquier tamaño?',
-    answer: 'Sí. Hemos trabajado con negocios que recién digitalizan su operación y con empresas que ya tienen sistemas en producción y necesitan integrarlos o escalarlos.',
+    answer:
+      'Sí. Hemos trabajado con negocios que recién digitalizan su operación y con empresas que ya tienen sistemas en producción y necesitan integrarlos o escalarlos.',
   },
   {
     question: '¿Cómo empiezo a trabajar con ustedes?',
-    answer: 'Cuéntanos tu proyecto en el formulario de "Solicitar propuesta" — respondemos en menos de 24 horas con una primera idea de alcance y presupuesto.',
+    answer:
+      'Cuéntanos tu proyecto en el formulario de "Solicitar propuesta" — respondemos en menos de 24 horas con una primera idea de alcance y presupuesto.',
   },
 ];
 
@@ -117,7 +125,7 @@ const FAQS: FaqItem[] = [
  * alternating feature-by-feature breakdown, a real CMS-backed team grid and an FAQ. */
 @Component({
   selector: 'app-conocenos',
-  imports: [Button, Header, Footer, WhatsAppFab, Reveal],
+  imports: [Button, Header, Footer, WhatsAppFab, FaqAccordion, Reveal],
   templateUrl: './conocenos.html',
 })
 export class Conocenos {
@@ -129,21 +137,9 @@ export class Conocenos {
   readonly features = FEATURES;
   readonly stats = STATS;
   readonly faqs = FAQS;
-  readonly openFaq = signal<number | null>(0);
 
   readonly pageDesign = computed(() => this.cms.pages().conocenos);
-  readonly headerStyle = computed(() => {
-    const d = this.pageDesign();
-    if (d.backgroundImage) {
-      return { 'background-image': `linear-gradient(rgba(11,15,26,0.72), rgba(11,15,26,0.72)), url(${d.backgroundImage})`, 'background-size': 'cover', 'background-position': 'center' };
-    }
-    if (d.backgroundColor) return { background: d.backgroundColor };
-    return {};
-  });
-
-  toggleFaq(index: number): void {
-    this.openFaq.update((current) => (current === index ? null : index));
-  }
+  readonly headerStyle = computed(() => backgroundStyle(this.pageDesign()));
 
   requestProposal(): void {
     this.router.navigate(['/solicitar-propuesta']);

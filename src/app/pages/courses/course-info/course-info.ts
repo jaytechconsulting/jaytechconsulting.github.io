@@ -1,3 +1,4 @@
+import { formatSoles } from '../../../core/formatting/money';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Header } from '../../../ui/navigation/header/header';
@@ -6,11 +7,11 @@ import { Button } from '../../../ui/actions/button/button';
 import { Icon } from '../../../ui/data-display/icon/icon';
 import { Breadcrumb } from '../../../ui/navigation/breadcrumb/breadcrumb';
 import { WhatsAppFab } from '../../../ui/marketing/whatsapp-fab/whatsapp-fab';
-import { Reveal } from '../../../core/directives/reveal';
-import { CmsContentService } from '../../../core/cms-content.service';
+import { Reveal } from '../../../ui/behaviors/reveal';
+import { CmsContentService } from '../../../core/cms/cms-content.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { ApiService } from '../../../core/api.service';
-import { CartService } from '../../../core/cart.service';
+import { CartService } from '../../../core/commerce/cart.service';
 import type { ApiCourse } from '../../../core/models/api.models';
 
 @Component({
@@ -49,11 +50,20 @@ export class CourseInfo implements OnInit {
       this.api.course(id).subscribe({
         next: (course) => {
           this.course.set(course);
-          this.seo.update({ title: `${course.title} | Jaytech`, description: course.description, path: `/cursos/${course.id}` });
+          this.seo.update({
+            title: `${course.title} | Jaytech`,
+            description: course.description,
+            path: `/cursos/${course.id}`,
+          });
         },
         error: () => {
           this.notFound.set(true);
-          this.seo.update({ title: 'Curso no encontrado | Jaytech', description: 'El curso solicitado no está disponible.', path: this.router.url, index: false });
+          this.seo.update({
+            title: 'Curso no encontrado | Jaytech',
+            description: 'El curso solicitado no está disponible.',
+            path: this.router.url,
+            index: false,
+          });
         },
       });
     });
@@ -72,7 +82,5 @@ export class CourseInfo implements OnInit {
     this.router.navigate(['/cursos']);
   }
 
-  formatPrice(price: number): string {
-    return `S/ ${price.toLocaleString('es-PE', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
-  }
+  readonly formatPrice = formatSoles;
 }

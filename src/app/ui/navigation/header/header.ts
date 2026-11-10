@@ -1,10 +1,19 @@
-import { Component, DestroyRef, computed, effect, inject, input, output, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  computed,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { Wordmark } from '../../brand/wordmark/wordmark';
-import { Button } from '../../actions/button/button';
-import { ThemeService } from '../../../core/theme.service';
+import { Icon } from '../../data-display/icon/icon';
+import { ThemeService } from '../../../core/services/theme.service';
 
 export type HeaderLinkVariant = '' | 'primary' | 'outline';
 
@@ -38,7 +47,7 @@ export const SERVICES_DROPDOWN: ServiceLink[] = [
  * admin-editable `links` collection, since those are shortcuts to other sections/pages. */
 @Component({
   selector: 'app-header',
-  imports: [Wordmark, Button, RouterLink],
+  imports: [Wordmark, Icon, RouterLink],
   templateUrl: './header.html',
   styleUrl: './header.css',
 })
@@ -52,6 +61,7 @@ export class Header {
   readonly links = input<HeaderLink[]>(DEFAULT_LINKS);
   readonly cta = input('Solicitar propuesta');
   readonly inverse = input(false);
+  readonly loading = input(false);
   readonly ctaClicked = output<void>();
 
   /** "Servicios" is a fixed structural dropdown (above) — admin-saved links with that same
@@ -60,8 +70,12 @@ export class Header {
     return link.label.trim().toLowerCase() === 'servicios' || link.href === '#servicios';
   }
 
-  readonly navLinks = computed(() => this.links().filter((link) => !link.variant && !Header.isReservedServicesLink(link)));
-  readonly buttonLinks = computed(() => this.links().filter((link) => link.variant && !Header.isReservedServicesLink(link)));
+  readonly navLinks = computed(() =>
+    this.links().filter((link) => !link.variant && !Header.isReservedServicesLink(link)),
+  );
+  readonly buttonLinks = computed(() =>
+    this.links().filter((link) => link.variant && !Header.isReservedServicesLink(link)),
+  );
 
   readonly menuOpen = signal(false);
   readonly theme = this.themeService.theme;
@@ -81,7 +95,13 @@ export class Header {
   readonly activeLink = computed(() => {
     const path = this.currentUrl().split('?')[0].split('#')[0] || '/';
     if (path === '/') return this.clickedLink() ?? HOME_HREF;
-    if (path === '/asesorias' || path.startsWith('/asesorias/') || path === '/capacitaciones' || path.startsWith('/capacitaciones/')) return '#servicios';
+    if (
+      path === '/asesorias' ||
+      path.startsWith('/asesorias/') ||
+      path === '/capacitaciones' ||
+      path.startsWith('/capacitaciones/')
+    )
+      return '#servicios';
     return path;
   });
 
@@ -96,7 +116,9 @@ export class Header {
     effect(() => {
       document.body.style.overflow = this.menuOpen() ? 'hidden' : '';
     });
-    destroyRef.onDestroy(() => { document.body.style.overflow = ''; });
+    destroyRef.onDestroy(() => {
+      document.body.style.overflow = '';
+    });
   }
 
   toggleTheme(): void {
@@ -109,7 +131,8 @@ export class Header {
 
   linkClasses(href: string): string {
     const active = this.activeLink() === href;
-    const base = 'rounded-pill px-3.5 py-1.5 font-body text-[15px] font-medium no-underline transition-colors duration-200 ease-out';
+    const base =
+      'rounded-pill px-3.5 py-1.5 font-body text-[15px] font-medium no-underline transition-colors duration-200 ease-out';
     if (active) {
       return `${base} bg-accent-primary text-text-on-brand`;
     }
@@ -121,21 +144,31 @@ export class Header {
   }
 
   extraButtonClasses(variant: HeaderLinkVariant, size: 'sm' | 'lg' = 'sm'): string {
-    const base = 'inline-flex items-center justify-center rounded-pill font-body font-bold no-underline leading-none transition-[transform,filter] duration-200 ease-out hover:brightness-95 active:scale-[0.97]';
-    const sizeClasses = size === 'lg' ? 'gap-2 px-[22px] py-3 text-[15px]' : 'gap-1.5 px-4 py-2 text-sm';
-    const variantClasses = variant === 'outline' ? 'border-2 border-border-strong bg-transparent text-text-strong' : 'border-2 border-transparent bg-accent-primary text-text-on-brand shadow-brand';
+    const base =
+      'inline-flex items-center justify-center rounded-pill font-body font-bold no-underline leading-none transition-[transform,filter] duration-200 ease-out hover:brightness-95 active:scale-[0.97]';
+    const sizeClasses =
+      size === 'lg' ? 'gap-2 px-[22px] py-3 text-[15px]' : 'gap-1.5 px-4 py-2 text-sm';
+    const variantClasses =
+      variant === 'outline'
+        ? 'border-2 border-border-strong bg-transparent text-text-strong'
+        : 'border-2 border-transparent bg-accent-primary text-text-on-brand shadow-brand';
     return `${base} ${sizeClasses} ${variantClasses}`;
   }
 
   readonly headerClasses = computed(() => {
     if (this.inverse()) return 'relative block bg-surface-inverse border-b border-border-inverse';
-    const transition = 'relative block border-b transition-[background-color,backdrop-filter,border-color] duration-300 ease-out';
-    if (this.scrolled()) return `${transition} bg-[var(--glass-header)] backdrop-blur-md backdrop-saturate-[1.8] border-border-subtle`;
+    const transition =
+      'relative block border-b transition-[background-color,backdrop-filter,border-color] duration-300 ease-out';
+    if (this.scrolled())
+      return `${transition} bg-[var(--glass-header)] backdrop-blur-md backdrop-saturate-[1.8] border-border-subtle`;
     return `${transition} bg-transparent backdrop-blur-none border-transparent`;
   });
 
   readonly barClasses = computed(() => {
-    const base = ['block h-0.5 w-6 rounded-sm transition-[transform,opacity] duration-200 ease-out', this.inverse() ? 'bg-text-on-inverse' : 'bg-text-strong'].join(' ');
+    const base = [
+      'block h-0.5 w-6 rounded-sm transition-[transform,opacity] duration-200 ease-out',
+      this.inverse() ? 'bg-text-on-inverse' : 'bg-text-strong',
+    ].join(' ');
     const open = this.menuOpen();
     return [
       `${base} ${open ? 'translate-y-[7px] rotate-45' : ''}`,
@@ -149,8 +182,12 @@ export class Header {
     return [
       'absolute inset-x-0 top-full z-[60] flex min-[821px]:hidden flex-col gap-1 px-[clamp(20px,5vw,32px)] pt-3 pb-5 shadow-lg border-b',
       'transition-[opacity,transform] duration-200 ease-out',
-      open ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none -translate-y-1.5 opacity-0',
-      this.inverse() ? 'bg-surface-inverse border-border-inverse' : 'bg-surface-card border-border-subtle',
+      open
+        ? 'pointer-events-auto translate-y-0 opacity-100'
+        : 'pointer-events-none -translate-y-1.5 opacity-0',
+      this.inverse()
+        ? 'bg-surface-inverse border-border-inverse'
+        : 'bg-surface-card border-border-subtle',
     ].join(' ');
   });
 

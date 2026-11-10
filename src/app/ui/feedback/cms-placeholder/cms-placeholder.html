@@ -1,0 +1,24 @@
+<section
+  class="cms-placeholder"
+  [class.is-hero]="hero()"
+  [attr.aria-busy]="!error()"
+  [attr.aria-label]="error() ? 'Contenido no disponible' : 'Cargando contenido'"
+>
+  @if (error()) {
+    <div class="load-error" role="status">
+      <p>No pudimos cargar este contenido.</p>
+      <app-button variant="outline" size="sm" icon="reset" (clicked)="retry.emit()"
+        >Reintentar</app-button
+      >
+    </div>
+  } @else {
+    <div class="loading-layout">
+      <p class="loading-caption" role="status">Cargando contenido…</p>
+      <div class="skeleton" aria-hidden="true">
+        <span class="eyebrow"></span><span class="title"></span><span class="title short"></span
+        ><span class="description"></span><span class="description short"></span
+        ><span class="action"></span>
+      </div>
+    </div>
+  }
+</section>

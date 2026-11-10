@@ -1,10 +1,38 @@
-<app-ads-bar #adsBarEl />
-<app-header #headerEl class="sticky top-0 z-50" [links]="header().links" [cta]="header().cta" (ctaClicked)="goToProposal()" />
-<app-hero-section />
-<app-clients-section />
-<app-services-section />
-<app-pricing-section />
-<app-reviews-section />
-<app-contact-section />
-<app-footer />
+<div #adsBarEl>
+  @if (ready()) {
+    <app-ads-bar />
+  }
+</div>
+<div #headerEl class="sticky top-0 z-50">
+  <app-header
+    [loading]="cms.headerStatus() !== 'ready'"
+    [links]="header().links"
+    [cta]="header().cta"
+    (ctaClicked)="goToProposal()"
+  />
+</div>
+@if (ready()) {
+  <app-hero-section />
+} @else {
+  <app-cms-placeholder [hero]="true" [error]="failed()" (retry)="cms.retryPublic()" />
+}
+<!-- Noncritical section code loads after the first screen has rendered. -->
+@defer (on idle) {
+  @if (cms.contentStatus() === 'ready' && cms.collectionsStatus() === 'ready') {
+    <app-clients-section /><app-services-section /><app-pricing-section /><app-reviews-section />
+  } @else {
+    <app-cms-placeholder
+      [error]="cms.collectionsStatus() === 'error'"
+      (retry)="cms.retryPublic()"
+    />
+  }
+  @if (cms.contentStatus() === 'ready') {
+    <app-contact-section />
+  }
+  @if (cms.headerStatus() === 'ready') {
+    <app-footer />
+  }
+} @placeholder {
+  <app-cms-placeholder />
+}
 <app-whatsapp-fab />

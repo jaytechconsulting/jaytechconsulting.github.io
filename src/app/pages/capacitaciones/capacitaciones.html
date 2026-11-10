@@ -1,5 +1,10 @@
 <div class="min-h-screen bg-surface-page font-body">
-  <app-header class="sticky top-0 z-50" [links]="header().links" [cta]="header().cta" (ctaClicked)="requestProposal()" />
+  <app-header
+    class="sticky top-0 z-50"
+    [links]="header().links"
+    [cta]="header().cta"
+    (ctaClicked)="requestProposal()"
+  />
 
   <header
     class="relative overflow-hidden bg-[image:var(--gradient-ink)] px-5 pt-[clamp(48px,7vw,80px)] pb-[clamp(56px,7vw,88px)] text-text-on-inverse sm:px-10"
@@ -13,12 +18,18 @@
     ></div>
 
     <div class="relative mx-auto max-w-[1200px]">
-      <div class="mb-4 font-mono text-[13px] tracking-[var(--ls-label)] text-brand-cyan uppercase">// Capacitaciones</div>
-      <h1 class="m-0 max-w-[720px] text-balance font-display text-[clamp(34px,6vw,56px)] font-bold leading-[var(--lh-tight)] tracking-[var(--ls-tight)]">
+      <div class="mb-4 font-mono text-[13px] tracking-[var(--ls-label)] text-brand-cyan uppercase">
+        // Capacitaciones
+      </div>
+      <h1
+        class="m-0 max-w-[720px] text-balance font-display text-[clamp(34px,6vw,56px)] font-bold leading-[var(--lh-tight)] tracking-[var(--ls-tight)]"
+      >
         {{ pageDesign().heading }}
       </h1>
       @if (pageDesign().description) {
-        <p class="mt-5 max-w-[560px] text-lg leading-[var(--lh-body)] text-text-inverse-muted">{{ pageDesign().description }}</p>
+        <p class="mt-5 max-w-[560px] text-lg leading-[var(--lh-body)] text-text-inverse-muted">
+          {{ pageDesign().description }}
+        </p>
       }
       <div class="mt-8">
         <app-button variant="inverse" size="lg" (clicked)="requestProposal()">
@@ -31,26 +42,55 @@
 
   <div class="mx-auto max-w-[1200px] px-5 py-[clamp(56px,8vw,88px)] sm:px-10">
     <div appReveal class="mb-10">
-      <div class="mb-3.5 font-mono text-[13px] uppercase tracking-[0.14em] text-brand-orange-600">// Cursos presenciales</div>
-      <h2 class="m-0 max-w-[640px] font-display text-3xl font-bold leading-[1.15] tracking-[-0.02em] text-text-strong">
+      <div class="mb-3.5 font-mono text-[13px] uppercase tracking-[0.14em] text-brand-orange-600">
+        // Cursos presenciales
+      </div>
+      <h2
+        class="m-0 max-w-[640px] font-display text-3xl font-bold leading-[1.15] tracking-[-0.02em] text-text-strong"
+      >
         Formación a la medida de tu equipo
       </h2>
-      <p class="mt-4 max-w-[580px] text-lg text-text-muted">Sesiones prácticas sobre tus propios procesos y herramientas, no un temario genérico. Se cotizan según tu equipo y alcance.</p>
+      <p class="mt-4 max-w-[580px] text-lg text-text-muted">
+        Sesiones prácticas sobre tus propios procesos y herramientas, no un temario genérico. Se
+        cotizan según tu equipo y alcance.
+      </p>
     </div>
 
-    <div appReveal [appRevealDelay]="80" class="mb-8 flex flex-wrap items-end gap-4 rounded-lg border border-border-subtle bg-surface-card p-4">
+    <div
+      appReveal
+      [appRevealDelay]="80"
+      class="mb-8 flex flex-wrap items-end gap-4 rounded-lg border border-border-subtle bg-surface-card p-4"
+    >
       <div class="min-w-[220px] flex-1">
-        <app-input label="Buscar" placeholder="Nombre o palabra clave del programa" [value]="search()" (valueChange)="onSearch($event)" />
+        <app-input
+          label="Buscar"
+          placeholder="Nombre o palabra clave del programa"
+          [value]="search()"
+          (valueChange)="onSearch($event)"
+        />
       </div>
       <div class="w-[180px] shrink-0">
-        <app-select label="Modalidad" [options]="modalityOptions" [value]="modality()" (valueChange)="onModalityChange($event)" />
+        <app-select
+          label="Modalidad"
+          [options]="modalityOptions"
+          [value]="modality()"
+          (valueChange)="onModalityChange($event)"
+        />
       </div>
       <div class="w-[200px] shrink-0">
-        <app-select label="Ordenar por" [options]="sortOptions" [value]="sort()" (valueChange)="onSortChange($event)" />
+        <app-select
+          label="Ordenar por"
+          [options]="sortOptions"
+          [value]="sort()"
+          (valueChange)="onSortChange($event)"
+        />
       </div>
     </div>
 
-    <div class="grid auto-rows-fr grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-7 transition-opacity duration-150 ease-out" [class.opacity-50]="loading()">
+    <div
+      class="grid auto-rows-fr grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-7 transition-opacity duration-150 ease-out"
+      [class.opacity-50]="loading()"
+    >
       @for (program of programs(); track program.id; let i = $index) {
         <app-feature-card
           appReveal
@@ -65,8 +105,12 @@
         />
       }
       @if (!loading() && !programs().length) {
-        <div class="col-span-full rounded-lg border border-dashed border-border-default bg-surface-sunken px-6 py-14 text-center">
-          <p class="m-0 text-[15px] text-text-muted">No encontramos programas con esos filtros. Prueba con otra búsqueda o modalidad.</p>
+        <div
+          class="col-span-full rounded-lg border border-dashed border-border-default bg-surface-sunken px-6 py-14 text-center"
+        >
+          <p class="m-0 text-[15px] text-text-muted">
+            No encontramos programas con esos filtros. Prueba con otra búsqueda o modalidad.
+          </p>
         </div>
       }
     </div>
@@ -81,7 +125,9 @@
         >
           ← Anterior
         </button>
-        <span class="font-mono text-sm text-text-muted">Página {{ page() }} de {{ totalPages() }}</span>
+        <span class="font-mono text-sm text-text-muted"
+          >Página {{ page() }} de {{ totalPages() }}</span
+        >
         <button
           type="button"
           class="cursor-pointer rounded-md border border-border-subtle px-4 py-2 text-sm font-semibold text-text-strong transition-colors duration-150 ease-out disabled:cursor-not-allowed disabled:opacity-40"
@@ -95,14 +141,26 @@
   </div>
 
   @if (virtualCourses().length > 0) {
-    <div id="cursos-virtuales" class="scroll-mt-24 border-t border-border-subtle px-5 py-[clamp(56px,8vw,88px)] sm:px-10">
+    <div
+      id="cursos-virtuales"
+      class="scroll-mt-24 border-t border-border-subtle px-5 py-[clamp(56px,8vw,88px)] sm:px-10"
+    >
       <div class="mx-auto max-w-[1200px]">
         <div appReveal class="mb-10 max-w-[640px]">
-          <div class="mb-3.5 font-mono text-[13px] uppercase tracking-[0.14em] text-brand-orange-600">// Cursos virtuales</div>
-          <h2 class="m-0 font-display text-3xl font-bold leading-[1.15] tracking-[-0.02em] text-text-strong">
+          <div
+            class="mb-3.5 font-mono text-[13px] uppercase tracking-[0.14em] text-brand-orange-600"
+          >
+            // Cursos virtuales
+          </div>
+          <h2
+            class="m-0 font-display text-3xl font-bold leading-[1.15] tracking-[-0.02em] text-text-strong"
+          >
             Aprende a tu ritmo con <span class="text-brand-orange">material práctico</span>
           </h2>
-          <p class="mt-4 text-lg text-text-muted">Paquetes con videos, guías y archivos descargables, con precio fijo — cómpralos y empieza hoy mismo.</p>
+          <p class="mt-4 text-lg text-text-muted">
+            Paquetes con videos, guías y archivos descargables, con precio fijo — cómpralos y
+            empieza hoy mismo.
+          </p>
         </div>
         <div class="grid auto-rows-fr grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-7">
           @for (course of virtualCourses(); track course.id; let i = $index) {
@@ -124,40 +182,24 @@
     </div>
   }
 
-  <div class="border-t border-border-subtle bg-surface-sunken px-5 py-[clamp(56px,8vw,88px)] sm:px-10">
+  <div
+    class="border-t border-border-subtle bg-surface-sunken px-5 py-[clamp(56px,8vw,88px)] sm:px-10"
+  >
     <div class="mx-auto max-w-[800px]">
-      <div appReveal class="mb-3.5 font-mono text-[13px] uppercase tracking-[0.14em] text-brand-orange-600">// Preguntas frecuentes</div>
-      <h2 appReveal class="m-0 mb-8 font-display text-3xl font-bold leading-[1.15] tracking-[-0.02em] text-text-strong">Lo que más nos preguntan</h2>
-
-      <div class="flex flex-col gap-3">
-        @for (faq of faqs; track faq.question; let i = $index) {
-          <div appReveal [appRevealDelay]="i * 50" class="overflow-hidden rounded-lg border border-border-subtle bg-surface-card">
-            <button
-              type="button"
-              class="flex w-full cursor-pointer items-center justify-between gap-4 px-5 py-4 text-left"
-              [attr.aria-expanded]="openFaq() === i"
-              (click)="toggleFaq(i)"
-            >
-              <span class="font-display text-base font-semibold text-text-strong">{{ faq.question }}</span>
-              <svg
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="h-4 w-4 shrink-0 text-text-faint transition-transform duration-200 ease-out"
-                [class.rotate-180]="openFaq() === i"
-              >
-                <path d="M4 6l4 4 4-4" />
-              </svg>
-            </button>
-            @if (openFaq() === i) {
-              <p class="m-0 border-t border-border-subtle px-5 py-4 text-[15px] leading-[1.6] text-text-muted">{{ faq.answer }}</p>
-            }
-          </div>
-        }
+      <div
+        appReveal
+        class="mb-3.5 font-mono text-[13px] uppercase tracking-[0.14em] text-brand-orange-600"
+      >
+        // Preguntas frecuentes
       </div>
+      <h2
+        appReveal
+        class="m-0 mb-8 font-display text-3xl font-bold leading-[1.15] tracking-[-0.02em] text-text-strong"
+      >
+        Lo que más nos preguntan
+      </h2>
+
+      <app-faq-accordion [items]="faqs" />
     </div>
   </div>
 

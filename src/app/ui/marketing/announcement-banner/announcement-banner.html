@@ -1,0 +1,117 @@
+@if (!expired() || design().countdown.expiredAction !== 'hide' || preview()) {
+  <section
+    class="announcement"
+    aria-label="Anuncio"
+    [class.hide-mobile]="!design().visibility.mobile.banner"
+    [class.hide-desktop]="!design().visibility.desktop.banner"
+    [class.mobile-stacked]="design().mobileLayout === 'stacked'"
+    [style.background-color]="design().backgroundColor || null"
+    [style.min-height.px]="design().minHeight"
+  >
+    @if (design().mediaType === 'image' && design().backgroundImage) {
+      <div class="image-layer" aria-hidden="true" [style]="imageStyle()"></div>
+    }
+    @if (design().mediaType === 'animation') {
+      <div
+        class="animated-layer"
+        [class]="'animated-layer ' + design().animation"
+        aria-hidden="true"
+      >
+        <i></i><i></i><i></i>
+      </div>
+    }
+    <div class="shade" aria-hidden="true" [style.opacity]="design().overlay / 100"></div>
+    <div class="announcement-content" [class.has-close]="dismissible()">
+      <div class="banner-copy">
+        <div
+          class="inline-images"
+          [class.hide-mobile]="!design().visibility.mobile.images"
+          [class.hide-desktop]="!design().visibility.desktop.images"
+        >
+          @for (image of beforeImages(); track image.id) {
+            @if (image.src) {
+              <img
+                class="inline-image"
+                [src]="image.src"
+                [alt]="image.alt"
+                [style.width.px]="image.width"
+                [class.hide-mobile]="!image.mobileVisible"
+                [class.hide-desktop]="!image.desktopVisible"
+              />
+            }
+          }
+        </div>
+        <span
+          class="message"
+          [class.hide-mobile]="!design().visibility.mobile.message"
+          [class.hide-desktop]="!design().visibility.desktop.message"
+          >{{
+            expired()
+              ? design().countdown.expiredMessage
+              : design().message || (preview() ? 'Tu próximo anuncio comienza aquí' : '')
+          }}</span
+        >
+        <div
+          class="inline-images"
+          [class.hide-mobile]="!design().visibility.mobile.images"
+          [class.hide-desktop]="!design().visibility.desktop.images"
+        >
+          @for (image of afterImages(); track image.id) {
+            @if (image.src) {
+              <img
+                class="inline-image"
+                [src]="image.src"
+                [alt]="image.alt"
+                [style.width.px]="image.width"
+                [class.hide-mobile]="!image.mobileVisible"
+                [class.hide-desktop]="!image.desktopVisible"
+              />
+            }
+          }
+        </div>
+      </div>
+      @if (design().countdown.enabled && !expired() && endLabel()) {
+        <div
+          class="countdown"
+          role="timer"
+          aria-live="off"
+          [attr.aria-label]="endLabel()"
+          [class.hide-mobile]="!design().visibility.mobile.countdown"
+          [class.hide-desktop]="!design().visibility.desktop.countdown"
+        >
+          <app-icon class="countdown-icon" name="reset" />
+          @if (design().countdown.label) {
+            <span class="countdown-label">{{ design().countdown.label }}</span>
+          }
+          <span class="countdown-time" aria-hidden="true">{{ countdownText() }}</span>
+        </div>
+      }
+      @if (design().buttons.length && !expired()) {
+        <div
+          class="announcement-buttons"
+          [class.hide-mobile]="!design().visibility.mobile.buttons"
+          [class.hide-desktop]="!design().visibility.desktop.buttons"
+        >
+          @for (button of design().buttons; track $index) {
+            <a
+              [href]="button.href"
+              [class.hide-mobile]="button.mobileVisible === false"
+              [class.hide-desktop]="button.desktopVisible === false"
+              [class]="'announcement-button ' + button.variant"
+              [attr.target]="button.newTab ? '_blank' : null"
+              [attr.rel]="button.newTab ? 'noopener noreferrer' : null"
+              [attr.tabindex]="preview() ? -1 : null"
+              (click)="preview() ? $event.preventDefault() : null"
+              >{{ button.label }}<app-icon name="chevronRight"
+            /></a>
+          }
+        </div>
+      }
+    </div>
+    @if (dismissible()) {
+      <button type="button" class="dismiss" aria-label="Cerrar aviso" (click)="dismissed.emit()">
+        <app-icon name="close" />
+      </button>
+    }
+  </section>
+}

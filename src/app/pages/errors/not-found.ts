@@ -1,4 +1,4 @@
-import { ErrorRecovery } from '../../core/error-recovery';
+import { ErrorRecovery } from '../../core/errors/error-recovery';
 import { ActivatedRoute } from '@angular/router';
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
@@ -24,6 +24,6 @@ import { ErrorPage } from './error-page';
 })
 export class NotFound {
   protected readonly router = inject(Router);
-  protected readonly recovery=inject(ErrorRecovery);
-  protected readonly log=`GET ${inject(ActivatedRoute).snapshot.queryParamMap.get('path')??'/'} → 404 · not_found`;
+  protected readonly recovery = inject(ErrorRecovery);
+  protected readonly log = `GET ${inject(ActivatedRoute).snapshot.queryParamMap.get('path') ?? '/'} → 404 · not_found`;
 }

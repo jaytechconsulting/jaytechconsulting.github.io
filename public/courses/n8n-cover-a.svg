@@ -1,0 +1,68 @@
+<svg width="1280" height="720" viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="a-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#C6F432" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#C6F432" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="a-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0C0F14"/>
+      <stop offset="100%" stop-color="#040507"/>
+    </linearGradient>
+    <filter id="a-blur" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+    <pattern id="a-dots" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="1.1" cy="1.1" r="1.1" fill="#222834"/>
+    </pattern>
+  </defs>
+
+  <rect width="640" height="360" fill="url(#a-bg)"/>
+  <rect width="640" height="360" fill="url(#a-dots)" opacity="0.55"/>
+
+  <!-- dormant wires -->
+  <path d="M118 180 C 170 180, 190 112, 258 112" fill="none" stroke="#363D4C" stroke-width="2"/>
+  <path d="M286 250 C 340 250, 370 182, 428 182" fill="none" stroke="#363D4C" stroke-width="2"/>
+
+  <!-- active path glow (behind) -->
+  <path d="M118 180 C 170 180, 190 248, 258 248 C 310 248, 340 180, 398 180 C 430 180, 450 180, 462 180" fill="none" stroke="#C6F432" stroke-width="8" opacity="0.35" filter="url(#a-blur)"/>
+  <!-- active path -->
+  <path d="M118 180 C 170 180, 190 248, 258 248" fill="none" stroke="#C6F432" stroke-width="2.25"/>
+  <path d="M286 248 C 320 248, 340 180, 398 180" fill="none" stroke="#C6F432" stroke-width="2.25"/>
+  <path d="M398 180 L 462 180" fill="none" stroke="#C6F432" stroke-width="2.25"/>
+
+  <!-- node: trigger (dormant branch root, but on active path) -->
+  <g>
+    <rect x="90" y="152" width="56" height="56" rx="14" fill="#151922" stroke="#C6F432" stroke-width="1.75"/>
+    <circle cx="118" cy="180" r="5" fill="#C6F432"/>
+  </g>
+
+  <!-- node: dormant branch (upper) -->
+  <g opacity="0.55">
+    <rect x="258" y="84" width="56" height="56" rx="14" fill="#151922" stroke="#363D4C" stroke-width="1.5"/>
+    <circle cx="286" cy="112" r="4.5" fill="#5B6273"/>
+  </g>
+
+  <!-- node: active branch (lower) -->
+  <g>
+    <rect x="258" y="220" width="56" height="56" rx="14" fill="#151922" stroke="#C6F432" stroke-width="1.75"/>
+    <circle cx="286" cy="248" r="5" fill="#C6F432"/>
+  </g>
+
+  <!-- node: merge -->
+  <g>
+    <rect x="398" y="152" width="56" height="56" rx="14" fill="#151922" stroke="#4058FF" stroke-width="1.75"/>
+    <circle cx="426" cy="180" r="5" fill="#4058FF"/>
+  </g>
+
+  <!-- node: output -->
+  <g filter="url(#a-blur)" opacity="0.6">
+    <circle cx="516" cy="180" r="34" fill="url(#a-glow)"/>
+  </g>
+  <g>
+    <rect x="488" y="152" width="56" height="56" rx="18" fill="#0C0F14" stroke="#C6F432" stroke-width="2"/>
+    <path d="M506 180 l8 8 14-16" fill="none" stroke="#C6F432" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- watermark glyph -->
+  <path d="M580 40 l26 15 v30 l-26 15 -26-15 v-30 z" fill="none" stroke="#222834" stroke-width="1.5" opacity="0.6"/>
+</svg>

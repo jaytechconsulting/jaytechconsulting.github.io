@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { Button } from '../../../ui/actions/button/button';
 import { Input } from '../../../ui/forms/input/input';
 import { Wordmark } from '../../../ui/brand/wordmark/wordmark';
-import { AuthService } from '../../../core/auth.service';
+import { AuthService } from '../../../core/auth/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
 
 const EMAIL_RE = /.+@.+\..+/;
@@ -32,7 +32,10 @@ export class ForgotPassword {
       next: () => {
         this.submitting.set(false);
         this.sent.set(true);
-        this.toast.success('Solicitud enviada', 'Revisa tu bandeja de entrada y la carpeta de spam.');
+        this.toast.success(
+          'Solicitud enviada',
+          'Revisa tu bandeja de entrada y la carpeta de spam.',
+        );
       },
       error: () => {
         this.submitting.set(false);

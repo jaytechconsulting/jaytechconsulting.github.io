@@ -1,34 +1,170 @@
-<div [attr.inert]="loading.hasPendingRequests() ? '' : null" [attr.aria-busy]="loading.hasPendingRequests()" class="admin-layout" [class.is-collapsed]="collapsed()" [class.sidebar-expanding]="sidebarMotion() === 'expanding'" [class.sidebar-collapsing]="sidebarMotion() === 'collapsing'" [class.menu-open]="mobileOpen()">
-  <button class="sidebar-backdrop" tabindex="-1" [attr.aria-hidden]="!mobileOpen()" aria-label="Cerrar menú" (click)="closeMenu()"></button>
-  <aside id="admin-sidebar" class="admin-sidebar" aria-label="Navegación de administración" [attr.inert]="mobile() && !mobileOpen() ? '' : null">
-    <a routerLink="/admin" class="admin-brand" aria-label="Jaytech · Administración" (click)="closeMenu()">
+<div
+  [attr.inert]="loading.hasPendingRequests() ? '' : null"
+  [attr.aria-busy]="loading.hasPendingRequests()"
+  class="admin-layout"
+  [class.is-collapsed]="collapsed()"
+  [class.sidebar-expanding]="sidebarMotion() === 'expanding'"
+  [class.sidebar-collapsing]="sidebarMotion() === 'collapsing'"
+  [class.menu-open]="mobileOpen()"
+>
+  <button
+    class="sidebar-backdrop"
+    tabindex="-1"
+    [attr.aria-hidden]="!mobileOpen()"
+    aria-label="Cerrar menú"
+    (click)="closeMenu()"
+  ></button>
+  <aside
+    id="admin-sidebar"
+    class="admin-sidebar"
+    aria-label="Navegación de administración"
+    [attr.inert]="mobile() && !mobileOpen() ? '' : null"
+  >
+    <a
+      routerLink="/admin"
+      class="admin-brand"
+      aria-label="Jaytech · Administración"
+      (click)="closeMenu()"
+    >
       @if (collapsed() && !mobile()) {
-        <img class="brand-mark" [src]="theme.theme() === 'dark' ? 'brand/animated/mark-animado-oscuro.svg' : 'brand/animated/mark-animado-claro.svg'" alt="" width="56" height="64" />
+        <img
+          class="brand-mark"
+          [src]="
+            theme.theme() === 'dark'
+              ? 'brand/animated/mark-animado-oscuro.svg'
+              : 'brand/animated/mark-animado-claro.svg'
+          "
+          alt=""
+          width="56"
+          height="64"
+        />
       } @else {
-        <img class="brand-logo" [src]="theme.theme() === 'dark' ? 'brand/animated/logo-animado-oscuro.svg' : 'brand/animated/logo-animado-claro.svg'" alt="" width="216" height="70" />
+        <img
+          class="brand-logo"
+          [src]="
+            theme.theme() === 'dark'
+              ? 'brand/animated/logo-animado-oscuro.svg'
+              : 'brand/animated/logo-animado-claro.svg'
+          "
+          alt=""
+          width="216"
+          height="70"
+        />
       }
     </a>
-    <button class="mobile-close shell-button" aria-label="Cerrar menú" (click)="closeMenu()">✕</button>
-    <nav appOverlayScroll aria-label="Menú principal">
-      @for(item of nav();track item.id;let i=$index){
-        @if(item.route){<a [routerLink]="item.route" [queryParams]="item.section ? {section:item.section} : null" class="nav-item" [class.is-nested]="item.depth>0" [style.--nav-index]="i" [style.--nav-depth]="item.depth" [class.is-active]="access.currentMenu()?.id===item.id" [attr.aria-current]="access.currentMenu()?.id===item.id ? 'page' : null" [attr.aria-label]="item.label" [title]="item.label" (click)="closeMenu()"><app-icon [name]="$any(item.icon)"/><span class="sidebar-label">{{item.label}}</span></a>}
-        @else{<button type="button" class="nav-item nav-group" [attr.aria-expanded]="item.expanded" [attr.aria-label]="item.label" [title]="item.label" (click)="toggleGroup(item.id)"><app-icon [name]="$any(item.icon)"/><span class="sidebar-label">{{item.label}}</span><app-icon class="group-chevron" [name]="item.expanded ? 'chevronDown' : 'chevronRight'"/></button>}
+    <button class="mobile-close shell-button" aria-label="Cerrar menú" (click)="closeMenu()">
+      ✕
+    </button>
+    <nav appOverlayScroll aria-label="Menú principal" (scroll)="rememberMenuScroll($event)">
+      @for (item of nav(); track item.id; let i = $index) {
+        @if (item.route) {
+          <a
+            [routerLink]="item.route"
+            [queryParams]="item.section ? { section: item.section } : null"
+            class="nav-item"
+            [class.is-nested]="item.depth > 0"
+            [style.--nav-index]="i"
+            [style.--nav-depth]="item.depth"
+            [class.is-active]="access.currentMenu()?.id === item.id"
+            [attr.aria-current]="access.currentMenu()?.id === item.id ? 'page' : null"
+            [attr.aria-label]="item.label"
+            [title]="item.label"
+            (click)="closeMenu()"
+            ><app-icon [name]="$any(item.icon)" /><span class="sidebar-label">{{
+              item.label
+            }}</span></a
+          >
+        } @else {
+          <button
+            type="button"
+            class="nav-item nav-group"
+            [attr.aria-expanded]="item.expanded"
+            [attr.aria-label]="item.label"
+            [title]="item.label"
+            (click)="toggleGroup(item.id)"
+          >
+            <app-icon [name]="$any(item.icon)" /><span class="sidebar-label">{{ item.label }}</span
+            ><app-icon
+              class="group-chevron"
+              [name]="item.expanded ? 'chevronDown' : 'chevronRight'"
+            />
+          </button>
+        }
       }
     </nav>
-    <button class="collapse-button shell-button" (click)="toggleCollapsed()" [attr.aria-expanded]="!collapsed()" aria-controls="admin-sidebar" [attr.aria-label]="collapsed() ? 'Expandir sidebar' : 'Contraer sidebar'" [title]="collapsed() ? 'Expandir menú' : 'Contraer menú'">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 4h16v16H4z M9 4v16"/><path [attr.d]="collapsed() ? 'm12 8 4 4-4 4' : 'm16 8-4 4 4 4'" /></svg>
+    <button
+      class="collapse-button shell-button"
+      (click)="toggleCollapsed()"
+      [attr.aria-expanded]="!collapsed()"
+      aria-controls="admin-sidebar"
+      [attr.aria-label]="collapsed() ? 'Expandir sidebar' : 'Contraer sidebar'"
+      [title]="collapsed() ? 'Expandir menú' : 'Contraer menú'"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.7"
+        aria-hidden="true"
+      >
+        <path d="M4 4h16v16H4z M9 4v16" />
+        <path [attr.d]="collapsed() ? 'm12 8 4 4-4 4' : 'm16 8-4 4 4 4'" />
+      </svg>
       <span class="sidebar-label">Contraer menú</span>
     </button>
   </aside>
   <main class="admin-main" [attr.inert]="mobile() && mobileOpen() ? '' : null">
     <header class="admin-topbar">
-      <button class="hamburger shell-button" aria-label="Abrir menú" [attr.aria-expanded]="mobileOpen()" aria-controls="admin-sidebar" (click)="openMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h16 M4 12h16 M4 18h16" /></svg></button>
+      <button
+        class="hamburger shell-button"
+        aria-label="Abrir menú"
+        [attr.aria-expanded]="mobileOpen()"
+        aria-controls="admin-sidebar"
+        (click)="openMenu()"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          aria-hidden="true"
+        >
+          <path d="M4 6h16 M4 12h16 M4 18h16" />
+        </svg>
+      </button>
       <h1>{{ access.currentMenu()?.label || title() }}</h1>
       <div class="topbar-actions">
-        <button class="shell-button" (click)="theme.toggle()" [attr.aria-label]="theme.theme() === 'dark' ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'" [title]="theme.theme() === 'dark' ? 'Tema claro' : 'Tema oscuro'">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
-            @if (theme.theme() === 'dark') { <circle cx="12" cy="12" r="4"/><path d="M12 2v2 M12 20v2 M2 12h2 M20 12h2 M5 5l1.5 1.5 M17.5 17.5 19 19 M5 19l1.5-1.5 M17.5 6.5 19 5"/> }
-            @else { <path d="M20.5 13A8.5 8.5 0 0 1 11 3.5 8.5 8.5 0 1 0 20.5 13Z"/> }
+        <a
+          routerLink="/"
+          class="shell-button website-link"
+          aria-label="Volver a la página principal"
+          title="Volver a la web"
+          (click)="closeMenu()"
+          ><app-icon name="cmsheader" /><span>Ver web</span></a
+        >
+        <button
+          class="shell-button"
+          (click)="theme.toggle()"
+          [attr.aria-label]="
+            theme.theme() === 'dark' ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'
+          "
+          [title]="theme.theme() === 'dark' ? 'Tema claro' : 'Tema oscuro'"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            aria-hidden="true"
+          >
+            @if (theme.theme() === 'dark') {
+              <circle cx="12" cy="12" r="4" />
+              <path
+                d="M12 2v2 M12 20v2 M2 12h2 M20 12h2 M5 5l1.5 1.5 M17.5 17.5 19 19 M5 19l1.5-1.5 M17.5 6.5 19 5"
+              />
+            } @else {
+              <path d="M20.5 13A8.5 8.5 0 0 1 11 3.5 8.5 8.5 0 1 0 20.5 13Z" />
+            }
           </svg>
         </button>
         <app-user-menu (logout)="logout()" />
@@ -38,4 +174,8 @@
   </main>
 </div>
 
-@if(loading.hasPendingRequests()) {<div class="admin-request-lock" role="status" aria-live="polite"><span>Procesando solicitud…</span></div>}
+@if (loading.hasPendingRequests()) {
+  <div class="admin-request-lock" role="status" aria-live="polite">
+    <span>Procesando solicitud…</span>
+  </div>
+}

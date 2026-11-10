@@ -1,4 +1,4 @@
-import { ErrorRecovery } from '../../core/error-recovery';
+import { ErrorRecovery } from '../../core/errors/error-recovery';
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ErrorPage } from './error-page';
@@ -24,6 +24,8 @@ import { ErrorPage } from './error-page';
 export class Maintenance {
   protected readonly router = inject(Router);
 
-  private readonly recovery=inject(ErrorRecovery);
-  reload():void {void this.recovery.retry();}
+  private readonly recovery = inject(ErrorRecovery);
+  reload(): void {
+    void this.recovery.retry();
+  }
 }

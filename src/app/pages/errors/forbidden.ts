@@ -1,4 +1,4 @@
-import { ErrorRecovery } from '../../core/error-recovery';
+import { ErrorRecovery } from '../../core/errors/error-recovery';
 import { Component, inject } from '@angular/core';
 import { ErrorPage } from './error-page';
 
@@ -21,5 +21,5 @@ import { ErrorPage } from './error-page';
   `,
 })
 export class Forbidden {
-  protected readonly recovery=inject(ErrorRecovery);
+  protected readonly recovery = inject(ErrorRecovery);
 }

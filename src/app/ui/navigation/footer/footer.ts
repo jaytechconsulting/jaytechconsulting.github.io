@@ -1,6 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { Wordmark } from '../../brand/wordmark/wordmark';
-import { CmsContentService } from '../../../core/cms-content.service';
+import { CmsContentService } from '../../../core/cms/cms-content.service';
 
 /** Dark marketing footer with columns and fine print. */
 @Component({
@@ -15,7 +15,10 @@ export class Footer {
   readonly columns = computed(() =>
     this.footer().columns.map((column) => ({
       title: column.title,
-      items: column.links.split('\n').map((item) => item.trim()).filter(Boolean),
+      items: column.links
+        .split('\n')
+        .map((item) => item.trim())
+        .filter(Boolean),
     })),
   );
 }

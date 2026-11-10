@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { Card } from '../../../ui/data-display/card/card';
-import { CmsContentService } from '../../../core/cms-content.service';
-import { Reveal } from '../../../core/directives/reveal';
+import { CmsContentService } from '../../../core/cms/cms-content.service';
+import { Reveal } from '../../../ui/behaviors/reveal';
 
 @Component({
   selector: 'app-services-section',

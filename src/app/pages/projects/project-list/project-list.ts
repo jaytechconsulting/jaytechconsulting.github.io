@@ -1,3 +1,6 @@
+import { createLatestRequest } from '../../../core/http/latest-request';
+import type { Project } from '../../../core/projects/projects-data';
+import { backgroundStyle } from '../../../ui/styles/background-style';
 import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { RouterLink } from '@angular/router';
@@ -6,9 +9,9 @@ import { Tag } from '../../../ui/data-display/tag/tag';
 import { Button } from '../../../ui/actions/button/button';
 import { Wordmark } from '../../../ui/brand/wordmark/wordmark';
 import { WhatsAppFab } from '../../../ui/marketing/whatsapp-fab/whatsapp-fab';
-import { ProjectsService } from '../../../core/projects.service';
-import { CmsContentService } from '../../../core/cms-content.service';
-import { Reveal } from '../../../core/directives/reveal';
+import { ProjectsService } from '../../../core/projects/projects.service';
+import { CmsContentService } from '../../../core/cms/cms-content.service';
+import { Reveal } from '../../../ui/behaviors/reveal';
 
 const FILTERS = ['Todos', 'Web', 'Landing', 'Automatización', 'Integración'];
 const PAGE_SIZE = 6;
@@ -32,16 +35,12 @@ export class ProjectList implements OnInit {
   readonly filters = FILTERS;
   readonly stats = STATS;
   readonly pageDesign = computed(() => this.cms.pages().proyectos);
-  readonly headerStyle = computed(() => {
-    const d = this.pageDesign();
-    if (d.backgroundImage) {
-      return { 'background-image': `linear-gradient(rgba(11,15,26,0.72), rgba(11,15,26,0.72)), url(${d.backgroundImage})`, 'background-size': 'cover', 'background-position': 'center' };
-    }
-    if (d.backgroundColor) return { background: d.backgroundColor };
-    return {};
-  });
-  readonly projects = signal<import('../../../core/projects-data').Project[]>([]);
-  ngOnInit(): void { this.projectsService.list().subscribe(items => this.projects.set(items)); }
+  readonly headerStyle = computed(() => backgroundStyle(this.pageDesign()));
+  private readonly projectsRequest = createLatestRequest<Project[]>([]);
+  readonly projects = this.projectsRequest.value;
+  ngOnInit(): void {
+    this.projectsRequest.load(this.projectsService.list());
+  }
 
   readonly filter = signal('Todos');
   readonly query = signal('');
@@ -52,7 +51,8 @@ export class ProjectList implements OnInit {
     const q = this.query().trim().toLowerCase();
     return this.projects().filter((p) => {
       const okCat = f === 'Todos' || p.cat === f;
-      const okQ = !q || (p.title + ' ' + p.client + ' ' + p.tags.join(' ')).toLowerCase().includes(q);
+      const okQ =
+        !q || (p.title + ' ' + p.client + ' ' + p.tags.join(' ')).toLowerCase().includes(q);
       return okCat && okQ;
     });
   });
@@ -66,7 +66,9 @@ export class ProjectList implements OnInit {
   readonly pages = computed(() => Array.from({ length: this.pageCount() }, (_, i) => i + 1));
 
   filterCount(f: string): number {
-    return f === 'Todos' ? this.projects().length : this.projects().filter((p) => p.cat === f).length;
+    return f === 'Todos'
+      ? this.projects().length
+      : this.projects().filter((p) => p.cat === f).length;
   }
 
   setFilter(f: string): void {

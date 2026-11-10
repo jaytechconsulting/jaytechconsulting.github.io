@@ -1,4 +1,22 @@
-html[data-theme="dark"] .services-dropdown-panel {
+html[data-theme='dark'] .services-dropdown-panel {
   border-color: var(--border-default);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 16px 40px -12px rgb(0 0 0 / 0.55);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 16px 40px -12px rgb(0 0 0 / 0.55);
+}
+
+.client-portal-link {
+  border-radius: 8px;
+}
+
+.nav-skeleton {
+  display: inline-flex;
+  gap: 12px;
+  padding: 0 12px;
+}
+.nav-skeleton i {
+  width: 58px;
+  height: 14px;
+  background: color-mix(in srgb, var(--text-muted) 16%, var(--surface-page));
+  border-radius: 6px;
 }

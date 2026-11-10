@@ -1,0 +1,330 @@
+:host {
+  display: block;
+  container-type: inline-size;
+}
+.announcement {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--accent-primary);
+  color: #fff;
+  font-family: var(--font-body);
+}
+.image-layer,
+.animated-layer,
+.shade {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.image-layer {
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+.shade {
+  background: #000;
+}
+.announcement-content {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px 24px;
+  padding: 12px 24px;
+  min-height: inherit;
+  box-sizing: border-box;
+}
+.has-close {
+  padding-inline: 44px;
+}
+.message {
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 600;
+  text-align: center;
+  overflow-wrap: anywhere;
+  max-width: 900px;
+  white-space: pre-line;
+}
+.announcement-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.announcement-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid #ffffffa6;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-decoration: none;
+  color: #fff;
+  transition:
+    transform 0.2s,
+    background 0.2s;
+}
+.announcement-button.solid {
+  background: white;
+  color: #172036;
+  border-color: #fff;
+}
+.announcement-button.outline {
+  background: #0002;
+  backdrop-filter: blur(6px);
+}
+.announcement-button:hover {
+  transform: translateY(-1px);
+  background: #ffffff30;
+}
+.announcement-button.solid:hover {
+  background: #eef0ff;
+}
+.announcement-button:focus-visible,
+.dismiss:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 3px;
+}
+.announcement-button app-icon {
+  width: 14px;
+  height: 14px;
+}
+.dismiss {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 4px;
+  border: 0;
+  border-radius: 50%;
+  background: #0002;
+  color: #fff;
+  cursor: pointer;
+}
+.dismiss:hover {
+  background: #0005;
+}
+.animated-layer {
+  overflow: hidden;
+}
+.animated-layer i {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  filter: blur(24px);
+  opacity: 0.65;
+  will-change: transform;
+}
+.aurora i {
+  width: 50%;
+  height: 220%;
+  top: -60%;
+  background: #8b5cf6;
+  animation: aurora-drift 14s ease-in-out infinite alternate;
+}
+.aurora i:nth-child(2) {
+  left: 40%;
+  background: #06b6d4;
+  animation-delay: -6s;
+}
+.aurora i:nth-child(3) {
+  left: 75%;
+  background: #ec4899;
+  animation-delay: -10s;
+}
+.gradient {
+  background: linear-gradient(110deg, #312e81, #4338ca, #0e7490, #7c3aed);
+  background-size: 300% 100%;
+  animation: gradient-drift 18s ease infinite;
+}
+.gradient i {
+  display: none;
+}
+.orbits i {
+  width: 180px;
+  height: 180px;
+  top: -90px;
+  left: 12%;
+  border: 1px solid #ffffff90;
+  background: #ffffff18;
+  filter: none;
+  animation: orbit-drift 16s ease-in-out infinite alternate;
+}
+.orbits i:nth-child(2) {
+  left: 55%;
+  top: 20px;
+  animation-delay: -5s;
+}
+.orbits i:nth-child(3) {
+  left: 85%;
+  top: -60px;
+  animation-delay: -11s;
+}
+@keyframes aurora-drift {
+  from {
+    transform: translateX(-20%) rotate(-15deg);
+  }
+  to {
+    transform: translateX(40%) rotate(15deg);
+  }
+}
+@keyframes gradient-drift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+@keyframes orbit-drift {
+  to {
+    transform: translate(70px, 35px) scale(1.3);
+  }
+}
+@container (max-width:600px) {
+  .announcement-content {
+    gap: 10px;
+    padding-block: 14px;
+  }
+  .message {
+    font-size: 13px;
+  }
+  .announcement-button {
+    padding: 7px 11px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .animated-layer,
+  .animated-layer i {
+    animation: none !important;
+    will-change: auto;
+  }
+  .announcement-button {
+    transition: none;
+  }
+}
+
+.banner-copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-width: 0;
+  max-width: 100%;
+}
+.inline-images {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.inline-images:empty {
+  display: none;
+}
+.inline-image {
+  display: block;
+  max-width: 100%;
+  max-height: 100px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.countdown {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 9px 17px;
+  border: 1px solid #ffffff45;
+  border-radius: 999px;
+  background: var(--accent-primary);
+  color: var(--text-on-brand);
+  box-shadow:
+    0 4px 16px color-mix(in srgb, var(--accent-primary) 22%, transparent),
+    inset 0 1px 0 #ffffff22;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+.countdown-icon {
+  width: 18px;
+  height: 18px;
+  opacity: 0.95;
+}
+.countdown-label {
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.countdown-time {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.035em;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+@container (min-width:601px) {
+  .hide-desktop {
+    display: none !important;
+  }
+}
+@container (max-width:600px) {
+  .hide-mobile {
+    display: none !important;
+  }
+  .mobile-stacked .announcement-content {
+    flex-direction: column;
+  }
+  .mobile-stacked .banner-copy {
+    flex-direction: column;
+  }
+  .banner-copy {
+    flex-wrap: wrap;
+  }
+  .inline-images {
+    max-width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .countdown {
+    gap: 7px;
+    padding: 8px 13px;
+  }
+  .countdown-label {
+    font-size: 12px;
+  }
+  .countdown-time {
+    font-size: 14px;
+  }
+}
+
+.banner-copy .message {
+  min-width: 0;
+}
+.inline-images {
+  flex-shrink: 1;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 45%;
+}
+@container (max-width:600px) {
+  .mobile-stacked .inline-images {
+    max-width: 100%;
+  }
+}

@@ -1,9 +1,8 @@
-import type { CatalogDetails } from './catalog.service';
-import type { ApiProfile, PersonalProfileInput } from './models/api.models';
+import type { CatalogDetails } from './catalog/catalog.models';
+import type { ApiProfile, PersonalProfileInput, DocumentLookupResult } from './models/api.models';
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { map, Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { ApiClient } from './http/api-client';
+import { Observable } from 'rxjs';
 import type {
   ApiAdminUser,
   ApiCms,
@@ -16,7 +15,6 @@ import type {
   ApiPagedResult,
   ApiPlan,
   ApiProject,
-  ApiResponse,
   ApiReview,
   ApiServiceItem,
   ApiSiteContent,
@@ -28,86 +26,165 @@ import type {
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
-  private readonly http = inject(HttpClient);
-  private readonly baseUrl = environment.apiUrl;
-
-  private unwrap<T>(request: Observable<ApiResponse<T>>): Observable<T> {
-    return request.pipe(map(response => response.data));
-  }
+  private readonly client = inject(ApiClient);
 
   login(email: string, password: string): Observable<ApiUser> {
-    return this.unwrap(this.http.post<ApiResponse<ApiUser>>(`${this.baseUrl}/auth/login`, { email, password }));
+    return this.client.post<ApiUser>(`/auth/login`, { email, password });
   }
 
-  logout():Observable<void> {return this.unwrap(this.http.post<ApiResponse<void>>(`${this.baseUrl}/auth/logout`,{}));}
+  logout(): Observable<void> {
+    return this.client.post<void>(`/auth/logout`, {});
+  }
 
-  lookupDocument(documentType:string,documentNumber:string):Observable<{givenNames?:string|null;paternalSurname?:string|null;maternalSurname?:string|null;legalName?:string|null;fullName?:string|null;source:string}> {return this.unwrap(this.http.post<ApiResponse<{givenNames?:string|null;paternalSurname?:string|null;maternalSurname?:string|null;legalName?:string|null;fullName?:string|null;source:string}>>(`${this.baseUrl}/documents/lookup`,{documentType,documentNumber}));}
+  lookupDocument(documentType: string, documentNumber: string): Observable<DocumentLookupResult> {
+    return this.client.post<DocumentLookupResult>(`/documents/lookup`, {
+      documentType,
+      documentNumber,
+    });
+  }
 
-  catalogDetails(code:string):Observable<CatalogDetails> {return this.unwrap(this.http.get<ApiResponse<CatalogDetails>>(`${this.baseUrl}/catalogos/${encodeURIComponent(code)}/detalles`));}
-  currentProfile(): Observable<ApiProfile> { return this.unwrap(this.http.get<ApiResponse<ApiProfile>>(`${this.baseUrl}/auth/me`)); }
-  updateProfile(input: string | PersonalProfileInput): Observable<ApiProfile> { return this.unwrap(this.http.put<ApiResponse<ApiProfile>>(`${this.baseUrl}/auth/me`, typeof input === 'string' ? {name:input} : input)); }
-  changeEmail(email: string, currentPassword: string): Observable<ApiUser> { return this.unwrap(this.http.post<ApiResponse<ApiUser>>(`${this.baseUrl}/auth/change-email`, {email,currentPassword})); }
-  changePassword(currentPassword: string, newPassword: string): Observable<void> { return this.unwrap(this.http.post<ApiResponse<void>>(`${this.baseUrl}/auth/change-password`, {currentPassword,newPassword})); }
+  catalogDetails(code: string): Observable<CatalogDetails> {
+    return this.client.get<CatalogDetails>(`/catalogos/${encodeURIComponent(code)}/detalles`);
+  }
+  currentProfile(): Observable<ApiProfile> {
+    return this.client.get<ApiProfile>(`/auth/me`);
+  }
+  updateProfile(input: string | PersonalProfileInput): Observable<ApiProfile> {
+    return this.client.put<ApiProfile>(
+      `/auth/me`,
+      typeof input === 'string' ? { name: input } : input,
+    );
+  }
+  changeEmail(email: string, currentPassword: string): Observable<ApiUser> {
+    return this.client.post<ApiUser>(`/auth/change-email`, { email, currentPassword });
+  }
+  changePassword(currentPassword: string, newPassword: string): Observable<void> {
+    return this.client.post<void>(`/auth/change-password`, { currentPassword, newPassword });
+  }
 
   forgotPassword(email: string): Observable<void> {
-    return this.unwrap(this.http.post<ApiResponse<void>>(`${this.baseUrl}/auth/forgot-password`, { email }));
+    return this.client.post<void>(`/auth/forgot-password`, { email });
   }
 
   resetPassword(token: string, password: string): Observable<void> {
-    return this.unwrap(this.http.post<ApiResponse<void>>(`${this.baseUrl}/auth/reset-password`, { token, newPassword: password }));
+    return this.client.post<void>(`/auth/reset-password`, { token, newPassword: password });
   }
 
-  projects(): Observable<ApiProject[]> { return this.unwrap(this.http.get<ApiResponse<ApiProject[]>>(`${this.baseUrl}/projects`)); }
+  projects(): Observable<ApiProject[]> {
+    return this.client.get<ApiProject[]>(`/projects`);
+  }
   project(slug: string): Observable<ApiProject> {
-    return this.unwrap(this.http.get<ApiResponse<ApiProject>>(`${this.baseUrl}/projects/${encodeURIComponent(slug)}`));
+    return this.client.get<ApiProject>(`/projects/${encodeURIComponent(slug)}`);
   }
-  clientProjects(): Observable<ApiProject[]> { return this.unwrap(this.http.get<ApiResponse<ApiProject[]>>(`${this.baseUrl}/projects/client`)); }
-  reviews(): Observable<ApiReview[]> { return this.unwrap(this.http.get<ApiResponse<ApiReview[]>>(`${this.baseUrl}/reviews`)); }
-  companies(): Observable<ApiCompany[]> { return this.unwrap(this.http.get<ApiResponse<ApiCompany[]>>(`${this.baseUrl}/companies`)); }
-  tickets(): Observable<ApiTicket[]> { return this.unwrap(this.http.get<ApiResponse<ApiTicket[]>>(`${this.baseUrl}/tickets`)); }
-
-  createTicket(input: { title: string; description: string; priority: string }): Observable<ApiTicket> {
-    return this.unwrap(this.http.post<ApiResponse<ApiTicket>>(`${this.baseUrl}/tickets`, input));
+  clientProjects(): Observable<ApiProject[]> {
+    return this.client.get<ApiProject[]>(`/projects/client`);
+  }
+  reviews(): Observable<ApiReview[]> {
+    return this.client.get<ApiReview[]>(`/reviews`);
+  }
+  companies(): Observable<ApiCompany[]> {
+    return this.client.get<ApiCompany[]>(`/companies`);
+  }
+  tickets(): Observable<ApiTicket[]> {
+    return this.client.get<ApiTicket[]>(`/tickets`);
   }
 
-  createProposal(input: unknown): Observable<unknown> { return this.unwrap(this.http.post<ApiResponse<unknown>>(`${this.baseUrl}/proposals`, input)); }
-  createContact(input: unknown): Observable<unknown> { return this.unwrap(this.http.post<ApiResponse<unknown>>(`${this.baseUrl}/contacts`, input)); }
+  createTicket(input: {
+    title: string;
+    description: string;
+    priority: string;
+  }): Observable<ApiTicket> {
+    return this.client.post<ApiTicket>(`/tickets`, input);
+  }
+
+  createProposal(input: unknown): Observable<unknown> {
+    return this.client.post<unknown>(`/proposals`, input);
+  }
+  createContact(input: unknown): Observable<unknown> {
+    return this.client.post<unknown>(`/contacts`, input);
+  }
 
   cms(includeUnpublished = false): Observable<ApiCms> {
-    return this.unwrap(this.http.get<ApiResponse<ApiCms>>(`${this.baseUrl}/cms${includeUnpublished ? '/all' : ''}`));
+    return this.client.get<ApiCms>(`/cms${includeUnpublished ? '/all' : ''}`);
+  }
+  siteSettings(): Observable<Pick<ApiCms, 'header' | 'footer'>> {
+    return this.client.get<Pick<ApiCms, 'header' | 'footer'>>(`/site-settings`);
   }
   siteContent(includeUnpublished = false): Observable<ApiSiteContent[]> {
-    return this.unwrap(this.http.get<ApiResponse<ApiSiteContent[]>>(`${this.baseUrl}/content${includeUnpublished ? '/all' : ''}`));
+    return this.client.get<ApiSiteContent[]>(`/content${includeUnpublished ? '/all' : ''}`);
   }
   updateSiteContent(key: string, input: unknown): Observable<ApiSiteContent> {
-    return this.unwrap(this.http.put<ApiResponse<ApiSiteContent>>(`${this.baseUrl}/content/${encodeURIComponent(key)}`, input));
+    return this.client.put<ApiSiteContent>(`/content/${encodeURIComponent(key)}`, input);
   }
 
-  createCompany(input: unknown): Observable<ApiCompany> { return this.unwrap(this.http.post<ApiResponse<ApiCompany>>(`${this.baseUrl}/companies`, input)); }
-  updateCompany(id: string, input: unknown): Observable<ApiCompany> { return this.unwrap(this.http.put<ApiResponse<ApiCompany>>(`${this.baseUrl}/companies/${encodeURIComponent(id)}`, input)); }
-  deleteCompany(id: string): Observable<void> { return this.unwrap(this.http.delete<ApiResponse<void>>(`${this.baseUrl}/companies/${encodeURIComponent(id)}`)); }
+  createCompany(input: unknown): Observable<ApiCompany> {
+    return this.client.post<ApiCompany>(`/companies`, input);
+  }
+  updateCompany(id: string, input: unknown): Observable<ApiCompany> {
+    return this.client.put<ApiCompany>(`/companies/${encodeURIComponent(id)}`, input);
+  }
+  deleteCompany(id: string): Observable<void> {
+    return this.client.delete<void>(`/companies/${encodeURIComponent(id)}`);
+  }
 
-  createReview(input: unknown): Observable<ApiReview> { return this.unwrap(this.http.post<ApiResponse<ApiReview>>(`${this.baseUrl}/reviews/cms`, input)); }
-  updateReview(id: string, input: unknown): Observable<ApiReview> { return this.unwrap(this.http.put<ApiResponse<ApiReview>>(`${this.baseUrl}/reviews/${encodeURIComponent(id)}`, input)); }
-  deleteReview(id: string): Observable<void> { return this.unwrap(this.http.delete<ApiResponse<void>>(`${this.baseUrl}/reviews/${encodeURIComponent(id)}`)); }
+  createReview(input: unknown): Observable<ApiReview> {
+    return this.client.post<ApiReview>(`/reviews/cms`, input);
+  }
+  updateReview(id: string, input: unknown): Observable<ApiReview> {
+    return this.client.put<ApiReview>(`/reviews/${encodeURIComponent(id)}`, input);
+  }
+  deleteReview(id: string): Observable<void> {
+    return this.client.delete<void>(`/reviews/${encodeURIComponent(id)}`);
+  }
 
-  createService(input: unknown): Observable<ApiServiceItem> { return this.unwrap(this.http.post<ApiResponse<ApiServiceItem>>(`${this.baseUrl}/services`, input)); }
-  updateService(id: string, input: unknown): Observable<ApiServiceItem> { return this.unwrap(this.http.put<ApiResponse<ApiServiceItem>>(`${this.baseUrl}/services/${encodeURIComponent(id)}`, input)); }
-  deleteService(id: string): Observable<void> { return this.unwrap(this.http.delete<ApiResponse<void>>(`${this.baseUrl}/services/${encodeURIComponent(id)}`)); }
+  createService(input: unknown): Observable<ApiServiceItem> {
+    return this.client.post<ApiServiceItem>(`/services`, input);
+  }
+  updateService(id: string, input: unknown): Observable<ApiServiceItem> {
+    return this.client.put<ApiServiceItem>(`/services/${encodeURIComponent(id)}`, input);
+  }
+  deleteService(id: string): Observable<void> {
+    return this.client.delete<void>(`/services/${encodeURIComponent(id)}`);
+  }
 
-  createProject(input: unknown): Observable<ApiProject> { return this.unwrap(this.http.post<ApiResponse<ApiProject>>(`${this.baseUrl}/projects`, input)); }
-  updateProject(id: string, input: unknown): Observable<ApiProject> { return this.unwrap(this.http.put<ApiResponse<ApiProject>>(`${this.baseUrl}/projects/${encodeURIComponent(id)}`, input)); }
-  deleteProject(id: string): Observable<void> { return this.unwrap(this.http.delete<ApiResponse<void>>(`${this.baseUrl}/projects/${encodeURIComponent(id)}`)); }
+  createProject(input: unknown): Observable<ApiProject> {
+    return this.client.post<ApiProject>(`/projects`, input);
+  }
+  updateProject(id: string, input: unknown): Observable<ApiProject> {
+    return this.client.put<ApiProject>(`/projects/${encodeURIComponent(id)}`, input);
+  }
+  deleteProject(id: string): Observable<void> {
+    return this.client.delete<void>(`/projects/${encodeURIComponent(id)}`);
+  }
 
-  createPlan(input: unknown): Observable<ApiPlan> { return this.unwrap(this.http.post<ApiResponse<ApiPlan>>(`${this.baseUrl}/plans`, input)); }
-  updatePlan(id: string, input: unknown): Observable<ApiPlan> { return this.unwrap(this.http.put<ApiResponse<ApiPlan>>(`${this.baseUrl}/plans/${encodeURIComponent(id)}`, input)); }
-  deletePlan(id: string): Observable<void> { return this.unwrap(this.http.delete<ApiResponse<void>>(`${this.baseUrl}/plans/${encodeURIComponent(id)}`)); }
+  createPlan(input: unknown): Observable<ApiPlan> {
+    return this.client.post<ApiPlan>(`/plans`, input);
+  }
+  updatePlan(id: string, input: unknown): Observable<ApiPlan> {
+    return this.client.put<ApiPlan>(`/plans/${encodeURIComponent(id)}`, input);
+  }
+  deletePlan(id: string): Observable<void> {
+    return this.client.delete<void>(`/plans/${encodeURIComponent(id)}`);
+  }
 
-  createTeamMember(input: unknown): Observable<ApiTeamMember> { return this.unwrap(this.http.post<ApiResponse<ApiTeamMember>>(`${this.baseUrl}/team-members`, input)); }
-  updateTeamMember(id: string, input: unknown): Observable<ApiTeamMember> { return this.unwrap(this.http.put<ApiResponse<ApiTeamMember>>(`${this.baseUrl}/team-members/${encodeURIComponent(id)}`, input)); }
-  deleteTeamMember(id: string): Observable<void> { return this.unwrap(this.http.delete<ApiResponse<void>>(`${this.baseUrl}/team-members/${encodeURIComponent(id)}`)); }
+  createTeamMember(input: unknown): Observable<ApiTeamMember> {
+    return this.client.post<ApiTeamMember>(`/team-members`, input);
+  }
+  updateTeamMember(id: string, input: unknown): Observable<ApiTeamMember> {
+    return this.client.put<ApiTeamMember>(`/team-members/${encodeURIComponent(id)}`, input);
+  }
+  deleteTeamMember(id: string): Observable<void> {
+    return this.client.delete<void>(`/team-members/${encodeURIComponent(id)}`);
+  }
 
-  trainingPrograms(params: { search?: string; modality?: string; sortBy?: string; sortDir?: string; page?: number; pageSize?: number }): Observable<ApiPagedResult<ApiTrainingProgram>> {
+  trainingPrograms(params: {
+    search?: string;
+    modality?: string;
+    sortBy?: string;
+    sortDir?: string;
+    page?: number;
+    pageSize?: number;
+  }): Observable<ApiPagedResult<ApiTrainingProgram>> {
     const query = new URLSearchParams();
     if (params.search) query.set('search', params.search);
     if (params.modality) query.set('modality', params.modality);
@@ -116,53 +193,127 @@ export class ApiService {
     if (params.page) query.set('page', String(params.page));
     if (params.pageSize) query.set('pageSize', String(params.pageSize));
     const qs = query.toString();
-    return this.unwrap(this.http.get<ApiResponse<ApiPagedResult<ApiTrainingProgram>>>(`${this.baseUrl}/training-programs${qs ? `?${qs}` : ''}`));
+    return this.client.get<ApiPagedResult<ApiTrainingProgram>>(
+      `/training-programs${qs ? `?${qs}` : ''}`,
+    );
   }
-  trainingProgram(id: string): Observable<ApiTrainingProgram> { return this.unwrap(this.http.get<ApiResponse<ApiTrainingProgram>>(`${this.baseUrl}/training-programs/${encodeURIComponent(id)}`)); }
-  trainingProgramsAll(): Observable<ApiTrainingProgram[]> { return this.unwrap(this.http.get<ApiResponse<ApiTrainingProgram[]>>(`${this.baseUrl}/training-programs/all`)); }
-  createTrainingProgram(input: unknown): Observable<ApiTrainingProgram> { return this.unwrap(this.http.post<ApiResponse<ApiTrainingProgram>>(`${this.baseUrl}/training-programs`, input)); }
-  updateTrainingProgram(id: string, input: unknown): Observable<ApiTrainingProgram> { return this.unwrap(this.http.put<ApiResponse<ApiTrainingProgram>>(`${this.baseUrl}/training-programs/${encodeURIComponent(id)}`, input)); }
-  deleteTrainingProgram(id: string): Observable<void> { return this.unwrap(this.http.delete<ApiResponse<void>>(`${this.baseUrl}/training-programs/${encodeURIComponent(id)}`)); }
+  trainingProgram(id: string): Observable<ApiTrainingProgram> {
+    return this.client.get<ApiTrainingProgram>(`/training-programs/${encodeURIComponent(id)}`);
+  }
+  trainingProgramsAll(): Observable<ApiTrainingProgram[]> {
+    return this.client.get<ApiTrainingProgram[]>(`/training-programs/all`);
+  }
+  createTrainingProgram(input: unknown): Observable<ApiTrainingProgram> {
+    return this.client.post<ApiTrainingProgram>(`/training-programs`, input);
+  }
+  updateTrainingProgram(id: string, input: unknown): Observable<ApiTrainingProgram> {
+    return this.client.put<ApiTrainingProgram>(
+      `/training-programs/${encodeURIComponent(id)}`,
+      input,
+    );
+  }
+  deleteTrainingProgram(id: string): Observable<void> {
+    return this.client.delete<void>(`/training-programs/${encodeURIComponent(id)}`);
+  }
 
-  courses(): Observable<ApiCourse[]> { return this.unwrap(this.http.get<ApiResponse<ApiCourse[]>>(`${this.baseUrl}/courses`)); }
-  course(id: string): Observable<ApiCourse> { return this.unwrap(this.http.get<ApiResponse<ApiCourse>>(`${this.baseUrl}/courses/${encodeURIComponent(id)}`)); }
-  coursesAll(): Observable<ApiCourseAdmin[]> { return this.unwrap(this.http.get<ApiResponse<ApiCourseAdmin[]>>(`${this.baseUrl}/courses/all`)); }
-  courseAdmin(id: string): Observable<ApiCourseAdmin> { return this.unwrap(this.http.get<ApiResponse<ApiCourseAdmin>>(`${this.baseUrl}/courses/admin/${encodeURIComponent(id)}`)); }
-  createCourse(input: unknown): Observable<ApiCourseAdmin> { return this.unwrap(this.http.post<ApiResponse<ApiCourseAdmin>>(`${this.baseUrl}/courses`, input)); }
-  updateCourse(id: string, input: unknown): Observable<ApiCourseAdmin> { return this.unwrap(this.http.put<ApiResponse<ApiCourseAdmin>>(`${this.baseUrl}/courses/${encodeURIComponent(id)}`, input)); }
-  deleteCourse(id: string): Observable<void> { return this.unwrap(this.http.delete<ApiResponse<void>>(`${this.baseUrl}/courses/${encodeURIComponent(id)}`)); }
-  checkoutCart(input: { courseIds: string[]; token: string; email: string; name: string; provider: string }): Observable<{ success: boolean }> {
-    return this.unwrap(this.http.post<ApiResponse<{ success: boolean }>>(`${this.baseUrl}/courses/checkout`, input));
+  courses(): Observable<ApiCourse[]> {
+    return this.client.get<ApiCourse[]>(`/courses`);
   }
-  startMercadoPagoCheckout(input: { courseIds: string[]; email: string; name: string }): Observable<{ redirectUrl: string }> {
-    return this.unwrap(this.http.post<ApiResponse<{ redirectUrl: string }>>(`${this.baseUrl}/courses/checkout/mercadopago/start`, input));
+  course(id: string): Observable<ApiCourse> {
+    return this.client.get<ApiCourse>(`/courses/${encodeURIComponent(id)}`);
   }
-  startNiubizSession(input: { courseIds: string[] }): Observable<{ sessionKey: string; merchantId: string; purchaseNumber: string; amount: number; scriptUrl: string }> {
-    return this.unwrap(this.http.post<ApiResponse<{ sessionKey: string; merchantId: string; purchaseNumber: string; amount: number; scriptUrl: string }>>(`${this.baseUrl}/courses/checkout/niubiz/session`, input));
+  coursesAll(): Observable<ApiCourseAdmin[]> {
+    return this.client.get<ApiCourseAdmin[]>(`/courses/all`);
+  }
+  courseAdmin(id: string): Observable<ApiCourseAdmin> {
+    return this.client.get<ApiCourseAdmin>(`/courses/admin/${encodeURIComponent(id)}`);
+  }
+  createCourse(input: unknown): Observable<ApiCourseAdmin> {
+    return this.client.post<ApiCourseAdmin>(`/courses`, input);
+  }
+  updateCourse(id: string, input: unknown): Observable<ApiCourseAdmin> {
+    return this.client.put<ApiCourseAdmin>(`/courses/${encodeURIComponent(id)}`, input);
+  }
+  deleteCourse(id: string): Observable<void> {
+    return this.client.delete<void>(`/courses/${encodeURIComponent(id)}`);
+  }
+  checkoutCart(input: {
+    courseIds: string[];
+    token: string;
+    email: string;
+    name: string;
+    provider: string;
+  }): Observable<{ success: boolean }> {
+    return this.client.post<{ success: boolean }>(`/courses/checkout`, input);
+  }
+  startMercadoPagoCheckout(input: {
+    courseIds: string[];
+    email: string;
+    name: string;
+  }): Observable<{ redirectUrl: string }> {
+    return this.client.post<{ redirectUrl: string }>(`/courses/checkout/mercadopago/start`, input);
+  }
+  startNiubizSession(input: {
+    courseIds: string[];
+  }): Observable<{
+    sessionKey: string;
+    merchantId: string;
+    purchaseNumber: string;
+    amount: number;
+    scriptUrl: string;
+  }> {
+    return this.client.post<{
+      sessionKey: string;
+      merchantId: string;
+      purchaseNumber: string;
+      amount: number;
+      scriptUrl: string;
+    }>(`/courses/checkout/niubiz/session`, input);
   }
   confirmMercadoPagoCheckout(ref: string, paymentId: string): Observable<{ success: boolean }> {
     const query = new URLSearchParams({ ref, paymentId }).toString();
-    return this.unwrap(this.http.post<ApiResponse<{ success: boolean }>>(`${this.baseUrl}/courses/checkout/mercadopago/confirm?${query}`, {}));
+    return this.client.post<{ success: boolean }>(
+      `/courses/checkout/mercadopago/confirm?${query}`,
+      {},
+    );
   }
-  myCoursePurchases(): Observable<ApiCoursePurchase[]> { return this.unwrap(this.http.get<ApiResponse<ApiCoursePurchase[]>>(`${this.baseUrl}/courses/my-purchases`)); }
+  myCoursePurchases(): Observable<ApiCoursePurchase[]> {
+    return this.client.get<ApiCoursePurchase[]>(`/courses/my-purchases`);
+  }
 
-  updateHeader(input: unknown): Observable<ApiHeader> { return this.unwrap(this.http.put<ApiResponse<ApiHeader>>(`${this.baseUrl}/site-settings/header`, input)); }
-  updateFooter(input: unknown): Observable<ApiFooter> { return this.unwrap(this.http.put<ApiResponse<ApiFooter>>(`${this.baseUrl}/site-settings/footer`, input)); }
+  updateHeader(input: unknown): Observable<ApiHeader> {
+    return this.client.put<ApiHeader>(`/site-settings/header`, input);
+  }
+  updateFooter(input: unknown): Observable<ApiFooter> {
+    return this.client.put<ApiFooter>(`/site-settings/footer`, input);
+  }
 
   adminUsers(): Observable<ApiAdminUser[]> {
-    return this.unwrap(this.http.get<ApiResponse<ApiAdminUser[]>>(`${this.baseUrl}/users`));
+    return this.client.get<ApiAdminUser[]>(`/users`);
   }
-  adminUser(id:string):Observable<ApiAdminUser> {return this.unwrap(this.http.get<ApiResponse<ApiAdminUser>>(`${this.baseUrl}/users/${encodeURIComponent(id)}`));}
-  createAdminUser(input: { name: string; email: string; password: string; role: string } & Partial<PersonalProfileInput>): Observable<ApiAdminUser> {
-    return this.unwrap(this.http.post<ApiResponse<ApiAdminUser>>(`${this.baseUrl}/users`, input));
+  adminUser(id: string): Observable<ApiAdminUser> {
+    return this.client.get<ApiAdminUser>(`/users/${encodeURIComponent(id)}`);
   }
-  updateAdminUser(id: string, input: { name: string; email: string; role: string } & Partial<PersonalProfileInput>): Observable<ApiAdminUser> {
-    return this.unwrap(this.http.put<ApiResponse<ApiAdminUser>>(`${this.baseUrl}/users/${encodeURIComponent(id)}`, input));
+  createAdminUser(
+    input: {
+      name: string;
+      email: string;
+      password: string;
+      role: string;
+    } & Partial<PersonalProfileInput>,
+  ): Observable<ApiAdminUser> {
+    return this.client.post<ApiAdminUser>(`/users`, input);
+  }
+  updateAdminUser(
+    id: string,
+    input: { name: string; email: string; role: string } & Partial<PersonalProfileInput>,
+  ): Observable<ApiAdminUser> {
+    return this.client.put<ApiAdminUser>(`/users/${encodeURIComponent(id)}`, input);
   }
   deleteAdminUser(id: string): Observable<ApiAdminUser> {
-    return this.unwrap(this.http.delete<ApiResponse<ApiAdminUser>>(`${this.baseUrl}/users/${encodeURIComponent(id)}`));
+    return this.client.delete<ApiAdminUser>(`/users/${encodeURIComponent(id)}`);
   }
   activateAdminUser(id: string): Observable<ApiAdminUser> {
-    return this.unwrap(this.http.patch<ApiResponse<ApiAdminUser>>(`${this.baseUrl}/users/${encodeURIComponent(id)}/activate`, {}));
+    return this.client.patch<ApiAdminUser>(`/users/${encodeURIComponent(id)}/activate`, {});
   }
 }

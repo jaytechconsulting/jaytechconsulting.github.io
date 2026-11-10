@@ -1,9 +1,10 @@
+import { formatSoles } from '../../../core/formatting/money';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { Button } from '../../actions/button/button';
-import { CartService } from '../../../core/cart.service';
+import { CartService } from '../../../core/commerce/cart.service';
 
 /** Persistent "cotizador" bar: visible site-wide while the cart has items.
  * Pulses briefly whenever a course is added, so the add feels like it "lands" here. */
@@ -25,7 +26,9 @@ export class CartFooter {
     { initialValue: this.router.url },
   );
 
-  readonly visible = computed(() => !this.cart.isEmpty() && !this.url().split('?')[0].startsWith('/cursos'));
+  readonly visible = computed(
+    () => !this.cart.isEmpty() && !this.url().split('?')[0].startsWith('/cursos'),
+  );
 
   readonly pulsing = signal(false);
   private lastCount = this.cart.count();
@@ -42,9 +45,7 @@ export class CartFooter {
     });
   }
 
-  formatPrice(price: number): string {
-    return `S/ ${price.toLocaleString('es-PE', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
-  }
+  readonly formatPrice = formatSoles;
 
   onAction(): void {
     this.router.navigate(['/cursos']);

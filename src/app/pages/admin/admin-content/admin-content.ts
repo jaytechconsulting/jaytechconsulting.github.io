@@ -1,4 +1,7 @@
-import { AccessAction } from '../../../core/access-action';
+import { ImageFile } from '../../../ui/behaviors/image-file';
+import type { HeaderLink } from '../../../ui/navigation/header/header';
+import { AnnouncementEditor } from './announcement-editor/announcement-editor';
+import { AccessAction } from '../../../ui/behaviors/access-action';
 import { CONTENT_MODULES } from './content-modules';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AdminShell } from '../admin-shell/admin-shell';
@@ -12,255 +15,48 @@ import { Textarea } from '../../../ui/forms/textarea/textarea';
 import { Select } from '../../../ui/forms/select/select';
 import { ToastService } from '../../../core/services/toast.service';
 import { DialogService } from '../../../core/services/dialog.service';
-import { CmsContentService, type CmsAnnouncement, type CmsContentState, type CmsHeroAnimation, type CmsLoaderConfig, type CmsPageDesign, type CmsPageDesignId } from '../../../core/cms-content.service';
+import {
+  CmsContentService,
+  type CmsAnnouncement,
+  type CmsHeroAnimation,
+  type CmsLoaderConfig,
+  type CmsPageDesign,
+  type CmsPageDesignId,
+} from '../../../core/cms/cms-content.service';
 import { ApiService } from '../../../core/api.service';
-import type { ApiCourseAdmin, ApiCourseMaterial, ApiTrainingProgram } from '../../../core/models/api.models';
+import type { ApiCourseAdmin, ApiTrainingProgram } from '../../../core/models/api.models';
 
-type FieldType = 'text' | 'textarea' | 'select' | 'color' | 'glyph' | 'image';
+import {
+  PALETTE,
+  GLYPHS,
+  ENTITIES,
+  INITIAL_HEADER_LINKS,
+  INITIAL_HEADER_CTA,
+  INITIAL_FOOTER_ABOUT,
+  INITIAL_FOOTER_EMAIL,
+  INITIAL_FOOTER_PHONE,
+  INITIAL_FOOTER_COLUMNS,
+  PAGE_LIST,
+  type EntityItem,
+  type EntityDef,
+  type FieldDef,
+} from './content-editor.config';
+import type { CmsFooterColumn as FooterColumn } from '../../../core/cms/cms.models';
 
-interface FieldDef {
-  key: string;
-  label: string;
-  type: FieldType;
-  placeholder?: string;
-  options?: string[];
-  shape?: 'rect' | 'circle';
-  hint?: string;
-}
-
-type EntityItem = Record<string, string>;
-
-interface EntityDef {
-  collectionKey: keyof Pick<CmsContentState, 'companies' | 'reviews' | 'services' | 'projects' | 'plans' | 'sections' | 'teamMembers'>;
-  label: string;
-  icon: string;
-  title: string;
-  addLabel: string;
-  circleThumb?: boolean;
-  imageKey?: string;
-  glyphKey?: string;
-  fixed?: boolean;
-  fields: FieldDef[];
-  blank: EntityItem;
-  seed: EntityItem[];
-  rowTitle: (item: EntityItem) => string;
-  rowSub: (item: EntityItem) => string;
-}
-
-interface HeaderLink {
-  label: string;
-  href: string;
-  variant?: '' | 'primary' | 'outline';
-}
-
-interface FooterColumn {
-  title: string;
-  links: string;
-}
-
-const PALETTE = ['#FF6B35', '#22D3EE', '#F7C948', '#7C6FF0', '#1F8A5B'];
-const GLYPHS = ['◧', '⬡', '▲', '⬢', '◨', '◇'];
-
-const ENTITIES: Record<string, EntityDef> = {
-  secciones: {
-    collectionKey: 'sections',
-    label: 'Secciones',
-    icon: '▥',
-    title: 'Secciones de la página',
-    addLabel: 'sección',
-    imageKey: 'image',
-    fixed: true,
-    blank: {},
-    fields: [
-      { key: 'image', label: 'Imagen de la sección', type: 'image', shape: 'rect', hint: 'JPG, PNG, WebP o SVG. Máximo 1 MB.' },
-      { key: 'title', label: 'Título principal', type: 'text', placeholder: 'Un socio tecnológico' },
-      { key: 'description', label: 'Descripción', type: 'textarea', placeholder: 'Texto de apoyo de la sección.' },
-    ],
-    seed: [],
-    rowTitle: (item) => item['name'] || 'Sección',
-    rowSub: (item) => item['title'],
-  },
-  empresas: {
-    collectionKey: 'companies',
-    label: 'Empresas',
-    icon: '◑',
-    title: 'Empresas / clientes',
-    addLabel: 'empresa',
-    imageKey: 'logo',
-    blank: { name: '', sector: '', result: '', logo: '', glyph: '◧', color: '#FF6B35' },
-    fields: [
-      { key: 'logo', label: 'Logo de la empresa', type: 'image', shape: 'rect', hint: 'PNG/SVG con fondo transparente' },
-      { key: 'glyph', label: 'Ícono alternativo', type: 'glyph' },
-      { key: 'name', label: 'Nombre', type: 'text', placeholder: 'Comercial Andina' },
-      { key: 'sector', label: 'Sector', type: 'text', placeholder: 'Retail' },
-      { key: 'result', label: 'Métrica de resultado', type: 'text', placeholder: '−40% tiempo de conteo' },
-      { key: 'color', label: 'Color de acento', type: 'color' },
-    ],
-    seed: [
-      { name: 'Comercial Andina', sector: 'Retail', result: '−40% tiempo de conteo', logo: '', color: '#FF6B35' },
-      { name: 'Estudio Vega', sector: 'Legal', result: '8 h/sem ahorradas', logo: '', color: '#22D3EE' },
-      { name: 'Nova Fitness', sector: 'Fitness', result: '+3.2× conversión', logo: '', color: '#F7C948' },
-    ],
-    rowTitle: (item) => item['name'] || 'Sin nombre',
-    rowSub: (item) => item['sector'],
-  },
-  resenas: {
-    collectionKey: 'reviews',
-    label: 'Reseñas',
-    icon: '★',
-    title: 'Reseñas de clientes',
-    addLabel: 'reseña',
-    circleThumb: true,
-    imageKey: 'photo',
-    blank: { name: '', role: '', company: '', quote: '', rating: '5', photo: '', color: '#FF6B35' },
-    fields: [
-      { key: 'photo', label: 'Foto de la persona', type: 'image', shape: 'circle', hint: 'Retrato cuadrado, se recorta en círculo' },
-      { key: 'name', label: 'Nombre', type: 'text', placeholder: 'María Fernández' },
-      { key: 'role', label: 'Cargo', type: 'text', placeholder: 'Gerente de operaciones' },
-      { key: 'company', label: 'Empresa', type: 'text', placeholder: 'Comercial Andina' },
-      { key: 'rating', label: 'Calificación', type: 'select', options: ['5', '4', '3', '2', '1'] },
-      { key: 'color', label: 'Color de acento', type: 'color' },
-      { key: 'quote', label: 'Reseña', type: 'textarea', placeholder: 'El panel nos cambió la operación…' },
-    ],
-    seed: [
-      { name: 'María Fernández', role: 'Gerente de operaciones', company: 'Comercial Andina', quote: 'El panel de inventario nos cambió la operación por completo.', rating: '5', photo: '' },
-      { name: 'Diego Vega', role: 'Fundador', company: 'Estudio Vega', quote: 'Automatizaron toda nuestra facturación. Recuperamos 8 horas a la semana.', rating: '5', photo: '' },
-    ],
-    rowTitle: (item) => item['name'] || 'Sin nombre',
-    rowSub: (item) => item['company'],
-  },
-  servicios: {
-    collectionKey: 'services',
-    label: 'Qué hacemos',
-    icon: '◆',
-    title: 'Servicios (Qué hacemos)',
-    addLabel: 'servicio',
-    glyphKey: 'glyph',
-    blank: { title: '', body: '', glyph: '◆', color: '#FF6B35' },
-    fields: [
-      { key: 'glyph', label: 'Ícono', type: 'glyph' },
-      { key: 'title', label: 'Título', type: 'text', placeholder: 'Aplicaciones web' },
-      { key: 'color', label: 'Color de acento', type: 'color' },
-      { key: 'body', label: 'Descripción', type: 'textarea', placeholder: 'Plataformas y paneles a medida…' },
-    ],
-    seed: [
-      { title: 'Aplicaciones web', body: 'Plataformas y paneles a medida, del MVP a producción.', glyph: '◆', color: '#FF6B35' },
-      { title: 'Páginas & landings', body: 'Sitios rápidos y bien posicionados que convierten.', glyph: '▲', color: '#22D3EE' },
-      { title: 'Automatizaciones', body: 'Conectamos tus herramientas y eliminamos el trabajo manual.', glyph: '⬡', color: '#F7C948' },
-      { title: 'Integraciones / API', body: 'Unimos tus sistemas: pagos, CRMs, ERPs y terceros.', glyph: '⬢', color: '#7C6FF0' },
-    ],
-    rowTitle: (item) => item['title'] || 'Sin título',
-    rowSub: (item) => (item['body'] || '').slice(0, 40),
-  },
-  proyectos: {
-    collectionKey: 'projects',
-    label: 'Proyectos',
-    icon: '▤',
-    title: 'Proyectos del portafolio',
-    addLabel: 'proyecto',
-    imageKey: 'logo',
-    blank: { title: '', client: '', cat: 'Web', year: '2026', metric: '', logo: '', summary: '', challenge: '', solution: '', color: '#FF6B35' },
-    fields: [
-      { key: 'logo', label: 'Logo / imagen del proyecto', type: 'image', shape: 'rect', hint: 'Logo del cliente o captura' },
-      { key: 'title', label: 'Título', type: 'text', placeholder: 'Panel de inventario' },
-      { key: 'client', label: 'Cliente', type: 'text', placeholder: 'Comercial Andina' },
-      { key: 'cat', label: 'Categoría', type: 'select', options: ['Web', 'Landing', 'Automatización', 'Integración'] },
-      { key: 'year', label: 'Año', type: 'text', placeholder: '2026' },
-      { key: 'metric', label: 'Métrica principal', type: 'text', placeholder: '−40% tiempo de conteo' },
-      { key: 'color', label: 'Color de acento', type: 'color' },
-      { key: 'summary', label: 'Resumen', type: 'textarea', placeholder: 'Reemplazamos las hojas de cálculo por…' },
-      { key: 'challenge', label: 'El reto (detalle)', type: 'textarea', placeholder: 'El conteo mensual tomaba 3 días…' },
-      { key: 'solution', label: 'La solución (detalle)', type: 'textarea', placeholder: 'Un panel en tiempo real con roles…' },
-    ],
-    seed: [
-      { title: 'Panel de inventario', client: 'Comercial Andina', cat: 'Web', year: '2026', metric: '−40% tiempo de conteo', logo: '', summary: 'Control de stock en tiempo real con alertas y reportes.', challenge: 'El conteo mensual tomaba 3 días de trabajo manual.', solution: 'Panel en tiempo real con roles e integración con POS.', color: '#FF6B35' },
-      { title: 'Automatización de facturas', client: 'Estudio Vega', cat: 'Automatización', year: '2026', metric: '8 h/sem ahorradas', logo: '', summary: 'Emisión y envío de comprobantes conectando ventas con la SUNAT.', challenge: 'Cada factura se emitía a mano.', solution: 'Un flujo n8n que valida, emite y envía.', color: '#22D3EE' },
-    ],
-    rowTitle: (item) => item['title'] || 'Sin título',
-    rowSub: (item) => `${item['client']} · ${item['cat']}`,
-  },
-  planes: {
-    collectionKey: 'plans',
-    label: 'Planes',
-    icon: '▦',
-    title: 'Planes de precios',
-    addLabel: 'plan',
-    blank: { name: '', price: '', description: '', features: '', featured: 'No', cta: 'Empezar' },
-    fields: [
-      { key: 'name', label: 'Nombre del plan', type: 'text', placeholder: 'Crece' },
-      { key: 'price', label: 'Precio', type: 'text', placeholder: 'S/ 3,500' },
-      { key: 'featured', label: 'Destacado', type: 'select', options: ['No', 'Sí'] },
-      { key: 'cta', label: 'Texto del botón', type: 'text', placeholder: 'Agendar llamada' },
-      { key: 'description', label: 'Descripción', type: 'textarea', placeholder: 'Aplicación web completa a medida.' },
-      { key: 'features', label: 'Características (una por línea)', type: 'textarea', placeholder: 'App web a medida\nPanel de administración\nIntegraciones / API' },
-    ],
-    seed: [
-      { name: 'Emprende', price: 'S/ 1,200', description: 'Para lanzar tu presencia digital.', features: 'Landing page a medida\nFormulario de contacto\nHosting 1 año incluido\n2 rondas de ajustes', featured: 'No', cta: 'Empezar' },
-      { name: 'Crece', price: 'S/ 3,500', description: 'Aplicación web completa a medida.', features: 'App web a medida\nPanel de administración\nIntegraciones / API\nSoporte prioritario 6 meses', featured: 'Sí', cta: 'Agendar llamada' },
-      { name: 'A medida', price: 'Custom', description: 'Proyectos complejos y automatización.', features: 'Alcance definido contigo\nAutomatizaciones\nEquipo dedicado\nSLA garantizado', featured: 'No', cta: 'Contáctanos' },
-    ],
-    rowTitle: (item) => item['name'] || 'Sin nombre',
-    rowSub: (item) => item['price'],
-  },
-  equipo: {
-    collectionKey: 'teamMembers',
-    label: 'Equipo',
-    icon: '◑',
-    title: 'Equipo (Conócenos)',
-    addLabel: 'integrante',
-    circleThumb: true,
-    imageKey: 'photo',
-    blank: { name: '', role: '', bio: '', photo: '', linkedin: '', color: '#FF6B35' },
-    fields: [
-      { key: 'photo', label: 'Foto', type: 'image', shape: 'circle', hint: 'Retrato cuadrado, se recorta en círculo' },
-      { key: 'name', label: 'Nombre', type: 'text', placeholder: 'Jayro Guerreros' },
-      { key: 'role', label: 'Cargo', type: 'text', placeholder: 'Fundador · Ingeniería' },
-      { key: 'linkedin', label: 'LinkedIn (opcional)', type: 'text', placeholder: 'https://linkedin.com/in/...' },
-      { key: 'color', label: 'Color de acento', type: 'color' },
-      { key: 'bio', label: 'Biografía corta', type: 'textarea', placeholder: 'Lidera la arquitectura técnica de cada proyecto.' },
-    ],
-    seed: [
-      { name: 'Jayro Guerreros', role: 'Fundador · Ingeniería', bio: 'Lidera la arquitectura técnica y el desarrollo de cada proyecto, de principio a fin.', photo: '', linkedin: '', color: '#FF6B35' },
-      { name: 'Valeria Soto', role: 'Diseño de producto', bio: 'Convierte requerimientos complejos en interfaces simples que los equipos realmente usan.', photo: '', linkedin: '', color: '#22D3EE' },
-      { name: 'Marco Huamán', role: 'Automatización & datos', bio: 'Diseña los flujos e integraciones que eliminan el trabajo manual repetitivo.', photo: '', linkedin: '', color: '#F7C948' },
-    ],
-    rowTitle: (item) => item['name'] || 'Sin nombre',
-    rowSub: (item) => item['role'],
-  },
-};
-
-
-
-const INITIAL_HEADER_LINKS: HeaderLink[] = [
-  { label: 'Proyectos', href: '#proyectos' },
-  { label: 'Planes', href: '#planes' },
-  { label: 'Nosotros', href: '#nosotros' },
-];
-const INITIAL_HEADER_CTA = 'Solicitar propuesta';
-
-const INITIAL_FOOTER_ABOUT = 'Software a medida que hace crecer tu empresa. Del prototipo a producción.';
-const INITIAL_FOOTER_EMAIL = 'hola@dronlab.pe';
-const INITIAL_FOOTER_PHONE = '+51 993 908 435';
-const INITIAL_FOOTER_COLUMNS: FooterColumn[] = [
-  { title: 'Producto', links: 'Servicios\nPlanes\nProyectos' },
-  { title: 'Empresa', links: 'Nosotros\nContacto\nBlog' },
-  { title: 'Legal', links: 'Términos\nPrivacidad' },
-];
-
-const PAGE_LIST: { id: CmsPageDesignId | 'inicio'; label: string; route: string; editable: boolean }[] = [
-  { id: 'inicio', label: 'Inicio', route: '/', editable: false },
-  { id: 'proyectos', label: 'Proyectos', route: '/proyectos', editable: true },
-  { id: 'propuesta', label: 'Solicitar propuesta', route: '/solicitar-propuesta', editable: true },
-  { id: 'login', label: 'Iniciar sesión', route: '/login', editable: true },
-  { id: 'asesorias', label: 'Asesorías', route: '/asesorias', editable: true },
-  { id: 'capacitaciones', label: 'Capacitaciones', route: '/capacitaciones', editable: true },
-  { id: 'conocenos', label: 'Conócenos', route: '/conocenos', editable: true },
-];
-
-/** Sub-página del panel admin: gestión de contenido web (empresas, reseñas, servicios, proyectos, planes, header, footer). No es una entrada del switch interno del panel — se navega como ruta aparte. */
 @Component({
   selector: 'app-admin-content',
-  imports: [AccessAction,AdminShell, Card, Badge, Button, Input, Textarea, Select],
+  imports: [
+    ImageFile,
+    AnnouncementEditor,
+    AccessAction,
+    AdminShell,
+    Card,
+    Badge,
+    Button,
+    Input,
+    Textarea,
+    Select,
+  ],
   templateUrl: './admin-content.html',
 })
 export class AdminContent {
@@ -274,7 +70,9 @@ export class AdminContent {
 
   readonly tab = signal('empresas');
   readonly currentEntity = computed(() => ENTITIES[this.tab()]);
-  readonly moduleTitle = computed(() => CONTENT_MODULES.find(module => module.section === this.tab())?.label ?? 'Empresas');
+  readonly moduleTitle = computed(
+    () => CONTENT_MODULES.find((module) => module.section === this.tab())?.label ?? 'Empresas',
+  );
 
   readonly items = signal<EntityItem[]>([]);
   readonly sel = signal(0);
@@ -290,18 +88,15 @@ export class AdminContent {
   readonly footerPhone = signal(INITIAL_FOOTER_PHONE);
   readonly footerColumns = signal<FooterColumn[]>([...INITIAL_FOOTER_COLUMNS]);
 
-  readonly announcementMessage = signal('');
-  readonly announcementLinkLabel = signal('');
-  readonly announcementLinkHref = signal('');
-  readonly announcementActive = signal(false);
-  readonly announcementBackgroundColor = signal('');
-  readonly announcementBackgroundImage = signal('');
+  readonly announcementValue = this.cms.announcement;
 
   readonly headerLinkVariantOptions = ['Enlace del menú', 'Botón relleno', 'Botón contorno'];
 
   readonly pageList = PAGE_LIST;
   readonly selectedPageId = signal<CmsPageDesignId | 'inicio'>('proyectos');
-  readonly selectedPage = computed(() => this.pageList.find((p) => p.id === this.selectedPageId()) ?? this.pageList[0]);
+  readonly selectedPage = computed(
+    () => this.pageList.find((p) => p.id === this.selectedPageId()) ?? this.pageList[0],
+  );
   readonly pageHeading = signal('');
   readonly pageDescription = signal('');
   readonly pageBackgroundColor = signal('');
@@ -317,24 +112,53 @@ export class AdminContent {
   readonly programSel = signal(0);
   readonly programDraft = signal<Partial<ApiTrainingProgram>>({});
   readonly programIsNew = computed(() => this.programSel() === -1);
-  private static readonly BLANK_PROGRAM: Partial<ApiTrainingProgram> = { title: '', description: '', modality: 'In-company', duration: '', imageUrl: '', accentColor: '#FF6B35', isPublished: true, displayOrder: 1 };
+  private static readonly BLANK_PROGRAM: Partial<ApiTrainingProgram> = {
+    title: '',
+    description: '',
+    modality: 'In-company',
+    duration: '',
+    imageUrl: '',
+    accentColor: '#FF6B35',
+    isPublished: true,
+    displayOrder: 1,
+  };
 
   readonly courseItems = signal<ApiCourseAdmin[]>([]);
   readonly courseSel = signal(0);
   readonly courseDraft = signal<Partial<ApiCourseAdmin>>({});
   readonly courseIsNew = computed(() => this.courseSel() === -1);
-  private static readonly BLANK_COURSE: Partial<ApiCourseAdmin> = { title: '', description: '', glyph: '◆', accentColor: '#FF6B35', imageUrl: '', price: 0, isPublished: true, displayOrder: 1, materials: [], syllabus: [], reviews: [] };
+  private static readonly BLANK_COURSE: Partial<ApiCourseAdmin> = {
+    title: '',
+    description: '',
+    glyph: '◆',
+    accentColor: '#FF6B35',
+    imageUrl: '',
+    price: 0,
+    isPublished: true,
+    displayOrder: 1,
+    materials: [],
+    syllabus: [],
+    reviews: [],
+  };
 
   constructor() {
-    inject(ActivatedRoute).data.pipe(takeUntilDestroyed()).subscribe(data => {
-      const section = data['contentSection'];
-      this.tab.set(CONTENT_MODULES.some(module => module.section === section) ? section : 'empresas');
-    });
+    inject(ActivatedRoute)
+      .data.pipe(takeUntilDestroyed())
+      .subscribe((data) => {
+        const section = data['contentSection'];
+        this.tab.set(
+          CONTENT_MODULES.some((module) => module.section === section) ? section : 'empresas',
+        );
+      });
     effect(() => {
       this.loadTab(this.tab());
     });
     this.cms.load(true).subscribe({
-      error: () => this.toast.error('No pudimos cargar el CMS', 'Verifica tu sesión y la conexión con el backend.'),
+      error: () =>
+        this.toast.error(
+          'No pudimos cargar el CMS',
+          'Verifica tu sesión y la conexión con el backend.',
+        ),
     });
   }
 
@@ -342,7 +166,9 @@ export class AdminContent {
     const on = i === this.sel();
     return [
       'flex w-full cursor-pointer items-center gap-3 border-b border-l-[3px] px-[18px] py-3 text-left transition-colors duration-150 ease-out',
-      on ? 'border-b-border-subtle border-l-brand-orange bg-surface-sunken' : 'border-b-border-subtle border-l-transparent bg-transparent',
+      on
+        ? 'border-b-border-subtle border-l-brand-orange bg-surface-sunken'
+        : 'border-b-border-subtle border-l-transparent bg-transparent',
     ].join(' ');
   }
 
@@ -350,7 +176,9 @@ export class AdminContent {
     const on = i === this.programSel();
     return [
       'flex w-full cursor-pointer items-center gap-3 border-b border-l-[3px] px-[18px] py-3 text-left transition-colors duration-150 ease-out',
-      on ? 'border-b-border-subtle border-l-brand-orange bg-surface-sunken' : 'border-b-border-subtle border-l-transparent bg-transparent',
+      on
+        ? 'border-b-border-subtle border-l-brand-orange bg-surface-sunken'
+        : 'border-b-border-subtle border-l-transparent bg-transparent',
     ].join(' ');
   }
 
@@ -358,7 +186,9 @@ export class AdminContent {
     const on = i === this.courseSel();
     return [
       'flex w-full cursor-pointer items-center gap-3 border-b border-l-[3px] px-[18px] py-3 text-left transition-colors duration-150 ease-out',
-      on ? 'border-b-border-subtle border-l-brand-orange bg-surface-sunken' : 'border-b-border-subtle border-l-transparent bg-transparent',
+      on
+        ? 'border-b-border-subtle border-l-brand-orange bg-surface-sunken'
+        : 'border-b-border-subtle border-l-transparent bg-transparent',
     ].join(' ');
   }
 
@@ -391,26 +221,11 @@ export class AdminContent {
     this.draft.update((d) => ({ ...d, [key]: value }));
   }
 
-  onImageChange(key: string, event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      this.toast.error('Archivo no válido', 'Selecciona una imagen JPG, PNG, WebP o SVG.');
-      input.value = '';
-      return;
-    }
-    if (file.size > 1024 * 1024) {
-      this.toast.error('Imagen demasiado grande', 'La imagen debe pesar como máximo 1 MB.');
-      input.value = '';
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.setField(key, reader.result as string);
-      input.value = '';
-    };
-    reader.readAsDataURL(file);
+  onImageChange(key: string, image: string): void {
+    this.setField(key, image);
+  }
+  imageUploadError(message: string): void {
+    this.toast.error('Imagen no válida', message);
   }
 
   addNew(): void {
@@ -430,11 +245,17 @@ export class AdminContent {
     this.cms.saveCollection(def.collectionKey, value, isNew, displayOrder).subscribe({
       next: () => {
         this.saving.set(false);
-        this.toast.success('Cambios guardados', `"${def.rowTitle(value)}" se actualizó en el backend.`);
+        this.toast.success(
+          'Cambios guardados',
+          `"${def.rowTitle(value)}" se actualizó en el backend.`,
+        );
       },
       error: () => {
         this.saving.set(false);
-        this.toast.error('No pudimos guardar', 'El backend rechazó el cambio. Revisa los campos e inténtalo otra vez.');
+        this.toast.error(
+          'No pudimos guardar',
+          'El backend rechazó el cambio. Revisa los campos e inténtalo otra vez.',
+        );
       },
     });
   }
@@ -470,51 +291,18 @@ export class AdminContent {
     });
   }
 
-  toggleAnnouncementActive(): void {
-    this.announcementActive.update((active) => !active);
-  }
-
-  setAnnouncementBackgroundColor(color: string): void {
-    this.announcementBackgroundColor.set(color);
-  }
-
-  onAnnouncementImageChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      this.toast.error('Archivo no válido', 'Selecciona una imagen JPG, PNG, WebP o SVG.');
-      input.value = '';
-      return;
-    }
-    if (file.size > 1024 * 1024) {
-      this.toast.error('Imagen demasiado grande', 'La imagen debe pesar como máximo 1 MB.');
-      input.value = '';
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.announcementBackgroundImage.set(reader.result as string);
-      input.value = '';
-    };
-    reader.readAsDataURL(file);
-  }
-
-  saveAnnouncement(): void {
+  saveAnnouncement(value: CmsAnnouncement): void {
     if (this.saving()) return;
-    const value: CmsAnnouncement = {
-      ...this.cms.announcement(),
-      message: this.announcementMessage(),
-      linkLabel: this.announcementLinkLabel(),
-      linkHref: this.announcementLinkHref(),
-      active: this.announcementActive(),
-      backgroundColor: this.announcementBackgroundColor(),
-      backgroundImage: this.announcementBackgroundImage(),
-    };
     this.saving.set(true);
     this.cms.saveAnnouncement(value).subscribe({
-      next: () => { this.saving.set(false); this.toast.success('Cambios guardados', 'El anuncio se actualizó en el backend.'); },
-      error: () => { this.saving.set(false); this.toast.error('No pudimos guardar el anuncio', 'Inténtalo nuevamente.'); },
+      next: () => {
+        this.saving.set(false);
+        this.toast.success('Cambios guardados', 'El anuncio se actualizó en el backend.');
+      },
+      error: () => {
+        this.saving.set(false);
+        this.toast.error('No pudimos guardar el anuncio', 'Inténtalo nuevamente.');
+      },
     });
   }
 
@@ -532,26 +320,8 @@ export class AdminContent {
     this.pageBackgroundColor.set(color);
   }
 
-  onPageImageChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      this.toast.error('Archivo no válido', 'Selecciona una imagen JPG, PNG, WebP o SVG.');
-      input.value = '';
-      return;
-    }
-    if (file.size > 1024 * 1024) {
-      this.toast.error('Imagen demasiado grande', 'La imagen debe pesar como máximo 1 MB.');
-      input.value = '';
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.pageBackgroundImage.set(reader.result as string);
-      input.value = '';
-    };
-    reader.readAsDataURL(file);
+  onPageImageChange(image: string): void {
+    this.pageBackgroundImage.set(image);
   }
 
   savePageDesign(): void {
@@ -565,8 +335,14 @@ export class AdminContent {
     };
     this.saving.set(true);
     this.cms.savePageDesign(id, value).subscribe({
-      next: () => { this.saving.set(false); this.toast.success('Cambios guardados', 'La página se actualizó en el backend.'); },
-      error: () => { this.saving.set(false); this.toast.error('No pudimos guardar la página', 'Inténtalo nuevamente.'); },
+      next: () => {
+        this.saving.set(false);
+        this.toast.success('Cambios guardados', 'La página se actualizó en el backend.');
+      },
+      error: () => {
+        this.saving.set(false);
+        this.toast.error('No pudimos guardar la página', 'Inténtalo nuevamente.');
+      },
     });
   }
 
@@ -583,8 +359,14 @@ export class AdminContent {
     const value: CmsLoaderConfig = { enabled: this.loaderEnabled(), color: this.loaderColor() };
     this.saving.set(true);
     this.cms.saveLoaderConfig(value).subscribe({
-      next: () => { this.saving.set(false); this.toast.success('Cambios guardados', 'La pantalla de carga se actualizó en el backend.'); },
-      error: () => { this.saving.set(false); this.toast.error('No pudimos guardar', 'Inténtalo nuevamente.'); },
+      next: () => {
+        this.saving.set(false);
+        this.toast.success('Cambios guardados', 'La pantalla de carga se actualizó en el backend.');
+      },
+      error: () => {
+        this.saving.set(false);
+        this.toast.error('No pudimos guardar', 'Inténtalo nuevamente.');
+      },
     });
   }
 
@@ -598,11 +380,23 @@ export class AdminContent {
 
   saveHeroAnimation(): void {
     if (this.saving()) return;
-    const value: CmsHeroAnimation = { enabled: this.heroAnimationEnabled(), videoUrl: this.heroAnimationVideoUrl() };
+    const value: CmsHeroAnimation = {
+      enabled: this.heroAnimationEnabled(),
+      videoUrl: this.heroAnimationVideoUrl(),
+    };
     this.saving.set(true);
     this.cms.saveHeroAnimation(value).subscribe({
-      next: () => { this.saving.set(false); this.toast.success('Cambios guardados', 'La animación de inicio se actualizó en el backend.'); },
-      error: () => { this.saving.set(false); this.toast.error('No pudimos guardar', 'Inténtalo nuevamente.'); },
+      next: () => {
+        this.saving.set(false);
+        this.toast.success(
+          'Cambios guardados',
+          'La animación de inicio se actualizó en el backend.',
+        );
+      },
+      error: () => {
+        this.saving.set(false);
+        this.toast.error('No pudimos guardar', 'Inténtalo nuevamente.');
+      },
     });
   }
 
@@ -613,10 +407,16 @@ export class AdminContent {
 
   addNewProgram(): void {
     this.programSel.set(-1);
-    this.programDraft.set({ ...AdminContent.BLANK_PROGRAM, displayOrder: this.programItems().length + 1 });
+    this.programDraft.set({
+      ...AdminContent.BLANK_PROGRAM,
+      displayOrder: this.programItems().length + 1,
+    });
   }
 
-  setProgramDraftField(key: 'title' | 'description' | 'modality' | 'duration', value: string): void {
+  setProgramDraftField(
+    key: 'title' | 'description' | 'modality' | 'duration',
+    value: string,
+  ): void {
     this.programDraft.update((d) => ({ ...d, [key]: value }));
   }
 
@@ -624,26 +424,8 @@ export class AdminContent {
     this.programDraft.update((d) => ({ ...d, accentColor: color }));
   }
 
-  onProgramDraftImageChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      this.toast.error('Archivo no válido', 'Selecciona una imagen JPG, PNG, WebP o SVG.');
-      input.value = '';
-      return;
-    }
-    if (file.size > 1024 * 1024) {
-      this.toast.error('Imagen demasiado grande', 'La imagen debe pesar como máximo 1 MB.');
-      input.value = '';
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.programDraft.update((d) => ({ ...d, imageUrl: reader.result as string }));
-      input.value = '';
-    };
-    reader.readAsDataURL(file);
+  onProgramDraftImageChange(image: string): void {
+    this.programDraft.update((d) => ({ ...d, imageUrl: image }));
   }
 
   clearProgramDraftImage(): void {
@@ -665,7 +447,9 @@ export class AdminContent {
       displayOrder: value.displayOrder ?? this.programItems().length + 1,
     };
     this.saving.set(true);
-    const request = isNew ? this.api.createTrainingProgram(payload) : this.api.updateTrainingProgram(value.id!, payload);
+    const request = isNew
+      ? this.api.createTrainingProgram(payload)
+      : this.api.updateTrainingProgram(value.id!, payload);
     request.subscribe({
       next: () => {
         this.saving.set(false);
@@ -674,7 +458,10 @@ export class AdminContent {
       },
       error: () => {
         this.saving.set(false);
-        this.toast.error('No pudimos guardar', 'El backend rechazó el cambio. Revisa los campos e inténtalo otra vez.');
+        this.toast.error(
+          'No pudimos guardar',
+          'El backend rechazó el cambio. Revisa los campos e inténtalo otra vez.',
+        );
       },
     });
   }
@@ -712,7 +499,11 @@ export class AdminContent {
         this.programSel.set(items.length ? 0 : -1);
         this.programDraft.set({ ...(items[0] ?? AdminContent.BLANK_PROGRAM) });
       },
-      error: () => this.toast.error('No pudimos cargar los programas', 'Verifica tu sesión y la conexión con el backend.'),
+      error: () =>
+        this.toast.error(
+          'No pudimos cargar los programas',
+          'Verifica tu sesión y la conexión con el backend.',
+        ),
     });
   }
 
@@ -729,7 +520,13 @@ export class AdminContent {
 
   addNewCourse(): void {
     this.courseSel.set(-1);
-    this.courseDraft.set({ ...AdminContent.BLANK_COURSE, displayOrder: this.courseItems().length + 1, materials: [], syllabus: [], reviews: [] });
+    this.courseDraft.set({
+      ...AdminContent.BLANK_COURSE,
+      displayOrder: this.courseItems().length + 1,
+      materials: [],
+      syllabus: [],
+      reviews: [],
+    });
   }
 
   setCourseDraftField(key: 'title' | 'description', value: string): void {
@@ -748,26 +545,8 @@ export class AdminContent {
     this.courseDraft.update((d) => ({ ...d, glyph }));
   }
 
-  onCourseDraftImageChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      this.toast.error('Archivo no válido', 'Selecciona una imagen JPG, PNG, WebP o SVG.');
-      input.value = '';
-      return;
-    }
-    if (file.size > 1024 * 1024) {
-      this.toast.error('Imagen demasiado grande', 'La imagen debe pesar como máximo 1 MB.');
-      input.value = '';
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.courseDraft.update((d) => ({ ...d, imageUrl: reader.result as string }));
-      input.value = '';
-    };
-    reader.readAsDataURL(file);
+  onCourseDraftImageChange(image: string): void {
+    this.courseDraft.update((d) => ({ ...d, imageUrl: image }));
   }
 
   clearCourseDraftImage(): void {
@@ -777,12 +556,18 @@ export class AdminContent {
   addMaterialRow(): void {
     this.courseDraft.update((d) => ({
       ...d,
-      materials: [...(d.materials ?? []), { title: '', type: 'archivo', url: '', displayOrder: d.materials?.length ?? 0 }],
+      materials: [
+        ...(d.materials ?? []),
+        { title: '', type: 'archivo', url: '', displayOrder: d.materials?.length ?? 0 },
+      ],
     }));
   }
 
   removeMaterialRow(i: number): void {
-    this.courseDraft.update((d) => ({ ...d, materials: (d.materials ?? []).filter((_, idx) => idx !== i) }));
+    this.courseDraft.update((d) => ({
+      ...d,
+      materials: (d.materials ?? []).filter((_, idx) => idx !== i),
+    }));
   }
 
   setMaterialField(i: number, key: 'title' | 'type' | 'url', value: string): void {
@@ -795,12 +580,18 @@ export class AdminContent {
   addSyllabusRow(): void {
     this.courseDraft.update((d) => ({
       ...d,
-      syllabus: [...(d.syllabus ?? []), { title: '', description: '', displayOrder: d.syllabus?.length ?? 0 }],
+      syllabus: [
+        ...(d.syllabus ?? []),
+        { title: '', description: '', displayOrder: d.syllabus?.length ?? 0 },
+      ],
     }));
   }
 
   removeSyllabusRow(i: number): void {
-    this.courseDraft.update((d) => ({ ...d, syllabus: (d.syllabus ?? []).filter((_, idx) => idx !== i) }));
+    this.courseDraft.update((d) => ({
+      ...d,
+      syllabus: (d.syllabus ?? []).filter((_, idx) => idx !== i),
+    }));
   }
 
   setSyllabusField(i: number, key: 'title' | 'description', value: string): void {
@@ -813,12 +604,18 @@ export class AdminContent {
   addReviewRow(): void {
     this.courseDraft.update((d) => ({
       ...d,
-      reviews: [...(d.reviews ?? []), { authorName: '', rating: 5, body: '', displayOrder: d.reviews?.length ?? 0 }],
+      reviews: [
+        ...(d.reviews ?? []),
+        { authorName: '', rating: 5, body: '', displayOrder: d.reviews?.length ?? 0 },
+      ],
     }));
   }
 
   removeReviewRow(i: number): void {
-    this.courseDraft.update((d) => ({ ...d, reviews: (d.reviews ?? []).filter((_, idx) => idx !== i) }));
+    this.courseDraft.update((d) => ({
+      ...d,
+      reviews: (d.reviews ?? []).filter((_, idx) => idx !== i),
+    }));
   }
 
   setReviewField(i: number, key: 'authorName' | 'body', value: string): void {
@@ -853,7 +650,9 @@ export class AdminContent {
       reviews: (value.reviews ?? []).filter((r) => r.authorName.trim() && r.body.trim()),
     };
     this.saving.set(true);
-    const request = isNew ? this.api.createCourse(payload) : this.api.updateCourse(value.id!, payload);
+    const request = isNew
+      ? this.api.createCourse(payload)
+      : this.api.updateCourse(value.id!, payload);
     request.subscribe({
       next: () => {
         this.saving.set(false);
@@ -862,7 +661,10 @@ export class AdminContent {
       },
       error: () => {
         this.saving.set(false);
-        this.toast.error('No pudimos guardar', 'El backend rechazó el cambio. Revisa los campos e inténtalo otra vez.');
+        this.toast.error(
+          'No pudimos guardar',
+          'El backend rechazó el cambio. Revisa los campos e inténtalo otra vez.',
+        );
       },
     });
   }
@@ -900,12 +702,18 @@ export class AdminContent {
         this.courseSel.set(items.length ? 0 : -1);
         this.courseDraft.set({ ...(items[0] ?? AdminContent.BLANK_COURSE) });
       },
-      error: () => this.toast.error('No pudimos cargar los cursos', 'Verifica tu sesión y la conexión con el backend.'),
+      error: () =>
+        this.toast.error(
+          'No pudimos cargar los cursos',
+          'Verifica tu sesión y la conexión con el backend.',
+        ),
     });
   }
 
   setHeaderLink(i: number, key: keyof HeaderLink, value: string): void {
-    this.headerLinks.update((links) => links.map((l, idx) => (idx === i ? { ...l, [key]: value } : l)));
+    this.headerLinks.update((links) =>
+      links.map((l, idx) => (idx === i ? { ...l, [key]: value } : l)),
+    );
   }
 
   headerLinkVariantLabel(variant: HeaderLink['variant']): string {
@@ -915,7 +723,8 @@ export class AdminContent {
   }
 
   setHeaderLinkVariant(i: number, label: string): void {
-    const variant = label === 'Botón relleno' ? 'primary' : label === 'Botón contorno' ? 'outline' : '';
+    const variant =
+      label === 'Botón relleno' ? 'primary' : label === 'Botón contorno' ? 'outline' : '';
     this.headerLinks.update((links) => links.map((l, idx) => (idx === i ? { ...l, variant } : l)));
   }
 
@@ -930,17 +739,27 @@ export class AdminContent {
   saveHeader(): void {
     if (this.saving()) return;
     this.saving.set(true);
-    this.cms.saveHeader({
-      links: this.headerLinks().map((link) => ({ ...link, variant: link.variant ?? '' })),
-      cta: this.headerCta(),
-    }).subscribe({
-      next: () => { this.saving.set(false); this.toast.success('Cambios guardados', 'El header se actualizó en el backend.'); },
-      error: () => { this.saving.set(false); this.toast.error('No pudimos guardar el header', 'Inténtalo nuevamente.'); },
-    });
+    this.cms
+      .saveHeader({
+        links: this.headerLinks().map((link) => ({ ...link, variant: link.variant ?? '' })),
+        cta: this.headerCta(),
+      })
+      .subscribe({
+        next: () => {
+          this.saving.set(false);
+          this.toast.success('Cambios guardados', 'El header se actualizó en el backend.');
+        },
+        error: () => {
+          this.saving.set(false);
+          this.toast.error('No pudimos guardar el header', 'Inténtalo nuevamente.');
+        },
+      });
   }
 
   setFooterColumn(i: number, key: keyof FooterColumn, value: string): void {
-    this.footerColumns.update((cols) => cols.map((c, idx) => (idx === i ? { ...c, [key]: value } : c)));
+    this.footerColumns.update((cols) =>
+      cols.map((c, idx) => (idx === i ? { ...c, [key]: value } : c)),
+    );
   }
 
   removeFooterColumn(i: number): void {
@@ -948,21 +767,32 @@ export class AdminContent {
   }
 
   addFooterColumn(): void {
-    this.footerColumns.update((cols) => [...cols, { title: 'Nueva columna', links: 'Enlace 1\nEnlace 2' }]);
+    this.footerColumns.update((cols) => [
+      ...cols,
+      { title: 'Nueva columna', links: 'Enlace 1\nEnlace 2' },
+    ]);
   }
 
   saveFooter(): void {
     if (this.saving()) return;
     this.saving.set(true);
-    this.cms.saveFooter({
-      about: this.footerAbout(),
-      email: this.footerEmail(),
-      phone: this.footerPhone(),
-      columns: this.footerColumns().map((column) => ({ ...column })),
-    }).subscribe({
-      next: () => { this.saving.set(false); this.toast.success('Cambios guardados', 'El footer se actualizó en el backend.'); },
-      error: () => { this.saving.set(false); this.toast.error('No pudimos guardar el footer', 'Inténtalo nuevamente.'); },
-    });
+    this.cms
+      .saveFooter({
+        about: this.footerAbout(),
+        email: this.footerEmail(),
+        phone: this.footerPhone(),
+        columns: this.footerColumns().map((column) => ({ ...column })),
+      })
+      .subscribe({
+        next: () => {
+          this.saving.set(false);
+          this.toast.success('Cambios guardados', 'El footer se actualizó en el backend.');
+        },
+        error: () => {
+          this.saving.set(false);
+          this.toast.error('No pudimos guardar el footer', 'Inténtalo nuevamente.');
+        },
+      });
   }
 
   private loadTab(tab: string): void {
@@ -975,16 +805,7 @@ export class AdminContent {
       return;
     }
 
-    if (tab === 'anuncio') {
-      const announcement = this.cms.announcement();
-      this.announcementMessage.set(announcement.message);
-      this.announcementLinkLabel.set(announcement.linkLabel);
-      this.announcementLinkHref.set(announcement.linkHref);
-      this.announcementActive.set(announcement.active);
-      this.announcementBackgroundColor.set(announcement.backgroundColor);
-      this.announcementBackgroundImage.set(announcement.backgroundImage);
-      return;
-    }
+    if (tab === 'anuncio') return;
 
     if (tab === 'paginas') {
       this.selectPage(this.selectedPageId());
@@ -1017,8 +838,11 @@ export class AdminContent {
 
     if (tab === 'header') {
       const header = this.cms.header();
-      const isReservedServicesLink = (link: HeaderLink) => link.label.trim().toLowerCase() === 'servicios' || link.href === '#servicios';
-      this.headerLinks.set(header.links.filter((link) => !isReservedServicesLink(link)).map((link) => ({ ...link })));
+      const isReservedServicesLink = (link: HeaderLink) =>
+        link.label.trim().toLowerCase() === 'servicios' || link.href === '#servicios';
+      this.headerLinks.set(
+        header.links.filter((link) => !isReservedServicesLink(link)).map((link) => ({ ...link })),
+      );
       this.headerCta.set(header.cta);
       return;
     }

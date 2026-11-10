@@ -1,12 +1,23 @@
-import { ThemeService } from '../../../core/theme.service';
+import { ThemeService } from '../../../core/services/theme.service';
 import { closeModal } from '../modal-motion';
 import { Icon, IconName } from '../../data-display/icon/icon';
-import { Component, computed, input, output, AfterViewInit, OnDestroy, ElementRef, HostListener, inject, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  input,
+  output,
+  AfterViewInit,
+  OnDestroy,
+  ElementRef,
+  HostListener,
+  inject,
+  signal,
+} from '@angular/core';
 import { Button } from '../../actions/button/button';
 
 export type DialogTone = 'brand' | 'success' | 'warning' | 'danger' | 'info';
 
-let dialogUid=0;
+let dialogUid = 0;
 
 const TONES: Record<DialogTone, { color: string; label: string }> = {
   brand: { color: 'var(--brand-orange)', label: 'Confirmación' },
@@ -30,27 +41,52 @@ const TONES: Record<DialogTone, { color: string; label: string }> = {
   },
 })
 export class Dialog implements AfterViewInit, OnDestroy {
-  readonly theme=inject(ThemeService);
-  private readonly host=inject<ElementRef<HTMLElement>>(ElementRef);
-  private readonly previousFocus=document.activeElement as HTMLElement | null;
-  private readonly uid=`dialog-${++dialogUid}`;
-  readonly titleId=this.uid+'-title'; readonly messageId=this.uid+'-message';
-  readonly icon=computed<IconName>(()=>this.tone()==='danger' || this.tone()==='warning' ? 'warning' : this.tone()==='success' ? 'check' : this.tone()==='info' ? 'info' : 'question');
-  ngAfterViewInit():void { this.host.nativeElement.querySelector<HTMLElement>('button')?.focus(); }
-  ngOnDestroy():void { requestAnimationFrame(()=>this.previousFocus?.isConnected && this.previousFocus.focus()); }
-  @HostListener('keydown',['$event']) trapFocus(event:KeyboardEvent):void {
-    if(event.key!=='Tab')return;
-    const buttons=Array.from(this.host.nativeElement.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));
-    const first=buttons[0],last=buttons[buttons.length-1];
-    if(event.shiftKey && document.activeElement===first){event.preventDefault();last?.focus();}
-    else if(!event.shiftKey && document.activeElement===last){event.preventDefault();first?.focus();}
+  readonly theme = inject(ThemeService);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly previousFocus = document.activeElement as HTMLElement | null;
+  private readonly uid = `dialog-${++dialogUid}`;
+  readonly titleId = this.uid + '-title';
+  readonly messageId = this.uid + '-message';
+  readonly icon = computed<IconName>(() =>
+    this.tone() === 'danger' || this.tone() === 'warning'
+      ? 'warning'
+      : this.tone() === 'success'
+        ? 'check'
+        : this.tone() === 'info'
+          ? 'info'
+          : 'question',
+  );
+  ngAfterViewInit(): void {
+    this.host.nativeElement.querySelector<HTMLElement>('button')?.focus();
+  }
+  ngOnDestroy(): void {
+    requestAnimationFrame(() => this.previousFocus?.isConnected && this.previousFocus.focus());
+  }
+  @HostListener('keydown', ['$event']) trapFocus(event: KeyboardEvent): void {
+    if (event.key !== 'Tab') return;
+    const buttons = Array.from(
+      this.host.nativeElement.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'),
+    );
+    const first = buttons[0],
+      last = buttons[buttons.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last?.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first?.focus();
+    }
   }
 
-  readonly closing=signal(false);
-  async requestClose(confirmed:boolean):Promise<void>{
-    if(this.closing())return;this.closing.set(true);
-    await closeModal(this.host.nativeElement.querySelector<HTMLElement>('.dl-dialog-panel') ?? undefined);
-    if(confirmed)this.confirmed.emit();else this.cancelled.emit();
+  readonly closing = signal(false);
+  async requestClose(confirmed: boolean): Promise<void> {
+    if (this.closing()) return;
+    this.closing.set(true);
+    await closeModal(
+      this.host.nativeElement.querySelector<HTMLElement>('.dl-dialog-panel') ?? undefined,
+    );
+    if (confirmed) this.confirmed.emit();
+    else this.cancelled.emit();
   }
   readonly open = input(true);
   readonly tone = input<DialogTone>('brand');

@@ -1,747 +1,1150 @@
 <app-admin-shell [title]="moduleTitle()" [active]="'content-' + tab()">
-<div class="bg-surface-page font-body">
-  <div class="mx-auto max-w-[1400px] p-4 md:p-8">
-    @if (tab() === 'anuncio') {
-      <!-- Announcement bar manager -->
-      <app-card elevation="sm" class="block max-w-[640px]">
-        <h3 class="m-0 mb-1 font-display text-lg font-semibold text-text-strong">Barra de anuncios</h3>
-        <p class="m-0 mb-5 text-sm text-text-muted">Aviso o promoción que aparece encima del menú principal. Actívalo cuando quieras publicarlo.</p>
+  <div class="bg-surface-page font-body">
+    <div class="mx-auto max-w-[1400px] p-4 md:p-8">
+      @if (tab() === 'anuncio') {
+        <app-announcement-editor
+          [value]="announcementValue()"
+          [saving]="saving()"
+          (save)="saveAnnouncement($event)"
+        />
+      } @else if (tab() === 'paginas') {
+        <!-- Pages design manager -->
+        <div class="grid grid-cols-[minmax(220px,280px)_1fr] items-start gap-5">
+          <app-card elevation="sm" padding="0">
+            <div class="border-b border-border-subtle px-[18px] py-4">
+              <span class="font-display text-base font-semibold text-text-strong"
+                >Páginas del sitio</span
+              >
+            </div>
+            <div class="flex flex-col">
+              @for (p of pageList; track p.id) {
+                <button
+                  type="button"
+                  class="flex w-full cursor-pointer items-center justify-between border-b border-l-[3px] px-[18px] py-3 text-left transition-colors duration-150 ease-out"
+                  [class]="
+                    selectedPageId() === p.id
+                      ? 'border-b-border-subtle border-l-brand-orange bg-surface-sunken'
+                      : 'border-b-border-subtle border-l-transparent bg-transparent'
+                  "
+                  (click)="selectPage(p.id)"
+                >
+                  <span>
+                    <span class="block text-[14.5px] font-semibold text-text-strong">{{
+                      p.label
+                    }}</span>
+                    <span class="block font-mono text-xs text-text-faint">{{ p.route }}</span>
+                  </span>
+                  @if (!p.editable) {
+                    <app-badge tone="neutral">info</app-badge>
+                  }
+                </button>
+              }
+            </div>
+          </app-card>
 
-        <button
-          type="button"
-          class="mb-5 flex w-full cursor-pointer items-center justify-between rounded-md border border-border-subtle bg-surface-sunken px-4 py-3 text-left"
-          (click)="toggleAnnouncementActive()"
-        >
-          <span class="text-sm font-semibold text-text-strong">{{ announcementActive() ? 'Visible en la web' : 'Oculto' }}</span>
-          <span
-            class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-pill transition-colors duration-200 ease-out"
-            [class]="announcementActive() ? 'bg-accent-primary' : 'bg-border-strong'"
+          <app-card elevation="sm">
+            @if (!selectedPage().editable) {
+              <h3 class="m-0 mb-1 font-display text-lg font-semibold text-text-strong">Inicio</h3>
+              <p class="m-0 text-sm text-text-muted">
+                El diseño de "Inicio" se edita desde la pestaña
+                <strong class="text-text-strong">Secciones web → Portada</strong>, no aquí — ese
+                banner ya tiene su propio editor (video, texto, resaltado).
+              </p>
+            } @else {
+              <h3 class="m-0 mb-1 font-display text-lg font-semibold text-text-strong">
+                {{ selectedPage().label }}
+              </h3>
+              <p class="m-0 mb-5 text-sm text-text-muted">
+                Encabezado, texto de apoyo y fondo del panel de esta página.
+              </p>
+
+              <div class="flex flex-col gap-4">
+                <app-input
+                  label="Título"
+                  [value]="pageHeading()"
+                  (valueChange)="pageHeading.set($event)"
+                />
+                <app-textarea
+                  label="Descripción (opcional)"
+                  [rows]="2"
+                  [value]="pageDescription()"
+                  (valueChange)="pageDescription.set($event)"
+                />
+
+                <div class="border-t border-border-subtle pt-4">
+                  <label class="mb-2.5 block text-sm font-semibold text-text-strong"
+                    >Color de fondo</label
+                  >
+                  <div class="flex flex-wrap gap-2.5">
+                    <button
+                      type="button"
+                      aria-label="Color por defecto (degradado de marca)"
+                      class="flex h-[34px] w-[34px] cursor-pointer items-center justify-center rounded-sm border-2 bg-[image:var(--gradient-ink)] transition-all duration-150 ease-out"
+                      [class]="!pageBackgroundColor() ? 'border-text-strong' : 'border-transparent'"
+                      (click)="setPageBackgroundColor('')"
+                    ></button>
+                    @for (c of palette; track c) {
+                      <button
+                        type="button"
+                        [attr.aria-label]="c"
+                        class="h-[34px] w-[34px] cursor-pointer rounded-sm border-2 transition-all duration-150 ease-out"
+                        [class]="
+                          pageBackgroundColor() === c ? 'border-text-strong' : 'border-transparent'
+                        "
+                        [style.background]="c"
+                        [style.box-shadow]="
+                          pageBackgroundColor() === c ? '0 0 0 3px ' + c + '44' : 'none'
+                        "
+                        (click)="setPageBackgroundColor(c)"
+                      ></button>
+                    }
+                  </div>
+                  <p class="m-0 mt-2 text-xs text-text-faint">
+                    Si eliges una imagen de fondo, esta reemplaza al color.
+                  </p>
+                </div>
+
+                <div>
+                  <label class="mb-2.5 block text-sm font-semibold text-text-strong"
+                    >Imagen de fondo (opcional)</label
+                  >
+                  <div class="flex items-center gap-4">
+                    <div
+                      class="flex h-[56px] w-[120px] shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border-[1.5px] border-dashed border-border-default bg-surface-sunken bg-cover bg-center"
+                      [style.background-image]="
+                        pageBackgroundImage() ? 'url(' + pageBackgroundImage() + ')' : 'none'
+                      "
+                      (click)="pageImageInput.click()"
+                    >
+                      @if (!pageBackgroundImage()) {
+                        <span class="text-xl text-brand-cyan">↑</span>
+                      }
+                    </div>
+                    <div class="flex gap-2">
+                      <app-button variant="outline" size="sm" (clicked)="pageImageInput.click()">{{
+                        pageBackgroundImage() ? 'Cambiar' : 'Subir'
+                      }}</app-button>
+                      @if (pageBackgroundImage()) {
+                        <button
+                          type="button"
+                          class="cursor-pointer px-1 text-sm font-medium text-danger"
+                          (click)="pageBackgroundImage.set('')"
+                        >
+                          Quitar
+                        </button>
+                      }
+                    </div>
+                    <input
+                      #pageImageInput
+                      [imageResetKey]="selectedPageId()"
+                      type="file"
+                      accept="image/*"
+                      class="hidden"
+                      appImageFile
+                      (imageSelected)="onPageImageChange($event)"
+                      (imageError)="imageUploadError($event)"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-6 flex justify-end border-t border-border-subtle pt-5">
+                <app-button
+                  variant="primary"
+                  [disabled]="saving()"
+                  (clicked)="savePageDesign()"
+                  [appAccessAction]="'update'"
+                  >{{ saving() ? 'Guardando...' : 'Guardar página' }}</app-button
+                >
+              </div>
+            }
+          </app-card>
+        </div>
+      } @else if (tab() === 'carga') {
+        <!-- Loading screen manager -->
+        <app-card elevation="sm" class="block max-w-[560px]">
+          <h3 class="m-0 mb-1 font-display text-lg font-semibold text-text-strong">
+            Pantalla de carga
+          </h3>
+          <p class="m-0 mb-5 text-sm text-text-muted">
+            Por defecto el sitio solo muestra una barra de progreso delgada al navegar. Activa esta
+            pantalla completa si prefieres una animación de carga más vistosa en la primera visita.
+          </p>
+
+          <button
+            type="button"
+            class="mb-5 flex w-full cursor-pointer items-center justify-between rounded-md border border-border-subtle bg-surface-sunken px-4 py-3 text-left"
+            (click)="toggleLoaderEnabled()"
           >
+            <span class="text-sm font-semibold text-text-strong">{{
+              loaderEnabled() ? 'Pantalla completa activa' : 'Solo barra de progreso'
+            }}</span>
             <span
-              class="inline-block h-[18px] w-[18px] transform rounded-full bg-white transition-transform duration-200 ease-out"
-              [class]="announcementActive() ? 'translate-x-[22px]' : 'translate-x-[3px]'"
-            ></span>
-          </span>
-        </button>
+              class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-pill transition-colors duration-200 ease-out"
+              [class]="loaderEnabled() ? 'bg-accent-primary' : 'bg-border-strong'"
+            >
+              <span
+                class="inline-block h-[18px] w-[18px] transform rounded-full bg-white transition-transform duration-200 ease-out"
+                [class]="loaderEnabled() ? 'translate-x-[22px]' : 'translate-x-[3px]'"
+              ></span>
+            </span>
+          </button>
 
-        <div class="flex flex-col gap-4">
-          <app-textarea label="Mensaje" [rows]="2" placeholder="20% de descuento en planes anuales hasta fin de mes" [value]="announcementMessage()" (valueChange)="announcementMessage.set($event)" />
-          <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-4">
-            <app-input label="Texto del enlace (opcional)" placeholder="Ver planes" [value]="announcementLinkLabel()" (valueChange)="announcementLinkLabel.set($event)" />
-            <app-input label="URL del enlace (opcional)" placeholder="#planes" [value]="announcementLinkHref()" (valueChange)="announcementLinkHref.set($event)" />
-          </div>
-
-          <div class="border-t border-border-subtle pt-4">
-            <label class="mb-2.5 block text-sm font-semibold text-text-strong">Color de fondo</label>
+          <div>
+            <label class="mb-2.5 block text-sm font-semibold text-text-strong"
+              >Color de la barra de progreso</label
+            >
             <div class="flex flex-wrap gap-2.5">
               <button
                 type="button"
-                aria-label="Color por defecto (acento de marca)"
+                aria-label="Color por defecto (degradado de marca)"
                 class="flex h-[34px] w-[34px] cursor-pointer items-center justify-center rounded-sm border-2 bg-[image:var(--gradient-hud)] transition-all duration-150 ease-out"
-                [class]="!announcementBackgroundColor() ? 'border-text-strong' : 'border-transparent'"
-                (click)="setAnnouncementBackgroundColor('')"
+                [class]="!loaderColor() ? 'border-text-strong' : 'border-transparent'"
+                (click)="setLoaderColor('')"
               ></button>
               @for (c of palette; track c) {
                 <button
                   type="button"
                   [attr.aria-label]="c"
                   class="h-[34px] w-[34px] cursor-pointer rounded-sm border-2 transition-all duration-150 ease-out"
-                  [class]="announcementBackgroundColor() === c ? 'border-text-strong' : 'border-transparent'"
+                  [class]="loaderColor() === c ? 'border-text-strong' : 'border-transparent'"
                   [style.background]="c"
-                  [style.box-shadow]="announcementBackgroundColor() === c ? '0 0 0 3px ' + c + '44' : 'none'"
-                  (click)="setAnnouncementBackgroundColor(c)"
+                  [style.box-shadow]="loaderColor() === c ? '0 0 0 3px ' + c + '44' : 'none'"
+                  (click)="setLoaderColor(c)"
                 ></button>
               }
             </div>
-            <p class="m-0 mt-2 text-xs text-text-faint">Si eliges una imagen de fondo, esta reemplaza al color.</p>
           </div>
 
-          <div>
-            <label class="mb-2.5 block text-sm font-semibold text-text-strong">Imagen de fondo (opcional)</label>
-            <div class="flex items-center gap-4">
-              <div
-                class="flex h-[56px] w-[120px] shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border-[1.5px] border-dashed border-border-default bg-surface-sunken bg-cover bg-center"
-                [style.background-image]="announcementBackgroundImage() ? 'url(' + announcementBackgroundImage() + ')' : 'none'"
-                (click)="announcementImageInput.click()"
-              >
-                @if (!announcementBackgroundImage()) {
-                  <span class="text-xl text-brand-cyan">↑</span>
-                }
-              </div>
-              <div class="flex gap-2">
-                <app-button variant="outline" size="sm" (clicked)="announcementImageInput.click()">{{ announcementBackgroundImage() ? 'Cambiar' : 'Subir' }}</app-button>
-                @if (announcementBackgroundImage()) {
-                  <button type="button" class="cursor-pointer px-1 text-sm font-medium text-danger" (click)="announcementBackgroundImage.set('')">Quitar</button>
-                }
-              </div>
-              <input #announcementImageInput type="file" accept="image/*" class="hidden" (change)="onAnnouncementImageChange($event)" />
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-6 flex justify-end border-t border-border-subtle pt-5">
-          <app-button variant="primary" [disabled]="saving()" (clicked)="saveAnnouncement()" [appAccessAction]="'update'">{{ saving() ? 'Guardando...' : 'Guardar anuncio' }}</app-button>
-        </div>
-      </app-card>
-    } @else if (tab() === 'paginas') {
-      <!-- Pages design manager -->
-      <div class="grid grid-cols-[minmax(220px,280px)_1fr] items-start gap-5">
-        <app-card elevation="sm" padding="0">
-          <div class="border-b border-border-subtle px-[18px] py-4">
-            <span class="font-display text-base font-semibold text-text-strong">Páginas del sitio</span>
-          </div>
-          <div class="flex flex-col">
-            @for (p of pageList; track p.id) {
-              <button
-                type="button"
-                class="flex w-full cursor-pointer items-center justify-between border-b border-l-[3px] px-[18px] py-3 text-left transition-colors duration-150 ease-out"
-                [class]="selectedPageId() === p.id ? 'border-b-border-subtle border-l-brand-orange bg-surface-sunken' : 'border-b-border-subtle border-l-transparent bg-transparent'"
-                (click)="selectPage(p.id)"
-              >
-                <span>
-                  <span class="block text-[14.5px] font-semibold text-text-strong">{{ p.label }}</span>
-                  <span class="block font-mono text-xs text-text-faint">{{ p.route }}</span>
-                </span>
-                @if (!p.editable) {
-                  <app-badge tone="neutral">info</app-badge>
-                }
-              </button>
-            }
+          <div class="mt-6 flex justify-end border-t border-border-subtle pt-5">
+            <app-button
+              variant="primary"
+              [disabled]="saving()"
+              (clicked)="saveLoaderConfig()"
+              [appAccessAction]="'update'"
+              >{{ saving() ? 'Guardando...' : 'Guardar' }}</app-button
+            >
           </div>
         </app-card>
+      } @else if (tab() === 'animacion') {
+        <!-- Home hero background animation manager -->
+        <app-card elevation="sm" class="block max-w-[560px]">
+          <h3 class="m-0 mb-1 font-display text-lg font-semibold text-text-strong">
+            Animación de inicio
+          </h3>
+          <p class="m-0 mb-5 text-sm text-text-muted">
+            Video de fondo que se muestra junto al texto del banner principal. Por defecto usa el
+            video de marca (claro/oscuro según el tema); puedes reemplazarlo con la URL de otro
+            video o desactivarlo.
+          </p>
 
-        <app-card elevation="sm">
-          @if (!selectedPage().editable) {
-            <h3 class="m-0 mb-1 font-display text-lg font-semibold text-text-strong">Inicio</h3>
-            <p class="m-0 text-sm text-text-muted">
-              El diseño de "Inicio" se edita desde la pestaña <strong class="text-text-strong">Secciones web → Portada</strong>, no aquí
-              — ese banner ya tiene su propio editor (video, texto, resaltado).
-            </p>
-          } @else {
-            <h3 class="m-0 mb-1 font-display text-lg font-semibold text-text-strong">{{ selectedPage().label }}</h3>
-            <p class="m-0 mb-5 text-sm text-text-muted">Encabezado, texto de apoyo y fondo del panel de esta página.</p>
+          <button
+            type="button"
+            class="mb-5 flex w-full cursor-pointer items-center justify-between rounded-md border border-border-subtle bg-surface-sunken px-4 py-3 text-left"
+            (click)="toggleHeroAnimationEnabled()"
+          >
+            <span class="text-sm font-semibold text-text-strong">{{
+              heroAnimationEnabled() ? 'Animación activa' : 'Animación oculta'
+            }}</span>
+            <span
+              class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-pill transition-colors duration-200 ease-out"
+              [class]="heroAnimationEnabled() ? 'bg-accent-primary' : 'bg-border-strong'"
+            >
+              <span
+                class="inline-block h-[18px] w-[18px] transform rounded-full bg-white transition-transform duration-200 ease-out"
+                [class]="heroAnimationEnabled() ? 'translate-x-[22px]' : 'translate-x-[3px]'"
+              ></span>
+            </span>
+          </button>
 
-            <div class="flex flex-col gap-4">
-              <app-input label="Título" [value]="pageHeading()" (valueChange)="pageHeading.set($event)" />
-              <app-textarea label="Descripción (opcional)" [rows]="2" [value]="pageDescription()" (valueChange)="pageDescription.set($event)" />
+          <app-input
+            label="URL del video (opcional)"
+            placeholder="https://.../mi-animacion.mp4"
+            [value]="heroAnimationVideoUrl()"
+            (valueChange)="setHeroAnimationVideoUrl($event)"
+          />
+          <p class="m-0 mt-2 text-xs text-text-faint">
+            Si lo dejas vacío, se usa el video de marca por defecto según el tema claro/oscuro.
+          </p>
 
-              <div class="border-t border-border-subtle pt-4">
-                <label class="mb-2.5 block text-sm font-semibold text-text-strong">Color de fondo</label>
+          <div class="mt-6 flex justify-end border-t border-border-subtle pt-5">
+            <app-button
+              variant="primary"
+              [disabled]="saving()"
+              (clicked)="saveHeroAnimation()"
+              [appAccessAction]="'update'"
+              >{{ saving() ? 'Guardando...' : 'Guardar' }}</app-button
+            >
+          </div>
+        </app-card>
+      } @else if (tab() === 'programas') {
+        <!-- Training programs (Capacitaciones cards) manager — real paginated backend collection -->
+        <div class="grid grid-cols-1 lg:grid-cols-[minmax(240px,320px)_1fr] items-start gap-5">
+          <app-card elevation="sm" padding="0">
+            <div
+              class="flex items-center justify-between border-b border-border-subtle px-[18px] py-4"
+            >
+              <span class="font-display text-base font-semibold text-text-strong">Programas</span>
+              <app-badge tone="neutral">{{ programItems().length }}</app-badge>
+            </div>
+            <div class="flex max-h-[440px] flex-col overflow-auto">
+              @for (p of programItems(); track p.id; let i = $index) {
+                <button type="button" [class]="programRowButtonClasses(i)" (click)="pickProgram(i)">
+                  @if (p.imageUrl) {
+                    <span
+                      class="h-[34px] w-[34px] shrink-0 rounded-sm border border-border-subtle bg-cover bg-center"
+                      [style.background-image]="'url(' + p.imageUrl + ')'"
+                    ></span>
+                  } @else {
+                    <span
+                      class="inline-flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-sm text-[15px]"
+                      [style.background]="(p.accentColor || '#FF6B35') + '22'"
+                      [style.color]="p.accentColor || '#FF6B35'"
+                      >◆</span
+                    >
+                  }
+                  <span class="min-w-0 text-left">
+                    <span class="block truncate text-[14.5px] font-semibold text-text-strong">{{
+                      p.title
+                    }}</span>
+                    <span class="block truncate text-[12.5px] text-text-muted"
+                      >{{ p.modality }} · {{ p.duration }}</span
+                    >
+                  </span>
+                </button>
+              }
+            </div>
+            <div class="p-3.5">
+              <app-button
+                variant="outline"
+                size="sm"
+                [fullWidth]="true"
+                (clicked)="addNewProgram()"
+                [appAccessAction]="'create'"
+                ><span slot="icon-left">+</span>Añadir programa</app-button
+              >
+            </div>
+          </app-card>
+
+          <app-card elevation="sm">
+            <div class="mb-5 flex items-center justify-between">
+              <h2 class="m-0 font-display text-[18px] font-semibold text-text-strong">
+                {{ programIsNew() ? 'Nuevo programa' : 'Editar programa' }}
+              </h2>
+              @if (!programIsNew()) {
+                <button
+                  type="button"
+                  class="cursor-pointer text-sm font-medium text-danger"
+                  (click)="deleteProgramDraft()"
+                  [appAccessAction]="'delete'"
+                >
+                  Eliminar
+                </button>
+              }
+            </div>
+
+            <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-4">
+              <div class="col-span-full">
+                <label class="mb-2.5 block text-sm font-semibold text-text-strong"
+                  >Imagen de vista previa</label
+                >
+                <div class="flex items-center gap-4">
+                  <div
+                    class="flex h-[72px] w-[120px] shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border-[1.5px] border-dashed border-border-default bg-surface-sunken bg-cover bg-center"
+                    [style.background-image]="
+                      programDraft().imageUrl ? 'url(' + programDraft().imageUrl + ')' : 'none'
+                    "
+                    (click)="programImageInput.click()"
+                  >
+                    @if (!programDraft().imageUrl) {
+                      <span class="text-xl text-brand-cyan">↑</span>
+                    }
+                  </div>
+                  <div class="flex gap-2">
+                    <app-button variant="outline" size="sm" (clicked)="programImageInput.click()">{{
+                      programDraft().imageUrl ? 'Cambiar' : 'Subir'
+                    }}</app-button>
+                    @if (programDraft().imageUrl) {
+                      <button
+                        type="button"
+                        class="cursor-pointer px-1 text-sm font-medium text-danger"
+                        (click)="clearProgramDraftImage()"
+                      >
+                        Quitar
+                      </button>
+                    }
+                  </div>
+                  <input
+                    #programImageInput
+                    [imageResetKey]="programSel()"
+                    type="file"
+                    accept="image/*"
+                    class="hidden"
+                    appImageFile
+                    (imageSelected)="onProgramDraftImageChange($event)"
+                    (imageError)="imageUploadError($event)"
+                  />
+                </div>
+              </div>
+
+              <app-input
+                label="Título"
+                [value]="programDraft().title ?? ''"
+                (valueChange)="setProgramDraftField('title', $event)"
+              />
+              <app-input
+                label="Modalidad"
+                placeholder="In-company"
+                [value]="programDraft().modality ?? ''"
+                (valueChange)="setProgramDraftField('modality', $event)"
+              />
+              <app-input
+                label="Duración"
+                placeholder="2 días"
+                [value]="programDraft().duration ?? ''"
+                (valueChange)="setProgramDraftField('duration', $event)"
+              />
+              <div class="col-span-full">
+                <app-textarea
+                  label="Descripción"
+                  [rows]="3"
+                  [value]="programDraft().description ?? ''"
+                  (valueChange)="setProgramDraftField('description', $event)"
+                />
+              </div>
+              <div class="col-span-full">
+                <label class="mb-2.5 block text-sm font-semibold text-text-strong"
+                  >Color de acento</label
+                >
                 <div class="flex flex-wrap gap-2.5">
-                  <button
-                    type="button"
-                    aria-label="Color por defecto (degradado de marca)"
-                    class="flex h-[34px] w-[34px] cursor-pointer items-center justify-center rounded-sm border-2 bg-[image:var(--gradient-ink)] transition-all duration-150 ease-out"
-                    [class]="!pageBackgroundColor() ? 'border-text-strong' : 'border-transparent'"
-                    (click)="setPageBackgroundColor('')"
-                  ></button>
                   @for (c of palette; track c) {
                     <button
                       type="button"
                       [attr.aria-label]="c"
                       class="h-[34px] w-[34px] cursor-pointer rounded-sm border-2 transition-all duration-150 ease-out"
-                      [class]="pageBackgroundColor() === c ? 'border-text-strong' : 'border-transparent'"
+                      [class]="
+                        programDraft().accentColor === c
+                          ? 'border-text-strong'
+                          : 'border-transparent'
+                      "
                       [style.background]="c"
-                      [style.box-shadow]="pageBackgroundColor() === c ? '0 0 0 3px ' + c + '44' : 'none'"
-                      (click)="setPageBackgroundColor(c)"
+                      [style.box-shadow]="
+                        programDraft().accentColor === c ? '0 0 0 3px ' + c + '44' : 'none'
+                      "
+                      (click)="setProgramDraftColor(c)"
                     ></button>
                   }
                 </div>
-                <p class="m-0 mt-2 text-xs text-text-faint">Si eliges una imagen de fondo, esta reemplaza al color.</p>
               </div>
+            </div>
 
-              <div>
-                <label class="mb-2.5 block text-sm font-semibold text-text-strong">Imagen de fondo (opcional)</label>
+            <div class="mt-6 flex justify-end gap-3 border-t border-border-subtle pt-5">
+              <app-button
+                variant="primary"
+                [disabled]="saving()"
+                (clicked)="saveProgramDraft()"
+                [appAccessAction]="programIsNew() ? 'create' : 'update'"
+                >{{ saving() ? 'Guardando...' : programIsNew() ? 'Crear' : 'Guardar cambios'
+                }}<span slot="icon-right">→</span></app-button
+              >
+            </div>
+          </app-card>
+        </div>
+      } @else if (tab() === 'cursos') {
+        <!-- Sellable courses manager — price + downloadable material (Drive/Dropbox links) -->
+        <div class="grid grid-cols-1 lg:grid-cols-[minmax(240px,320px)_1fr] items-start gap-5">
+          <app-card elevation="sm" padding="0">
+            <div
+              class="flex items-center justify-between border-b border-border-subtle px-[18px] py-4"
+            >
+              <span class="font-display text-base font-semibold text-text-strong">Cursos</span>
+              <app-badge tone="neutral">{{ courseItems().length }}</app-badge>
+            </div>
+            <div class="flex max-h-[440px] flex-col overflow-auto">
+              @for (c of courseItems(); track c.id; let i = $index) {
+                <button type="button" [class]="courseRowButtonClasses(i)" (click)="pickCourse(i)">
+                  @if (c.imageUrl) {
+                    <span
+                      class="h-[34px] w-[34px] shrink-0 rounded-sm border border-border-subtle bg-cover bg-center"
+                      [style.background-image]="'url(' + c.imageUrl + ')'"
+                    ></span>
+                  } @else {
+                    <span
+                      class="inline-flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-sm text-[15px]"
+                      [style.background]="(c.accentColor || '#FF6B35') + '22'"
+                      [style.color]="c.accentColor || '#FF6B35'"
+                      >{{ c.glyph }}</span
+                    >
+                  }
+                  <span class="min-w-0 text-left">
+                    <span class="block truncate text-[14.5px] font-semibold text-text-strong">{{
+                      c.title
+                    }}</span>
+                    <span class="block truncate text-[12.5px] text-text-muted"
+                      >S/ {{ c.price }} · {{ c.materials.length }} material(es)</span
+                    >
+                  </span>
+                </button>
+              }
+            </div>
+            <div class="p-3.5">
+              <app-button
+                variant="outline"
+                size="sm"
+                [fullWidth]="true"
+                (clicked)="addNewCourse()"
+                [appAccessAction]="'create'"
+                ><span slot="icon-left">+</span>Añadir curso</app-button
+              >
+            </div>
+          </app-card>
+
+          <app-card elevation="sm">
+            <div class="mb-5 flex items-center justify-between">
+              <h2 class="m-0 font-display text-[18px] font-semibold text-text-strong">
+                {{ courseIsNew() ? 'Nuevo curso' : 'Editar curso' }}
+              </h2>
+              @if (!courseIsNew()) {
+                <button
+                  type="button"
+                  class="cursor-pointer text-sm font-medium text-danger"
+                  (click)="deleteCourseDraft()"
+                  [appAccessAction]="'delete'"
+                >
+                  Eliminar
+                </button>
+              }
+            </div>
+
+            <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-4">
+              <div class="col-span-full">
+                <label class="mb-2.5 block text-sm font-semibold text-text-strong"
+                  >Imagen de vista previa</label
+                >
                 <div class="flex items-center gap-4">
                   <div
-                    class="flex h-[56px] w-[120px] shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border-[1.5px] border-dashed border-border-default bg-surface-sunken bg-cover bg-center"
-                    [style.background-image]="pageBackgroundImage() ? 'url(' + pageBackgroundImage() + ')' : 'none'"
-                    (click)="pageImageInput.click()"
+                    class="flex h-[72px] w-[120px] shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border-[1.5px] border-dashed border-border-default bg-surface-sunken bg-cover bg-center"
+                    [style.background-image]="
+                      courseDraft().imageUrl ? 'url(' + courseDraft().imageUrl + ')' : 'none'
+                    "
+                    (click)="courseImageInput.click()"
                   >
-                    @if (!pageBackgroundImage()) {
+                    @if (!courseDraft().imageUrl) {
                       <span class="text-xl text-brand-cyan">↑</span>
                     }
                   </div>
                   <div class="flex gap-2">
-                    <app-button variant="outline" size="sm" (clicked)="pageImageInput.click()">{{ pageBackgroundImage() ? 'Cambiar' : 'Subir' }}</app-button>
-                    @if (pageBackgroundImage()) {
-                      <button type="button" class="cursor-pointer px-1 text-sm font-medium text-danger" (click)="pageBackgroundImage.set('')">Quitar</button>
+                    <app-button variant="outline" size="sm" (clicked)="courseImageInput.click()">{{
+                      courseDraft().imageUrl ? 'Cambiar' : 'Subir'
+                    }}</app-button>
+                    @if (courseDraft().imageUrl) {
+                      <button
+                        type="button"
+                        class="cursor-pointer px-1 text-sm font-medium text-danger"
+                        (click)="clearCourseDraftImage()"
+                      >
+                        Quitar
+                      </button>
                     }
                   </div>
-                  <input #pageImageInput type="file" accept="image/*" class="hidden" (change)="onPageImageChange($event)" />
+                  <input
+                    #courseImageInput
+                    [imageResetKey]="courseSel()"
+                    type="file"
+                    accept="image/*"
+                    class="hidden"
+                    appImageFile
+                    (imageSelected)="onCourseDraftImageChange($event)"
+                    (imageError)="imageUploadError($event)"
+                  />
                 </div>
               </div>
-            </div>
 
-            <div class="mt-6 flex justify-end border-t border-border-subtle pt-5">
-              <app-button variant="primary" [disabled]="saving()" (clicked)="savePageDesign()" [appAccessAction]="'update'">{{ saving() ? 'Guardando...' : 'Guardar página' }}</app-button>
-            </div>
-          }
-        </app-card>
-      </div>
-    } @else if (tab() === 'carga') {
-      <!-- Loading screen manager -->
-      <app-card elevation="sm" class="block max-w-[560px]">
-        <h3 class="m-0 mb-1 font-display text-lg font-semibold text-text-strong">Pantalla de carga</h3>
-        <p class="m-0 mb-5 text-sm text-text-muted">
-          Por defecto el sitio solo muestra una barra de progreso delgada al navegar. Activa esta pantalla completa si prefieres
-          una animación de carga más vistosa en la primera visita.
-        </p>
-
-        <button
-          type="button"
-          class="mb-5 flex w-full cursor-pointer items-center justify-between rounded-md border border-border-subtle bg-surface-sunken px-4 py-3 text-left"
-          (click)="toggleLoaderEnabled()"
-        >
-          <span class="text-sm font-semibold text-text-strong">{{ loaderEnabled() ? 'Pantalla completa activa' : 'Solo barra de progreso' }}</span>
-          <span
-            class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-pill transition-colors duration-200 ease-out"
-            [class]="loaderEnabled() ? 'bg-accent-primary' : 'bg-border-strong'"
-          >
-            <span
-              class="inline-block h-[18px] w-[18px] transform rounded-full bg-white transition-transform duration-200 ease-out"
-              [class]="loaderEnabled() ? 'translate-x-[22px]' : 'translate-x-[3px]'"
-            ></span>
-          </span>
-        </button>
-
-        <div>
-          <label class="mb-2.5 block text-sm font-semibold text-text-strong">Color de la barra de progreso</label>
-          <div class="flex flex-wrap gap-2.5">
-            <button
-              type="button"
-              aria-label="Color por defecto (degradado de marca)"
-              class="flex h-[34px] w-[34px] cursor-pointer items-center justify-center rounded-sm border-2 bg-[image:var(--gradient-hud)] transition-all duration-150 ease-out"
-              [class]="!loaderColor() ? 'border-text-strong' : 'border-transparent'"
-              (click)="setLoaderColor('')"
-            ></button>
-            @for (c of palette; track c) {
-              <button
-                type="button"
-                [attr.aria-label]="c"
-                class="h-[34px] w-[34px] cursor-pointer rounded-sm border-2 transition-all duration-150 ease-out"
-                [class]="loaderColor() === c ? 'border-text-strong' : 'border-transparent'"
-                [style.background]="c"
-                [style.box-shadow]="loaderColor() === c ? '0 0 0 3px ' + c + '44' : 'none'"
-                (click)="setLoaderColor(c)"
-              ></button>
-            }
-          </div>
-        </div>
-
-        <div class="mt-6 flex justify-end border-t border-border-subtle pt-5">
-          <app-button variant="primary" [disabled]="saving()" (clicked)="saveLoaderConfig()" [appAccessAction]="'update'">{{ saving() ? 'Guardando...' : 'Guardar' }}</app-button>
-        </div>
-      </app-card>
-    } @else if (tab() === 'animacion') {
-      <!-- Home hero background animation manager -->
-      <app-card elevation="sm" class="block max-w-[560px]">
-        <h3 class="m-0 mb-1 font-display text-lg font-semibold text-text-strong">Animación de inicio</h3>
-        <p class="m-0 mb-5 text-sm text-text-muted">
-          Video de fondo que se muestra junto al texto del banner principal. Por defecto usa el video de marca (claro/oscuro
-          según el tema); puedes reemplazarlo con la URL de otro video o desactivarlo.
-        </p>
-
-        <button
-          type="button"
-          class="mb-5 flex w-full cursor-pointer items-center justify-between rounded-md border border-border-subtle bg-surface-sunken px-4 py-3 text-left"
-          (click)="toggleHeroAnimationEnabled()"
-        >
-          <span class="text-sm font-semibold text-text-strong">{{ heroAnimationEnabled() ? 'Animación activa' : 'Animación oculta' }}</span>
-          <span
-            class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-pill transition-colors duration-200 ease-out"
-            [class]="heroAnimationEnabled() ? 'bg-accent-primary' : 'bg-border-strong'"
-          >
-            <span
-              class="inline-block h-[18px] w-[18px] transform rounded-full bg-white transition-transform duration-200 ease-out"
-              [class]="heroAnimationEnabled() ? 'translate-x-[22px]' : 'translate-x-[3px]'"
-            ></span>
-          </span>
-        </button>
-
-        <app-input
-          label="URL del video (opcional)"
-          placeholder="https://.../mi-animacion.mp4"
-          [value]="heroAnimationVideoUrl()"
-          (valueChange)="setHeroAnimationVideoUrl($event)"
-        />
-        <p class="m-0 mt-2 text-xs text-text-faint">Si lo dejas vacío, se usa el video de marca por defecto según el tema claro/oscuro.</p>
-
-        <div class="mt-6 flex justify-end border-t border-border-subtle pt-5">
-          <app-button variant="primary" [disabled]="saving()" (clicked)="saveHeroAnimation()" [appAccessAction]="'update'">{{ saving() ? 'Guardando...' : 'Guardar' }}</app-button>
-        </div>
-      </app-card>
-    } @else if (tab() === 'programas') {
-      <!-- Training programs (Capacitaciones cards) manager — real paginated backend collection -->
-      <div class="grid grid-cols-1 lg:grid-cols-[minmax(240px,320px)_1fr] items-start gap-5">
-        <app-card elevation="sm" padding="0">
-          <div class="flex items-center justify-between border-b border-border-subtle px-[18px] py-4">
-            <span class="font-display text-base font-semibold text-text-strong">Programas</span>
-            <app-badge tone="neutral">{{ programItems().length }}</app-badge>
-          </div>
-          <div class="flex max-h-[440px] flex-col overflow-auto">
-            @for (p of programItems(); track p.id; let i = $index) {
-              <button type="button" [class]="programRowButtonClasses(i)" (click)="pickProgram(i)">
-                @if (p.imageUrl) {
-                  <span class="h-[34px] w-[34px] shrink-0 rounded-sm border border-border-subtle bg-cover bg-center" [style.background-image]="'url(' + p.imageUrl + ')'"></span>
-                } @else {
-                  <span class="inline-flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-sm text-[15px]" [style.background]="(p.accentColor || '#FF6B35') + '22'" [style.color]="p.accentColor || '#FF6B35'">◆</span>
-                }
-                <span class="min-w-0 text-left">
-                  <span class="block truncate text-[14.5px] font-semibold text-text-strong">{{ p.title }}</span>
-                  <span class="block truncate text-[12.5px] text-text-muted">{{ p.modality }} · {{ p.duration }}</span>
-                </span>
-              </button>
-            }
-          </div>
-          <div class="p-3.5">
-            <app-button variant="outline" size="sm" [fullWidth]="true" (clicked)="addNewProgram()" [appAccessAction]="'create'"><span slot="icon-left">+</span>Añadir programa</app-button>
-          </div>
-        </app-card>
-
-        <app-card elevation="sm">
-          <div class="mb-5 flex items-center justify-between">
-            <h2 class="m-0 font-display text-[18px] font-semibold text-text-strong">{{ programIsNew() ? 'Nuevo programa' : 'Editar programa' }}</h2>
-            @if (!programIsNew()) {
-              <button type="button" class="cursor-pointer text-sm font-medium text-danger" (click)="deleteProgramDraft()" [appAccessAction]="'delete'">Eliminar</button>
-            }
-          </div>
-
-          <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-4">
-            <div class="col-span-full">
-              <label class="mb-2.5 block text-sm font-semibold text-text-strong">Imagen de vista previa</label>
-              <div class="flex items-center gap-4">
-                <div
-                  class="flex h-[72px] w-[120px] shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border-[1.5px] border-dashed border-border-default bg-surface-sunken bg-cover bg-center"
-                  [style.background-image]="programDraft().imageUrl ? 'url(' + programDraft().imageUrl + ')' : 'none'"
-                  (click)="programImageInput.click()"
-                >
-                  @if (!programDraft().imageUrl) {
-                    <span class="text-xl text-brand-cyan">↑</span>
-                  }
-                </div>
-                <div class="flex gap-2">
-                  <app-button variant="outline" size="sm" (clicked)="programImageInput.click()">{{ programDraft().imageUrl ? 'Cambiar' : 'Subir' }}</app-button>
-                  @if (programDraft().imageUrl) {
-                    <button type="button" class="cursor-pointer px-1 text-sm font-medium text-danger" (click)="clearProgramDraftImage()">Quitar</button>
-                  }
-                </div>
-                <input #programImageInput type="file" accept="image/*" class="hidden" (change)="onProgramDraftImageChange($event)" />
-              </div>
-            </div>
-
-            <app-input label="Título" [value]="programDraft().title ?? ''" (valueChange)="setProgramDraftField('title', $event)" />
-            <app-input label="Modalidad" placeholder="In-company" [value]="programDraft().modality ?? ''" (valueChange)="setProgramDraftField('modality', $event)" />
-            <app-input label="Duración" placeholder="2 días" [value]="programDraft().duration ?? ''" (valueChange)="setProgramDraftField('duration', $event)" />
-            <div class="col-span-full">
-              <app-textarea label="Descripción" [rows]="3" [value]="programDraft().description ?? ''" (valueChange)="setProgramDraftField('description', $event)" />
-            </div>
-            <div class="col-span-full">
-              <label class="mb-2.5 block text-sm font-semibold text-text-strong">Color de acento</label>
-              <div class="flex flex-wrap gap-2.5">
-                @for (c of palette; track c) {
-                  <button
-                    type="button"
-                    [attr.aria-label]="c"
-                    class="h-[34px] w-[34px] cursor-pointer rounded-sm border-2 transition-all duration-150 ease-out"
-                    [class]="programDraft().accentColor === c ? 'border-text-strong' : 'border-transparent'"
-                    [style.background]="c"
-                    [style.box-shadow]="programDraft().accentColor === c ? '0 0 0 3px ' + c + '44' : 'none'"
-                    (click)="setProgramDraftColor(c)"
-                  ></button>
-                }
-              </div>
-            </div>
-          </div>
-
-          <div class="mt-6 flex justify-end gap-3 border-t border-border-subtle pt-5">
-            <app-button variant="primary" [disabled]="saving()" (clicked)="saveProgramDraft()"
-               [appAccessAction]="programIsNew() ? 'create' : 'update'">{{ saving() ? 'Guardando...' : programIsNew() ? 'Crear' : 'Guardar cambios' }}<span slot="icon-right">→</span></app-button
-            >
-          </div>
-        </app-card>
-      </div>
-    } @else if (tab() === 'cursos') {
-      <!-- Sellable courses manager — price + downloadable material (Drive/Dropbox links) -->
-      <div class="grid grid-cols-1 lg:grid-cols-[minmax(240px,320px)_1fr] items-start gap-5">
-        <app-card elevation="sm" padding="0">
-          <div class="flex items-center justify-between border-b border-border-subtle px-[18px] py-4">
-            <span class="font-display text-base font-semibold text-text-strong">Cursos</span>
-            <app-badge tone="neutral">{{ courseItems().length }}</app-badge>
-          </div>
-          <div class="flex max-h-[440px] flex-col overflow-auto">
-            @for (c of courseItems(); track c.id; let i = $index) {
-              <button type="button" [class]="courseRowButtonClasses(i)" (click)="pickCourse(i)">
-                @if (c.imageUrl) {
-                  <span class="h-[34px] w-[34px] shrink-0 rounded-sm border border-border-subtle bg-cover bg-center" [style.background-image]="'url(' + c.imageUrl + ')'"></span>
-                } @else {
-                  <span class="inline-flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-sm text-[15px]" [style.background]="(c.accentColor || '#FF6B35') + '22'" [style.color]="c.accentColor || '#FF6B35'">{{ c.glyph }}</span>
-                }
-                <span class="min-w-0 text-left">
-                  <span class="block truncate text-[14.5px] font-semibold text-text-strong">{{ c.title }}</span>
-                  <span class="block truncate text-[12.5px] text-text-muted">S/ {{ c.price }} · {{ c.materials.length }} material(es)</span>
-                </span>
-              </button>
-            }
-          </div>
-          <div class="p-3.5">
-            <app-button variant="outline" size="sm" [fullWidth]="true" (clicked)="addNewCourse()" [appAccessAction]="'create'"><span slot="icon-left">+</span>Añadir curso</app-button>
-          </div>
-        </app-card>
-
-        <app-card elevation="sm">
-          <div class="mb-5 flex items-center justify-between">
-            <h2 class="m-0 font-display text-[18px] font-semibold text-text-strong">{{ courseIsNew() ? 'Nuevo curso' : 'Editar curso' }}</h2>
-            @if (!courseIsNew()) {
-              <button type="button" class="cursor-pointer text-sm font-medium text-danger" (click)="deleteCourseDraft()" [appAccessAction]="'delete'">Eliminar</button>
-            }
-          </div>
-
-          <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-4">
-            <div class="col-span-full">
-              <label class="mb-2.5 block text-sm font-semibold text-text-strong">Imagen de vista previa</label>
-              <div class="flex items-center gap-4">
-                <div
-                  class="flex h-[72px] w-[120px] shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border-[1.5px] border-dashed border-border-default bg-surface-sunken bg-cover bg-center"
-                  [style.background-image]="courseDraft().imageUrl ? 'url(' + courseDraft().imageUrl + ')' : 'none'"
-                  (click)="courseImageInput.click()"
-                >
-                  @if (!courseDraft().imageUrl) {
-                    <span class="text-xl text-brand-cyan">↑</span>
-                  }
-                </div>
-                <div class="flex gap-2">
-                  <app-button variant="outline" size="sm" (clicked)="courseImageInput.click()">{{ courseDraft().imageUrl ? 'Cambiar' : 'Subir' }}</app-button>
-                  @if (courseDraft().imageUrl) {
-                    <button type="button" class="cursor-pointer px-1 text-sm font-medium text-danger" (click)="clearCourseDraftImage()">Quitar</button>
-                  }
-                </div>
-                <input #courseImageInput type="file" accept="image/*" class="hidden" (change)="onCourseDraftImageChange($event)" />
-              </div>
-            </div>
-
-            <app-input label="Título" [value]="courseDraft().title ?? ''" (valueChange)="setCourseDraftField('title', $event)" />
-            <app-input label="Precio (S/)" type="number" placeholder="199" [value]="(courseDraft().price ?? 0).toString()" (valueChange)="setCourseDraftPrice($event)" />
-            <div class="col-span-full">
-              <app-textarea label="Descripción" [rows]="3" [value]="courseDraft().description ?? ''" (valueChange)="setCourseDraftField('description', $event)" />
-            </div>
-            <div class="col-span-full">
-              <label class="mb-2.5 block text-sm font-semibold text-text-strong">Ícono</label>
-              <div class="flex flex-wrap gap-2">
-                @for (g of glyphs; track g) {
-                  <button
-                    type="button"
-                    class="h-10 w-10 cursor-pointer rounded-md border-[1.5px] text-lg transition-all duration-150 ease-out"
-                    [class]="courseDraft().glyph === g ? 'border-brand-orange bg-[rgba(255,107,53,0.08)] text-brand-orange' : 'border-border-subtle bg-surface-sunken text-text-muted'"
-                    (click)="setCourseDraftGlyph(g)"
-                  >{{ g }}</button>
-                }
-              </div>
-            </div>
-            <div class="col-span-full">
-              <label class="mb-2.5 block text-sm font-semibold text-text-strong">Color de acento</label>
-              <div class="flex flex-wrap gap-2.5">
-                @for (c of palette; track c) {
-                  <button
-                    type="button"
-                    [attr.aria-label]="c"
-                    class="h-[34px] w-[34px] cursor-pointer rounded-sm border-2 transition-all duration-150 ease-out"
-                    [class]="courseDraft().accentColor === c ? 'border-text-strong' : 'border-transparent'"
-                    [style.background]="c"
-                    [style.box-shadow]="courseDraft().accentColor === c ? '0 0 0 3px ' + c + '44' : 'none'"
-                    (click)="setCourseDraftColor(c)"
-                  ></button>
-                }
-              </div>
-            </div>
-
-            <div class="col-span-full border-t border-border-subtle pt-4">
-              <div class="mb-3 flex items-center justify-between">
-                <label class="block text-sm font-semibold text-text-strong">Material (videos, PDFs, archivos)</label>
-                <app-button variant="outline" size="sm" (clicked)="addMaterialRow()"><span slot="icon-left">+</span>Añadir material</app-button>
-              </div>
-              @if ((courseDraft().materials ?? []).length === 0) {
-                <p class="m-0 text-sm text-text-muted">Aún no agregaste material. Añade enlaces a Drive, Dropbox o cualquier URL.</p>
-              }
-              <div class="flex flex-col gap-3">
-                @for (m of courseDraft().materials ?? []; track $index; let i = $index) {
-                  <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,160px),1fr))_auto] items-end gap-3 rounded-md border border-border-subtle p-3">
-                    <app-input label="Título" placeholder="Clase 1 - Introducción" [value]="m.title" (valueChange)="setMaterialField(i, 'title', $event)" />
-                    <app-select label="Tipo" [options]="[{value:'video',label:'Video'},{value:'pdf',label:'PDF'},{value:'archivo',label:'Archivo'}]" [value]="m.type" (valueChange)="setMaterialField(i, 'type', $event)" />
-                    <app-input label="URL" placeholder="https://drive.google.com/..." [value]="m.url" (valueChange)="setMaterialField(i, 'url', $event)" />
-                    <button type="button" class="h-10 cursor-pointer whitespace-nowrap px-2 text-sm font-medium text-danger" (click)="removeMaterialRow(i)">Quitar</button>
-                  </div>
-                }
-              </div>
-            </div>
-
-            <div class="col-span-full border-t border-border-subtle pt-4">
-              <div class="mb-3 flex items-center justify-between">
-                <label class="block text-sm font-semibold text-text-strong">Temario</label>
-                <app-button variant="outline" size="sm" (clicked)="addSyllabusRow()"><span slot="icon-left">+</span>Añadir módulo</app-button>
-              </div>
-              @if ((courseDraft().syllabus ?? []).length === 0) {
-                <p class="m-0 text-sm text-text-muted">Aún no agregaste el temario del curso.</p>
-              }
-              <div class="flex flex-col gap-3">
-                @for (s of courseDraft().syllabus ?? []; track $index; let i = $index) {
-                  <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))_auto] items-end gap-3 rounded-md border border-border-subtle p-3">
-                    <app-input label="Título del módulo" placeholder="Módulo 1 - Introducción" [value]="s.title" (valueChange)="setSyllabusField(i, 'title', $event)" />
-                    <app-input label="Descripción" placeholder="Qué se aprende en este módulo" [value]="s.description" (valueChange)="setSyllabusField(i, 'description', $event)" />
-                    <button type="button" class="h-10 cursor-pointer whitespace-nowrap px-2 text-sm font-medium text-danger" (click)="removeSyllabusRow(i)">Quitar</button>
-                  </div>
-                }
-              </div>
-            </div>
-
-            <div class="col-span-full border-t border-border-subtle pt-4">
-              <div class="mb-3 flex items-center justify-between">
-                <label class="block text-sm font-semibold text-text-strong">Reseñas</label>
-                <app-button variant="outline" size="sm" (clicked)="addReviewRow()"><span slot="icon-left">+</span>Añadir reseña</app-button>
-              </div>
-              @if ((courseDraft().reviews ?? []).length === 0) {
-                <p class="m-0 text-sm text-text-muted">Aún no agregaste reseñas de este curso.</p>
-              }
-              <div class="flex flex-col gap-3">
-                @for (r of courseDraft().reviews ?? []; track $index; let i = $index) {
-                  <div class="rounded-md border border-border-subtle p-3">
-                    <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,160px),1fr))_auto] items-end gap-3">
-                      <app-input label="Nombre" placeholder="María Fernández" [value]="r.authorName" (valueChange)="setReviewField(i, 'authorName', $event)" />
-                      <app-select label="Calificación" [options]="[{value:'5',label:'5 estrellas'},{value:'4',label:'4 estrellas'},{value:'3',label:'3 estrellas'},{value:'2',label:'2 estrellas'},{value:'1',label:'1 estrella'}]" [value]="r.rating.toString()" (valueChange)="setReviewRating(i, +$event)" />
-                      <button type="button" class="h-10 cursor-pointer whitespace-nowrap px-2 text-sm font-medium text-danger" (click)="removeReviewRow(i)">Quitar</button>
-                    </div>
-                    <div class="mt-3">
-                      <app-textarea label="Comentario" [rows]="2" [value]="r.body" (valueChange)="setReviewField(i, 'body', $event)" />
-                    </div>
-                  </div>
-                }
-              </div>
-            </div>
-          </div>
-
-          <div class="mt-6 flex justify-end gap-3 border-t border-border-subtle pt-5">
-            <app-button variant="primary" [disabled]="saving()" (clicked)="saveCourseDraft()"
-               [appAccessAction]="courseIsNew() ? 'create' : 'update'">{{ saving() ? 'Guardando...' : courseIsNew() ? 'Crear' : 'Guardar cambios' }}<span slot="icon-right">→</span></app-button
-            >
-          </div>
-        </app-card>
-      </div>
-    } @else if (tab() === 'header') {
-      <!-- Header manager -->
-      <app-card elevation="sm" class="block max-w-[720px]">
-        <h3 class="m-0 mb-1 font-display text-lg font-semibold text-text-strong">Navegación del header</h3>
-        <p class="m-0 mb-5 text-sm text-text-muted">
-          Enlaces del menú principal y texto del botón de acción. "Inicio" y "Servicios" (con su desplegable de Asesorías / Capacitaciones) son fijos y no se editan aquí.
-          Marca un ítem como "Botón" para que se muestre junto al CTA en vez de en el menú.
-        </p>
-        <div class="flex flex-col gap-3">
-          @for (l of headerLinks(); track $index; let i = $index) {
-            <div class="flex items-end gap-3">
-              <div class="flex-1">
-                <app-input [label]="i === 0 ? 'Etiqueta' : undefined" [value]="l.label" (valueChange)="setHeaderLink(i, 'label', $event)" />
-              </div>
-              <div class="flex-1">
-                <app-input [label]="i === 0 ? 'Destino (href)' : undefined" [value]="l.href" (valueChange)="setHeaderLink(i, 'href', $event)" />
-              </div>
-              <div class="w-[170px] shrink-0">
-                <app-select
-                  [label]="i === 0 ? 'Tipo' : undefined"
-                  [options]="headerLinkVariantOptions"
-                  [value]="headerLinkVariantLabel(l.variant)"
-                  (valueChange)="setHeaderLinkVariant(i, $event)"
+              <app-input
+                label="Título"
+                [value]="courseDraft().title ?? ''"
+                (valueChange)="setCourseDraftField('title', $event)"
+              />
+              <app-input
+                label="Precio (S/)"
+                type="number"
+                placeholder="199"
+                [value]="(courseDraft().price ?? 0).toString()"
+                (valueChange)="setCourseDraftPrice($event)"
+              />
+              <div class="col-span-full">
+                <app-textarea
+                  label="Descripción"
+                  [rows]="3"
+                  [value]="courseDraft().description ?? ''"
+                  (valueChange)="setCourseDraftField('description', $event)"
                 />
               </div>
-              <button type="button" class="cursor-pointer pb-3 text-sm font-medium text-danger" (click)="removeHeaderLink(i)" [appAccessAction]="'update'">Quitar</button>
-            </div>
-          }
-        </div>
-        <div class="mt-3.5">
-          <app-button variant="outline" size="sm" (clicked)="addHeaderLink()" [appAccessAction]="'update'"><span slot="icon-left">+</span>Añadir enlace</app-button>
-        </div>
-        <div class="mt-5 max-w-[320px] border-t border-border-subtle pt-5">
-          <app-input label="Texto del botón (CTA)" [value]="headerCta()" (valueChange)="headerCta.set($event)" />
-        </div>
-        <div class="mt-6 flex justify-end">
-          <app-button variant="primary" [disabled]="saving()" (clicked)="saveHeader()" [appAccessAction]="'update'">{{ saving() ? 'Guardando...' : 'Guardar header' }}</app-button>
-        </div>
-      </app-card>
-    } @else if (tab() === 'footer') {
-      <!-- Footer manager -->
-      <app-card elevation="sm" class="block max-w-[860px]">
-        <h3 class="m-0 mb-1 font-display text-lg font-semibold text-text-strong">Pie de página (footer)</h3>
-        <p class="m-0 mb-5 text-sm text-text-muted">Texto de marca, datos de contacto y columnas de enlaces.</p>
-        <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))] gap-4">
-          <div class="col-span-full">
-            <app-textarea label="Texto de marca" [rows]="2" [value]="footerAbout()" (valueChange)="footerAbout.set($event)" />
-          </div>
-          <app-input label="Email de contacto" [value]="footerEmail()" (valueChange)="footerEmail.set($event)" />
-          <app-input label="Teléfono" [value]="footerPhone()" (valueChange)="footerPhone.set($event)" />
-        </div>
+              <div class="col-span-full">
+                <label class="mb-2.5 block text-sm font-semibold text-text-strong">Ícono</label>
+                <div class="flex flex-wrap gap-2">
+                  @for (g of glyphs; track g) {
+                    <button
+                      type="button"
+                      class="h-10 w-10 cursor-pointer rounded-md border-[1.5px] text-lg transition-all duration-150 ease-out"
+                      [class]="
+                        courseDraft().glyph === g
+                          ? 'border-brand-orange bg-[rgba(255,107,53,0.08)] text-brand-orange'
+                          : 'border-border-subtle bg-surface-sunken text-text-muted'
+                      "
+                      (click)="setCourseDraftGlyph(g)"
+                    >
+                      {{ g }}
+                    </button>
+                  }
+                </div>
+              </div>
+              <div class="col-span-full">
+                <label class="mb-2.5 block text-sm font-semibold text-text-strong"
+                  >Color de acento</label
+                >
+                <div class="flex flex-wrap gap-2.5">
+                  @for (c of palette; track c) {
+                    <button
+                      type="button"
+                      [attr.aria-label]="c"
+                      class="h-[34px] w-[34px] cursor-pointer rounded-sm border-2 transition-all duration-150 ease-out"
+                      [class]="
+                        courseDraft().accentColor === c
+                          ? 'border-text-strong'
+                          : 'border-transparent'
+                      "
+                      [style.background]="c"
+                      [style.box-shadow]="
+                        courseDraft().accentColor === c ? '0 0 0 3px ' + c + '44' : 'none'
+                      "
+                      (click)="setCourseDraftColor(c)"
+                    ></button>
+                  }
+                </div>
+              </div>
 
-        <div class="mt-6 mb-2 text-sm font-semibold text-text-strong">Columnas de enlaces</div>
-        <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-4">
-          @for (c of footerColumns(); track $index; let i = $index) {
-            <div class="rounded-md border border-border-subtle bg-surface-sunken p-4">
-              <div class="mb-2.5">
-                <app-input [value]="c.title" (valueChange)="setFooterColumn(i, 'title', $event)" />
+              <div class="col-span-full border-t border-border-subtle pt-4">
+                <div class="mb-3 flex items-center justify-between">
+                  <label class="block text-sm font-semibold text-text-strong"
+                    >Material (videos, PDFs, archivos)</label
+                  >
+                  <app-button variant="outline" size="sm" (clicked)="addMaterialRow()"
+                    ><span slot="icon-left">+</span>Añadir material</app-button
+                  >
+                </div>
+                @if ((courseDraft().materials ?? []).length === 0) {
+                  <p class="m-0 text-sm text-text-muted">
+                    Aún no agregaste material. Añade enlaces a Drive, Dropbox o cualquier URL.
+                  </p>
+                }
+                <div class="flex flex-col gap-3">
+                  @for (m of courseDraft().materials ?? []; track $index; let i = $index) {
+                    <div
+                      class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,160px),1fr))_auto] items-end gap-3 rounded-md border border-border-subtle p-3"
+                    >
+                      <app-input
+                        label="Título"
+                        placeholder="Clase 1 - Introducción"
+                        [value]="m.title"
+                        (valueChange)="setMaterialField(i, 'title', $event)"
+                      />
+                      <app-select
+                        label="Tipo"
+                        [options]="[
+                          { value: 'video', label: 'Video' },
+                          { value: 'pdf', label: 'PDF' },
+                          { value: 'archivo', label: 'Archivo' },
+                        ]"
+                        [value]="m.type"
+                        (valueChange)="setMaterialField(i, 'type', $event)"
+                      />
+                      <app-input
+                        label="URL"
+                        placeholder="https://drive.google.com/..."
+                        [value]="m.url"
+                        (valueChange)="setMaterialField(i, 'url', $event)"
+                      />
+                      <button
+                        type="button"
+                        class="h-10 cursor-pointer whitespace-nowrap px-2 text-sm font-medium text-danger"
+                        (click)="removeMaterialRow(i)"
+                      >
+                        Quitar
+                      </button>
+                    </div>
+                  }
+                </div>
               </div>
-              <app-textarea label="Enlaces (uno por línea)" [rows]="3" [value]="c.links" (valueChange)="setFooterColumn(i, 'links', $event)" />
-              <div class="mt-2 text-right">
-                <button type="button" class="cursor-pointer text-sm font-medium text-danger" (click)="removeFooterColumn(i)" [appAccessAction]="'update'">Quitar columna</button>
+
+              <div class="col-span-full border-t border-border-subtle pt-4">
+                <div class="mb-3 flex items-center justify-between">
+                  <label class="block text-sm font-semibold text-text-strong">Temario</label>
+                  <app-button variant="outline" size="sm" (clicked)="addSyllabusRow()"
+                    ><span slot="icon-left">+</span>Añadir módulo</app-button
+                  >
+                </div>
+                @if ((courseDraft().syllabus ?? []).length === 0) {
+                  <p class="m-0 text-sm text-text-muted">Aún no agregaste el temario del curso.</p>
+                }
+                <div class="flex flex-col gap-3">
+                  @for (s of courseDraft().syllabus ?? []; track $index; let i = $index) {
+                    <div
+                      class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))_auto] items-end gap-3 rounded-md border border-border-subtle p-3"
+                    >
+                      <app-input
+                        label="Título del módulo"
+                        placeholder="Módulo 1 - Introducción"
+                        [value]="s.title"
+                        (valueChange)="setSyllabusField(i, 'title', $event)"
+                      />
+                      <app-input
+                        label="Descripción"
+                        placeholder="Qué se aprende en este módulo"
+                        [value]="s.description"
+                        (valueChange)="setSyllabusField(i, 'description', $event)"
+                      />
+                      <button
+                        type="button"
+                        class="h-10 cursor-pointer whitespace-nowrap px-2 text-sm font-medium text-danger"
+                        (click)="removeSyllabusRow(i)"
+                      >
+                        Quitar
+                      </button>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <div class="col-span-full border-t border-border-subtle pt-4">
+                <div class="mb-3 flex items-center justify-between">
+                  <label class="block text-sm font-semibold text-text-strong">Reseñas</label>
+                  <app-button variant="outline" size="sm" (clicked)="addReviewRow()"
+                    ><span slot="icon-left">+</span>Añadir reseña</app-button
+                  >
+                </div>
+                @if ((courseDraft().reviews ?? []).length === 0) {
+                  <p class="m-0 text-sm text-text-muted">Aún no agregaste reseñas de este curso.</p>
+                }
+                <div class="flex flex-col gap-3">
+                  @for (r of courseDraft().reviews ?? []; track $index; let i = $index) {
+                    <div class="rounded-md border border-border-subtle p-3">
+                      <div
+                        class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,160px),1fr))_auto] items-end gap-3"
+                      >
+                        <app-input
+                          label="Nombre"
+                          placeholder="María Fernández"
+                          [value]="r.authorName"
+                          (valueChange)="setReviewField(i, 'authorName', $event)"
+                        />
+                        <app-select
+                          label="Calificación"
+                          [options]="[
+                            { value: '5', label: '5 estrellas' },
+                            { value: '4', label: '4 estrellas' },
+                            { value: '3', label: '3 estrellas' },
+                            { value: '2', label: '2 estrellas' },
+                            { value: '1', label: '1 estrella' },
+                          ]"
+                          [value]="r.rating.toString()"
+                          (valueChange)="setReviewRating(i, +$event)"
+                        />
+                        <button
+                          type="button"
+                          class="h-10 cursor-pointer whitespace-nowrap px-2 text-sm font-medium text-danger"
+                          (click)="removeReviewRow(i)"
+                        >
+                          Quitar
+                        </button>
+                      </div>
+                      <div class="mt-3">
+                        <app-textarea
+                          label="Comentario"
+                          [rows]="2"
+                          [value]="r.body"
+                          (valueChange)="setReviewField(i, 'body', $event)"
+                        />
+                      </div>
+                    </div>
+                  }
+                </div>
               </div>
             </div>
-          }
-        </div>
-        <div class="mt-3.5">
-          <app-button variant="outline" size="sm" (clicked)="addFooterColumn()" [appAccessAction]="'update'"><span slot="icon-left">+</span>Añadir columna</app-button>
-        </div>
-        <div class="mt-6 flex justify-end border-t border-border-subtle pt-5">
-          <app-button variant="primary" [disabled]="saving()" (clicked)="saveFooter()" [appAccessAction]="'update'">{{ saving() ? 'Guardando...' : 'Guardar footer' }}</app-button>
-        </div>
-      </app-card>
-    } @else if (currentEntity(); as def) {
-      <!-- Collection manager -->
-      <div class="grid grid-cols-1 lg:grid-cols-[minmax(240px,320px)_1fr] items-start gap-5">
-        <app-card elevation="sm" padding="0">
-          <div class="flex items-center justify-between border-b border-border-subtle px-[18px] py-4">
-            <span class="font-display text-base font-semibold text-text-strong">{{ def.title }}</span>
-            <app-badge tone="neutral">{{ items().length }}</app-badge>
-          </div>
-          <div class="flex max-h-[440px] flex-col overflow-auto">
-            @for (it of items(); track $index; let i = $index) {
-              <button type="button" [class]="rowButtonClasses(i)" (click)="pick(i)">
-                @if (rowImage(def, it)) {
-                  <span
-                    class="h-[34px] w-[34px] shrink-0 border border-border-subtle bg-cover bg-center"
-                    [class]="rowThumbShapeClass(def)"
-                    [style.background-image]="'url(' + rowImage(def, it) + ')'"
-                  ></span>
-                } @else {
-                  <span
-                    class="inline-flex h-[34px] w-[34px] shrink-0 items-center justify-center text-[15px]"
-                    [class]="rowThumbShapeClass(def)"
-                    [style.background]="rowColor(it) + '22'"
-                    [style.color]="rowColor(it)"
-                    >{{ rowGlyph(def, it) }}</span
-                  >
-                }
-                <span class="min-w-0 text-left">
-                  <span class="block truncate text-[14.5px] font-semibold text-text-strong">{{ def.rowTitle(it) }}</span>
-                  <span class="block truncate text-[12.5px] text-text-muted">{{ def.rowSub(it) }}</span>
-                </span>
-              </button>
-            }
-          </div>
-          @if (!def.fixed) {
-            <div class="p-3.5">
-              <app-button variant="outline" size="sm" [fullWidth]="true" (clicked)="addNew()"
-                 [appAccessAction]="'create'"><span slot="icon-left">+</span>Añadir {{ def.addLabel }}</app-button
+
+            <div class="mt-6 flex justify-end gap-3 border-t border-border-subtle pt-5">
+              <app-button
+                variant="primary"
+                [disabled]="saving()"
+                (clicked)="saveCourseDraft()"
+                [appAccessAction]="courseIsNew() ? 'create' : 'update'"
+                >{{ saving() ? 'Guardando...' : courseIsNew() ? 'Crear' : 'Guardar cambios'
+                }}<span slot="icon-right">→</span></app-button
               >
             </div>
-          }
-        </app-card>
-
-        <app-card elevation="sm">
-          <div class="mb-5 flex items-center justify-between">
-            <h2 class="m-0 font-display text-[18px] font-semibold text-text-strong">{{ isNew() ? 'Nuevo registro' : 'Editar registro' }}</h2>
-            @if (!isNew() && !def.fixed) {
-              <button type="button" class="cursor-pointer text-sm font-medium text-danger" (click)="deleteItem()" [appAccessAction]="'delete'">Eliminar</button>
-            }
-          </div>
-          <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-4">
-            @for (f of def.fields; track f.key) {
-              <div [class]="fieldColSpanClass(f)">
-                @switch (f.type) {
-                  @case ('text') {
-                    <app-input [label]="f.label" [placeholder]="f.placeholder ?? ''" [value]="draft()[f.key]" (valueChange)="setField(f.key, $event)" />
-                  }
-                  @case ('textarea') {
-                    <app-textarea
-                      [label]="f.label"
-                      [rows]="3"
-                      [placeholder]="f.placeholder ?? ''"
-                      [value]="draft()[f.key]"
-                      (valueChange)="setField(f.key, $event)"
-                    />
-                  }
-                  @case ('select') {
-                    <app-select [label]="f.label" [options]="f.options ?? []" [value]="draft()[f.key]" (valueChange)="setField(f.key, $event)" />
-                  }
-                  @case ('color') {
-                    <label class="mb-2.5 block text-sm font-semibold text-text-strong">{{ f.label }}</label>
-                    <div class="flex flex-wrap gap-2.5">
-                      @for (c of palette; track c) {
-                        <button
-                          type="button"
-                          [attr.aria-label]="c"
-                          class="h-[34px] w-[34px] cursor-pointer rounded-sm border-2 transition-all duration-150 ease-out"
-                          [class]="draft()[f.key] === c ? 'border-text-strong' : 'border-transparent'"
-                          [style.background]="c"
-                          [style.box-shadow]="draft()[f.key] === c ? '0 0 0 3px ' + c + '44' : 'none'"
-                          (click)="setField(f.key, c)"
-                        ></button>
-                      }
-                    </div>
-                  }
-                  @case ('glyph') {
-                    <label class="mb-2.5 block text-sm font-semibold text-text-strong">{{ f.label }}</label>
-                    <div class="flex flex-wrap gap-2">
-                      @for (g of glyphs; track g) {
-                        <button
-                          type="button"
-                          class="h-10 w-10 cursor-pointer rounded-md border-[1.5px] text-lg transition-all duration-150 ease-out"
-                          [class]="
-                            draft()[f.key] === g
-                              ? 'border-brand-orange bg-[rgba(255,107,53,0.08)] text-brand-orange'
-                              : 'border-border-subtle bg-surface-sunken text-text-muted'
-                          "
-                          (click)="setField(f.key, g)"
-                        >
-                          {{ g }}
-                        </button>
-                      }
-                    </div>
-                  }
-                  @case ('image') {
-                    <label class="mb-2.5 block text-sm font-semibold text-text-strong">{{ f.label }}</label>
-                    <div class="flex items-center gap-4">
-                      <div
-                        class="flex h-[72px] shrink-0 cursor-pointer items-center justify-center overflow-hidden border-[1.5px] border-dashed border-border-default bg-surface-sunken bg-cover bg-center"
-                        [class]="f.shape === 'circle' ? 'w-[72px] rounded-full' : 'w-[92px] rounded-md'"
-                        [style.background-image]="draft()[f.key] ? 'url(' + draft()[f.key] + ')' : 'none'"
-                        (click)="fileInput.click()"
-                      >
-                        @if (!draft()[f.key]) {
-                          <span class="text-xl text-brand-cyan">↑</span>
-                        }
-                      </div>
-                      <div class="min-w-0">
-                        <div class="flex gap-2">
-                          <app-button variant="outline" size="sm" (clicked)="fileInput.click()">{{ draft()[f.key] ? 'Cambiar' : 'Subir' }}</app-button>
-                          @if (draft()[f.key]) {
-                            <button type="button" class="cursor-pointer px-1 text-sm font-medium text-danger" (click)="setField(f.key, '')">Quitar</button>
-                          }
-                        </div>
-                        @if (f.hint) {
-                          <div class="mt-2 text-xs text-text-faint">{{ f.hint }}</div>
-                        }
-                      </div>
-                      <input #fileInput type="file" accept="image/*" class="hidden" (change)="onImageChange(f.key, $event)" />
-                    </div>
-                  }
-                }
+          </app-card>
+        </div>
+      } @else if (tab() === 'header') {
+        <!-- Header manager -->
+        <app-card elevation="sm" class="block max-w-[720px]">
+          <h3 class="m-0 mb-1 font-display text-lg font-semibold text-text-strong">
+            Navegación del header
+          </h3>
+          <p class="m-0 mb-5 text-sm text-text-muted">
+            Enlaces del menú principal y texto del botón de acción. "Inicio" y "Servicios" (con su
+            desplegable de Asesorías / Capacitaciones) son fijos y no se editan aquí. Marca un ítem
+            como "Botón" para que se muestre junto al CTA en vez de en el menú.
+          </p>
+          <div class="flex flex-col gap-3">
+            @for (l of headerLinks(); track $index; let i = $index) {
+              <div class="flex items-end gap-3">
+                <div class="flex-1">
+                  <app-input
+                    [label]="i === 0 ? 'Etiqueta' : undefined"
+                    [value]="l.label"
+                    (valueChange)="setHeaderLink(i, 'label', $event)"
+                  />
+                </div>
+                <div class="flex-1">
+                  <app-input
+                    [label]="i === 0 ? 'Destino (href)' : undefined"
+                    [value]="l.href"
+                    (valueChange)="setHeaderLink(i, 'href', $event)"
+                  />
+                </div>
+                <div class="w-[170px] shrink-0">
+                  <app-select
+                    [label]="i === 0 ? 'Tipo' : undefined"
+                    [options]="headerLinkVariantOptions"
+                    [value]="headerLinkVariantLabel(l.variant)"
+                    (valueChange)="setHeaderLinkVariant(i, $event)"
+                  />
+                </div>
+                <button
+                  type="button"
+                  class="cursor-pointer pb-3 text-sm font-medium text-danger"
+                  (click)="removeHeaderLink(i)"
+                  [appAccessAction]="'update'"
+                >
+                  Quitar
+                </button>
               </div>
             }
           </div>
-          <div class="mt-6 flex justify-end gap-3 border-t border-border-subtle pt-5">
-            <app-button variant="primary" [disabled]="saving()" (clicked)="save()"
-               [appAccessAction]="isNew() ? 'create' : 'update'">{{ saving() ? 'Guardando...' : isNew() ? 'Crear' : 'Guardar cambios' }}<span slot="icon-right">→</span></app-button
+          <div class="mt-3.5">
+            <app-button
+              variant="outline"
+              size="sm"
+              (clicked)="addHeaderLink()"
+              [appAccessAction]="'update'"
+              ><span slot="icon-left">+</span>Añadir enlace</app-button
+            >
+          </div>
+          <div class="mt-5 max-w-[320px] border-t border-border-subtle pt-5">
+            <app-input
+              label="Texto del botón (CTA)"
+              [value]="headerCta()"
+              (valueChange)="headerCta.set($event)"
+            />
+          </div>
+          <div class="mt-6 flex justify-end">
+            <app-button
+              variant="primary"
+              [disabled]="saving()"
+              (clicked)="saveHeader()"
+              [appAccessAction]="'update'"
+              >{{ saving() ? 'Guardando...' : 'Guardar header' }}</app-button
             >
           </div>
         </app-card>
-      </div>
-    }
-  </div>
-</div>
+      } @else if (tab() === 'footer') {
+        <!-- Footer manager -->
+        <app-card elevation="sm" class="block max-w-[860px]">
+          <h3 class="m-0 mb-1 font-display text-lg font-semibold text-text-strong">
+            Pie de página (footer)
+          </h3>
+          <p class="m-0 mb-5 text-sm text-text-muted">
+            Texto de marca, datos de contacto y columnas de enlaces.
+          </p>
+          <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))] gap-4">
+            <div class="col-span-full">
+              <app-textarea
+                label="Texto de marca"
+                [rows]="2"
+                [value]="footerAbout()"
+                (valueChange)="footerAbout.set($event)"
+              />
+            </div>
+            <app-input
+              label="Email de contacto"
+              [value]="footerEmail()"
+              (valueChange)="footerEmail.set($event)"
+            />
+            <app-input
+              label="Teléfono"
+              [value]="footerPhone()"
+              (valueChange)="footerPhone.set($event)"
+            />
+          </div>
 
+          <div class="mt-6 mb-2 text-sm font-semibold text-text-strong">Columnas de enlaces</div>
+          <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-4">
+            @for (c of footerColumns(); track $index; let i = $index) {
+              <div class="rounded-md border border-border-subtle bg-surface-sunken p-4">
+                <div class="mb-2.5">
+                  <app-input
+                    [value]="c.title"
+                    (valueChange)="setFooterColumn(i, 'title', $event)"
+                  />
+                </div>
+                <app-textarea
+                  label="Enlaces (uno por línea)"
+                  [rows]="3"
+                  [value]="c.links"
+                  (valueChange)="setFooterColumn(i, 'links', $event)"
+                />
+                <div class="mt-2 text-right">
+                  <button
+                    type="button"
+                    class="cursor-pointer text-sm font-medium text-danger"
+                    (click)="removeFooterColumn(i)"
+                    [appAccessAction]="'update'"
+                  >
+                    Quitar columna
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+          <div class="mt-3.5">
+            <app-button
+              variant="outline"
+              size="sm"
+              (clicked)="addFooterColumn()"
+              [appAccessAction]="'update'"
+              ><span slot="icon-left">+</span>Añadir columna</app-button
+            >
+          </div>
+          <div class="mt-6 flex justify-end border-t border-border-subtle pt-5">
+            <app-button
+              variant="primary"
+              [disabled]="saving()"
+              (clicked)="saveFooter()"
+              [appAccessAction]="'update'"
+              >{{ saving() ? 'Guardando...' : 'Guardar footer' }}</app-button
+            >
+          </div>
+        </app-card>
+      } @else if (currentEntity(); as def) {
+        <!-- Collection manager -->
+        <div class="grid grid-cols-1 lg:grid-cols-[minmax(240px,320px)_1fr] items-start gap-5">
+          <app-card elevation="sm" padding="0">
+            <div
+              class="flex items-center justify-between border-b border-border-subtle px-[18px] py-4"
+            >
+              <span class="font-display text-base font-semibold text-text-strong">{{
+                def.title
+              }}</span>
+              <app-badge tone="neutral">{{ items().length }}</app-badge>
+            </div>
+            <div class="flex max-h-[440px] flex-col overflow-auto">
+              @for (it of items(); track $index; let i = $index) {
+                <button type="button" [class]="rowButtonClasses(i)" (click)="pick(i)">
+                  @if (rowImage(def, it)) {
+                    <span
+                      class="h-[34px] w-[34px] shrink-0 border border-border-subtle bg-cover bg-center"
+                      [class]="rowThumbShapeClass(def)"
+                      [style.background-image]="'url(' + rowImage(def, it) + ')'"
+                    ></span>
+                  } @else {
+                    <span
+                      class="inline-flex h-[34px] w-[34px] shrink-0 items-center justify-center text-[15px]"
+                      [class]="rowThumbShapeClass(def)"
+                      [style.background]="rowColor(it) + '22'"
+                      [style.color]="rowColor(it)"
+                      >{{ rowGlyph(def, it) }}</span
+                    >
+                  }
+                  <span class="min-w-0 text-left">
+                    <span class="block truncate text-[14.5px] font-semibold text-text-strong">{{
+                      def.rowTitle(it)
+                    }}</span>
+                    <span class="block truncate text-[12.5px] text-text-muted">{{
+                      def.rowSub(it)
+                    }}</span>
+                  </span>
+                </button>
+              }
+            </div>
+            @if (!def.fixed) {
+              <div class="p-3.5">
+                <app-button
+                  variant="outline"
+                  size="sm"
+                  [fullWidth]="true"
+                  (clicked)="addNew()"
+                  [appAccessAction]="'create'"
+                  ><span slot="icon-left">+</span>Añadir {{ def.addLabel }}</app-button
+                >
+              </div>
+            }
+          </app-card>
+
+          <app-card elevation="sm">
+            <div class="mb-5 flex items-center justify-between">
+              <h2 class="m-0 font-display text-[18px] font-semibold text-text-strong">
+                {{ isNew() ? 'Nuevo registro' : 'Editar registro' }}
+              </h2>
+              @if (!isNew() && !def.fixed) {
+                <button
+                  type="button"
+                  class="cursor-pointer text-sm font-medium text-danger"
+                  (click)="deleteItem()"
+                  [appAccessAction]="'delete'"
+                >
+                  Eliminar
+                </button>
+              }
+            </div>
+            <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-4">
+              @for (f of def.fields; track f.key) {
+                <div [class]="fieldColSpanClass(f)">
+                  @switch (f.type) {
+                    @case ('text') {
+                      <app-input
+                        [label]="f.label"
+                        [placeholder]="f.placeholder ?? ''"
+                        [value]="draft()[f.key]"
+                        (valueChange)="setField(f.key, $event)"
+                      />
+                    }
+                    @case ('textarea') {
+                      <app-textarea
+                        [label]="f.label"
+                        [rows]="3"
+                        [placeholder]="f.placeholder ?? ''"
+                        [value]="draft()[f.key]"
+                        (valueChange)="setField(f.key, $event)"
+                      />
+                    }
+                    @case ('select') {
+                      <app-select
+                        [label]="f.label"
+                        [options]="f.options ?? []"
+                        [value]="draft()[f.key]"
+                        (valueChange)="setField(f.key, $event)"
+                      />
+                    }
+                    @case ('color') {
+                      <label class="mb-2.5 block text-sm font-semibold text-text-strong">{{
+                        f.label
+                      }}</label>
+                      <div class="flex flex-wrap gap-2.5">
+                        @for (c of palette; track c) {
+                          <button
+                            type="button"
+                            [attr.aria-label]="c"
+                            class="h-[34px] w-[34px] cursor-pointer rounded-sm border-2 transition-all duration-150 ease-out"
+                            [class]="
+                              draft()[f.key] === c ? 'border-text-strong' : 'border-transparent'
+                            "
+                            [style.background]="c"
+                            [style.box-shadow]="
+                              draft()[f.key] === c ? '0 0 0 3px ' + c + '44' : 'none'
+                            "
+                            (click)="setField(f.key, c)"
+                          ></button>
+                        }
+                      </div>
+                    }
+                    @case ('glyph') {
+                      <label class="mb-2.5 block text-sm font-semibold text-text-strong">{{
+                        f.label
+                      }}</label>
+                      <div class="flex flex-wrap gap-2">
+                        @for (g of glyphs; track g) {
+                          <button
+                            type="button"
+                            class="h-10 w-10 cursor-pointer rounded-md border-[1.5px] text-lg transition-all duration-150 ease-out"
+                            [class]="
+                              draft()[f.key] === g
+                                ? 'border-brand-orange bg-[rgba(255,107,53,0.08)] text-brand-orange'
+                                : 'border-border-subtle bg-surface-sunken text-text-muted'
+                            "
+                            (click)="setField(f.key, g)"
+                          >
+                            {{ g }}
+                          </button>
+                        }
+                      </div>
+                    }
+                    @case ('image') {
+                      <label class="mb-2.5 block text-sm font-semibold text-text-strong">{{
+                        f.label
+                      }}</label>
+                      <div class="flex items-center gap-4">
+                        <div
+                          class="flex h-[72px] shrink-0 cursor-pointer items-center justify-center overflow-hidden border-[1.5px] border-dashed border-border-default bg-surface-sunken bg-cover bg-center"
+                          [class]="
+                            f.shape === 'circle' ? 'w-[72px] rounded-full' : 'w-[92px] rounded-md'
+                          "
+                          [style.background-image]="
+                            draft()[f.key] ? 'url(' + draft()[f.key] + ')' : 'none'
+                          "
+                          (click)="fileInput.click()"
+                        >
+                          @if (!draft()[f.key]) {
+                            <span class="text-xl text-brand-cyan">↑</span>
+                          }
+                        </div>
+                        <div class="min-w-0">
+                          <div class="flex gap-2">
+                            <app-button variant="outline" size="sm" (clicked)="fileInput.click()">{{
+                              draft()[f.key] ? 'Cambiar' : 'Subir'
+                            }}</app-button>
+                            @if (draft()[f.key]) {
+                              <button
+                                type="button"
+                                class="cursor-pointer px-1 text-sm font-medium text-danger"
+                                (click)="setField(f.key, '')"
+                              >
+                                Quitar
+                              </button>
+                            }
+                          </div>
+                          @if (f.hint) {
+                            <div class="mt-2 text-xs text-text-faint">{{ f.hint }}</div>
+                          }
+                        </div>
+                        <input
+                          #fileInput
+                          [imageResetKey]="sel()"
+                          type="file"
+                          accept="image/*"
+                          class="hidden"
+                          appImageFile
+                          (imageSelected)="onImageChange(f.key, $event)"
+                          (imageError)="imageUploadError($event)"
+                        />
+                      </div>
+                    }
+                  }
+                </div>
+              }
+            </div>
+            <div class="mt-6 flex justify-end gap-3 border-t border-border-subtle pt-5">
+              <app-button
+                variant="primary"
+                [disabled]="saving()"
+                (clicked)="save()"
+                [appAccessAction]="isNew() ? 'create' : 'update'"
+                >{{ saving() ? 'Guardando...' : isNew() ? 'Crear' : 'Guardar cambios'
+                }}<span slot="icon-right">→</span></app-button
+              >
+            </div>
+          </app-card>
+        </div>
+      }
+    </div>
+  </div>
 </app-admin-shell>

@@ -1,8 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { PricingCard } from '../../../ui/marketing/pricing-card/pricing-card';
-import { CmsContentService } from '../../../core/cms-content.service';
-import { Reveal } from '../../../core/directives/reveal';
+import { CmsContentService } from '../../../core/cms/cms-content.service';
+import { Reveal } from '../../../ui/behaviors/reveal';
 
 @Component({
   selector: 'app-pricing-section',
@@ -21,6 +21,9 @@ export class PricingSection {
   }
 
   features(planFeatures: string): string[] {
-    return planFeatures.split('\n').map((feature) => feature.trim()).filter(Boolean);
+    return planFeatures
+      .split('\n')
+      .map((feature) => feature.trim())
+      .filter(Boolean);
   }
 }

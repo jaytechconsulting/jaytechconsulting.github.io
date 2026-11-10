@@ -22,13 +22,11 @@ Ubicaciones: `actions/button` y `data-display/icon`. El botón conserva sus vari
 
 El interceptor HTTP alimenta `LoadingService` mediante un contador que se libera al completar, fallar o cancelar una petición. La raíz muestra `app-nav-progress-bar` durante HTTP o navegación. El administrador bloquea sus controles mientras hay peticiones pendientes para impedir acciones duplicadas. Al entrar directamente al administrador se utiliza la barra, sin el loader de presentación de la marca.
 
-
 ## Botonera de módulo (`app-module-actions`)
 
 `actions/module-actions` proporciona Agregar, Ver, Editar y Eliminar/Inactivar. Se configura con `selected`, `busy`, `canCreate`, `canRemove` y `removeLabel`; emite las acciones al módulo. Sin selección, las acciones sobre un registro están deshabilitadas. La tabla usa selección única y la limpia al cambiar de consulta. Tickets solo ofrece Ver y Editar estado, porque la API actual no permite que un administrador cree o elimine tickets.
 
-En administración, la barra de progreso usa la variante `inset` y se sitúa en el borde inferior del topbar, desde el borde del contenido hasta la derecha. Los SVG originales de `public/brand/animated` ahora incluyen animaciones CSS y respetan movimiento reducido.
-
+La barra de progreso global se sitúa sobre el topbar y también informa durante la navegación. Los SVG originales de `public/brand/animated` ahora incluyen animaciones CSS y respetan movimiento reducido.
 
 ## Checkbox (`app-checkbox`) y movimiento de modales
 
@@ -36,21 +34,17 @@ En administración, la barra de progreso usa la variante `inset` y se sitúa en 
 
 `feedback/modal-motion.ts` proporciona la animación compartida de salida. Los editores y las confirmaciones mantienen su vista montada hasta terminarla. Cada apertura vuelve a ejecutar la entrada y todos los efectos respetan la preferencia de movimiento reducido. Los formularios de usuarios y de registros están centrados en la ventana.
 
-
 ## Campo numérico (`app-number-input`)
 
 `forms/number-input` usa un input numérico accesible sin los spinners del navegador. Ofrece controles propios de disminuir/aumentar, respeta `min`, `max`, `step`, `required` y `disabled`, y emite `valueChange` como cadena. Acepta `label`, `value` y `placeholder`. Conserva la validación y la navegación numérica nativas, incluidos los límites del formulario.
-
 
 ## Tablas en móvil
 
 Por debajo de 768px, la tabla comparte los mismos datos y selección con `app-admin-record-card`. La botonera usa `mobileIcon` para ocultar visualmente la descripción de cada acción y conservar su nombre accesible. Los filtros muestran las acciones junto a la búsqueda. El ordenamiento móvil ofrece columna y dirección, y el paginador compacto mantiene cantidad, conteo y anterior/siguiente, usando las mismas consultas paginadas del servidor.
 
-
 ## Módulos de contenido
 
-`pages/admin/admin-content/content-modules.ts` centraliza las nueve entradas de contenido del sidebar y sus rutas. Todas usan el editor existente con `contentSection` en los datos de ruta y conservan el guard de administrador. `/admin/contenido` redirige a `/admin/empresas`. El sidebar permite desplazarse sin ocultar las entradas inferiores.
-
+`pages/admin/admin-content/content-modules.ts` registra las vistas de contenido implementadas y sus rutas. Todas usan el editor existente con `contentSection` en los datos de ruta y conservan el guard de administrador. `/admin/contenido` redirige a `/admin/empresas`. El sidebar permite desplazarse sin ocultar las entradas inferiores.
 
 ## Indicador de contraseña (`app-password-strength`)
 
@@ -63,3 +57,7 @@ Por debajo de 768px, la tabla comparte los mismos datos y selección con `app-ad
 `ModuleActions` comprueba las acciones del recurso de la vista actual y `AccessAction` permite aplicar la misma regla a operaciones del CMS. Ambos ocultan acciones sin autorización; la API también las rechaza independientemente. La página Seguridad y accesos ofrece roles, permisos, menús, asignaciones por usuario y auditoría. El menú de usuario muestra los nombres de los roles recibidos del backend.
 
 Al redimensionar, el layout conserva dos columnas y anima el ancho reservado al sidebar hasta cero; el sidebar mantiene posicionamiento fijo y cambia su transformación/opacidad. El botón hamburguesa anima ancho, opacidad y escala sin depender de `display:none`. La preferencia de colapso de escritorio se conserva y el drawer móvil se cierra al volver al escritorio. El foco se traslada al control visible cuando hace falta y se respeta `prefers-reduced-motion`.
+
+## Arquitectura compartida
+
+Ver [arquitectura y patrones](../../../docs/frontend-architecture.md). Las directivas visuales viven en `ui/behaviors`: `ImageFile`, `Reveal`, `OverlayScroll` y `AccessAction`. Los servicios de archivos, transporte y consultas cancelables viven en `core/files` y `core/http`.
