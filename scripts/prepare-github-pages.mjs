@@ -29,10 +29,15 @@ const productionEnvironment = await readFile(
 );
 const apiUrl = productionEnvironment.match(/apiUrl:\s*['"]([^'"]+)['"]/)[1];
 const apiOrigin = new URL(apiUrl).origin;
-const withBuildId = index.replace(
-  '</head>',
-  `  <link rel="preconnect" href="${escapeAttribute(apiOrigin)}" crossorigin>\n  <meta name="build-id" content="${buildId}">\n</head>`,
-);
+const bootstrap = await readFile(resolve('public/cms-bootstrap.js'), 'utf8');
+// Inline the small bootstrap before styles and Angular so the API download starts
+// with HTML parsing, without another script download on the critical path.
+const withBuildId = index
+  .replace(/<meta name="public-site-endpoint" content="[^"]*"\s*\/?>/,
+    `<meta name="public-site-endpoint" content="${escapeAttribute(apiUrl.replace(/\/$/, '') + '/public-site')}">\n  <link rel="preconnect" href="${escapeAttribute(apiOrigin)}" crossorigin>`)
+  .replace(/<script src="\/cms-bootstrap.js"><\/script>/,
+    `<script>${bootstrap.replaceAll('</script', '<\\/script')}</script>`)
+  .replace('</head>', `  <meta name="build-id" content="${buildId}">\n</head>`);
 
 const siteUrl = 'https://eldronenlasopa.github.io';
 const defaultImage = `${siteUrl}/og-cover.jpg`;

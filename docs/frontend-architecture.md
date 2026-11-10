@@ -88,6 +88,7 @@ Todas las directivas visuales se agrupan en `ui/behaviors`. `AccessAction` solo 
 ```sh
 npm run check
 npm run test:ci
+node --test scripts/cms-bootstrap.test.mjs
 npm run build -- --configuration production
 ```
 
@@ -97,3 +98,7 @@ TypeScript comprueba declaraciones, parámetros e imports sin uso. Las pruebas H
 ## Conexión inicial de producción
 
 El postbuild agrega `preconnect` al origen de `environment.prod.ts` para anticipar DNS/TLS durante la descarga de Angular. El contenido público se revalida con ETag y no se persiste en localStorage para mostrar una versión antigua antes de la actual. Publicar el backend con `/api/public-site` antes del frontend que lo consume.
+
+`public/cms-bootstrap.js` inicia el GET público durante el análisis del HTML, con `credentials: omit`, revalidación y un límite de 15 segundos. En desarrollo se carga desde `src/index.html`; el postbuild lo incrusta al principio del HTML y sustituye el endpoint por el de producción para evitar una descarga adicional del script.
+
+`publicSiteBootstrapInterceptor` se ejecuta dentro del interceptor de autenticación/carga y entrega esa respuesta una sola vez al GET público marcado con `PUBLIC_READ`. Comprueba URL exacta y antigüedad; nunca reemplaza operaciones privadas. Las siguientes recargas y reintentos usan HTTP normalmente. Los errores anticipados se convierten a `HttpErrorResponse`; no se realiza un segundo intento automático ni se guarda contenido entre navegaciones.
