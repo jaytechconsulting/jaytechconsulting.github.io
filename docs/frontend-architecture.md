@@ -102,3 +102,11 @@ El postbuild agrega `preconnect` al origen de `environment.prod.ts` para anticip
 `public/cms-bootstrap.js` inicia el GET público durante el análisis del HTML, con `credentials: omit`, revalidación y un límite de 15 segundos. En desarrollo se carga desde `src/index.html`; el postbuild lo incrusta al principio del HTML y sustituye el endpoint por el de producción para evitar una descarga adicional del script.
 
 `publicSiteBootstrapInterceptor` se ejecuta dentro del interceptor de autenticación/carga y entrega esa respuesta una sola vez al GET público marcado con `PUBLIC_READ`. Comprueba URL exacta y antigüedad; nunca reemplaza operaciones privadas. Las siguientes recargas y reintentos usan HTTP normalmente. Los errores anticipados se convierten a `HttpErrorResponse`; no se realiza un segundo intento automático ni se guarda contenido entre navegaciones.
+
+## Medición con Tag Manager
+
+El contenedor activo es `GTM-PZBV2SLJ`, configurado en ambos entornos. Se carga solo al aceptar analítica. La integración directa con la propiedad GA4 anterior fue retirada para no enviar datos a un destino anterior ni duplicar la instalación.
+
+En el contenedor, configurar y publicar la etiqueta de Google con el ID de medición de la propiedad GA4 correcta. La aplicación emite `app_page_view` con `page_path` al iniciar la medición y al navegar: crear un activador de evento personalizado para este nombre y una etiqueta GA4 que envíe `page_view` con ese parámetro. Desactivar el envío automático de vistas iniciales y por historial si se usa este flujo para evitar duplicados. Respetar el consentimiento de analítica en las etiquetas; la publicidad permanece denegada. Las etiquetas HTML personalizadas requieren configurar sus comprobaciones de consentimiento.
+
+Verificar con Tag Assistant y Tiempo real de Analytics después de aceptar; rechazar no debe descargar el contenedor. La configuración y publicación del contenedor se realizan en Google Tag Manager, fuera del repositorio.

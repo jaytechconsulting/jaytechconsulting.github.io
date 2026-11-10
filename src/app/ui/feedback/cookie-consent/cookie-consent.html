@@ -1,0 +1,79 @@
+@if (!consent.choice() || consent.preferencesOpen()) {
+  <section
+    class="cookie-panel"
+    aria-labelledby="cookie-title"
+    aria-describedby="cookie-description"
+  >
+    <div class="cookie-copy">
+      <span class="cookie-symbol"><app-icon name="shield" /></span>
+      <div>
+        <span class="cookie-eyebrow">Tu privacidad, primero</span>
+        <h2 id="cookie-title">Tú eliges las cookies</h2>
+        <p id="cookie-description" class="cookie-intro">
+          Usamos cookies necesarias para que la web funcione y, si aceptas, Google Analytics para
+          mejorarla. Puedes aceptar, rechazar la analítica o personalizar tu elección.
+        </p>
+      </div>
+    </div>
+    <div class="cookie-actions">
+      @if (consent.preferencesOpen()) {
+        <app-button variant="outline" size="md" (clicked)="consent.save(analytics())"
+          >Guardar elección</app-button
+        >
+      } @else {
+        <app-button variant="ghost" size="md" (clicked)="customize()">Personalizar</app-button>
+      }
+      <app-button variant="outline" size="md" (clicked)="consent.save(false)">Rechazar</app-button>
+      <app-button variant="primary" size="md" (clicked)="consent.save(true)"
+        >Aceptar todas</app-button
+      >
+    </div>
+    @if (consent.preferencesOpen()) {
+      <div class="cookie-details">
+        <div class="cookie-category">
+          <div class="category-heading">
+            <span>Esenciales</span><span class="cookie-status"><span></span>Siempre activas</span>
+          </div>
+          <p>
+            Permiten iniciar sesión y proteger formularios. El almacenamiento local recuerda tu tema
+            y esta elección.
+          </p>
+        </div>
+        <div class="cookie-category">
+          <app-checkbox
+            [checked]="analytics()"
+            (checkedChange)="analytics.set($event)"
+            text="Analítica"
+            label="Permitir Google Analytics"
+          />
+          <p>
+            Google Analytics mide visitas y navegación. Google puede tratar esta información fuera
+            del Perú. Sus cookies _ga y _ga_* pueden durar hasta dos años.
+          </p>
+          <a
+            href="https://policies.google.com/privacy?hl=es"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Privacidad de Google <span aria-hidden="true">↗</span
+            ><span class="sr-only"> (abre otra pestaña)</span></a
+          >
+        </div>
+        <p class="cookie-note">
+          Sin etiquetas publicitarias. Guardamos tu elección durante 180 días. Puedes cambiarla
+          cuando quieras; al retirar el permiso recargaremos la página para detener la analítica.
+        </p>
+      </div>
+    }
+  </section>
+} @else {
+  <button
+    type="button"
+    class="cookie-reopen"
+    (click)="customize()"
+    aria-label="Preferencias de cookies"
+    title="Preferencias de cookies"
+  >
+    <app-icon name="shield" /><span>Cookies</span>
+  </button>
+}
+

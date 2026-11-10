@@ -1,3 +1,5 @@
+import { CookieConsent } from './ui/feedback/cookie-consent/cookie-consent';
+import { CookieConsentService } from './core/services/cookie-consent.service';
 import { ErrorRecovery } from './core/errors/error-recovery';
 import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
 import {
@@ -22,7 +24,15 @@ import { CartFooter } from './ui/marketing/cart-footer/cart-footer';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Loader, NavProgressBar, ToastStack, DialogOutlet, CartFooter],
+  imports: [
+    RouterOutlet,
+    Loader,
+    NavProgressBar,
+    ToastStack,
+    DialogOutlet,
+    CartFooter,
+    CookieConsent,
+  ],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -46,7 +56,10 @@ export class App {
 
   constructor() {
     this.errorRecovery.startTracking();
-    this.analytics.init();
+    const consent = inject(CookieConsentService);
+    effect(() => {
+      if (consent.choice()?.analytics) this.analytics.init();
+    });
     this.seo.init();
     const subscription = this.router.events
       .pipe(
