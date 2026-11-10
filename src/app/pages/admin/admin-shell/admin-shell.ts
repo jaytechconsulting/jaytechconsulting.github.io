@@ -147,12 +147,7 @@ export class AdminShell {
         });
     });
     afterRenderEffect(() => {
-      if (
-        !this.pendingActiveFocus() ||
-        this.loading.hasPendingRequests() ||
-        (this.mobile() && !this.mobileOpen())
-      )
-        return;
+      if (!this.pendingActiveFocus() || (this.mobile() && !this.mobileOpen())) return;
       if (this.restoreNavigationPosition) {
         const nav = this.element.nativeElement.querySelector<HTMLElement>('nav');
         if (nav) {

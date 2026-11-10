@@ -1,3 +1,5 @@
+import { Checkbox } from '../../../ui/forms/checkbox/checkbox';
+import { SOCIAL_NETWORKS, socialUrlValid, type SocialLink } from '../../../core/cms/social-links';
 import { ImageFile } from '../../../ui/behaviors/image-file';
 import type { HeaderLink } from '../../../ui/navigation/header/header';
 import { AnnouncementEditor } from './announcement-editor/announcement-editor';
@@ -5,7 +7,7 @@ import { AccessAction } from '../../../ui/behaviors/access-action';
 import { CONTENT_MODULES } from './content-modules';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AdminShell } from '../admin-shell/admin-shell';
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Card } from '../../../ui/data-display/card/card';
 import { Badge } from '../../../ui/data-display/badge/badge';
@@ -46,6 +48,7 @@ import type { CmsFooterColumn as FooterColumn } from '../../../core/cms/cms.mode
 @Component({
   selector: 'app-admin-content',
   imports: [
+    Checkbox,
     ImageFile,
     AnnouncementEditor,
     AccessAction,
@@ -64,6 +67,7 @@ export class AdminContent {
   private readonly dialog = inject(DialogService);
   private readonly cms = inject(CmsContentService);
   private readonly api = inject(ApiService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly palette = PALETTE;
   readonly glyphs = GLYPHS;
@@ -83,6 +87,53 @@ export class AdminContent {
   readonly headerLinks = signal<HeaderLink[]>([...INITIAL_HEADER_LINKS]);
   readonly headerCta = signal(INITIAL_HEADER_CTA);
 
+  readonly socialNetworks = [...SOCIAL_NETWORKS];
+  readonly socialLinks = signal<SocialLink[]>([]);
+  setSocialLink(index: number, field: string, value: string | boolean): void {
+    this.socialLinks.update((links) =>
+      links.map((link, i) => (i === index ? { ...link, [field]: value } : link)),
+    );
+  }
+  addSocialLink(): void {
+    const network = SOCIAL_NETWORKS.find(
+      (item) => !this.socialLinks().some((link) => link.network === item.value),
+    );
+    if (network)
+      this.socialLinks.update((links) => [
+        ...links,
+        { network: network.value, url: '', enabled: true },
+      ]);
+  }
+  removeSocialLink(index: number): void {
+    this.socialLinks.update((links) => links.filter((_, i) => i !== index));
+  }
+  saveSocialLinks(): void {
+    if (this.saving()) return;
+    const links = this.socialLinks().map((link) => ({ ...link, url: link.url.trim() }));
+    if (links.some((link) => !socialUrlValid(link.url))) {
+      this.toast.error(
+        'Revisa los enlaces',
+        'Cada red debe tener una URL HTTPS válida, incluso si está oculta.',
+      );
+      return;
+    }
+    if (new Set(links.map((link) => link.network)).size !== links.length) {
+      this.toast.error('Red repetida', 'Configura un solo enlace por red social.');
+      return;
+    }
+    this.saving.set(true);
+    this.cms.saveSocialLinks(links).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.toast.success('Redes sociales guardadas', 'Los enlaces se actualizaron en el footer.');
+      },
+      error: () => {
+        this.saving.set(false);
+        this.toast.error('No pudimos guardar las redes', 'Inténtalo nuevamente.');
+      },
+    });
+  }
+
   readonly footerAbout = signal(INITIAL_FOOTER_ABOUT);
   readonly footerEmail = signal(INITIAL_FOOTER_EMAIL);
   readonly footerPhone = signal(INITIAL_FOOTER_PHONE);
@@ -99,6 +150,10 @@ export class AdminContent {
   );
   readonly pageHeading = signal('');
   readonly pageDescription = signal('');
+  readonly pageContent = signal('');
+  readonly isLegalPage = computed(() =>
+    ['terminos-y-condiciones', 'avisos-legales'].includes(this.selectedPageId()),
+  );
   readonly pageBackgroundColor = signal('');
   readonly pageBackgroundImage = signal('');
 
@@ -153,13 +208,17 @@ export class AdminContent {
     effect(() => {
       this.loadTab(this.tab());
     });
-    this.cms.load(true).subscribe({
-      error: () =>
-        this.toast.error(
-          'No pudimos cargar el CMS',
-          'Verifica tu sesión y la conexión con el backend.',
-        ),
-    });
+    if (this.tab() === 'cursos' || this.tab() === 'programas') return;
+    this.cms
+      .load(true)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        error: () =>
+          this.toast.error(
+            'No pudimos cargar el CMS',
+            'Verifica tu sesión y la conexión con el backend.',
+          ),
+      });
   }
 
   rowButtonClasses(i: number): string {
@@ -312,6 +371,7 @@ export class AdminContent {
     const design = this.cms.pages()[id];
     this.pageHeading.set(design.heading);
     this.pageDescription.set(design.description);
+    this.pageContent.set(design.content ?? '');
     this.pageBackgroundColor.set(design.backgroundColor);
     this.pageBackgroundImage.set(design.backgroundImage);
   }
@@ -330,6 +390,7 @@ export class AdminContent {
     const value: CmsPageDesign = {
       heading: this.pageHeading(),
       description: this.pageDescription(),
+      ...(this.isLegalPage() ? { content: this.pageContent() } : {}),
       backgroundColor: this.pageBackgroundColor(),
       backgroundImage: this.pageBackgroundImage(),
     };
@@ -493,18 +554,22 @@ export class AdminContent {
   }
 
   private loadProgramsTab(): void {
-    this.api.trainingProgramsAll().subscribe({
-      next: (items) => {
-        this.programItems.set(items);
-        this.programSel.set(items.length ? 0 : -1);
-        this.programDraft.set({ ...(items[0] ?? AdminContent.BLANK_PROGRAM) });
-      },
-      error: () =>
-        this.toast.error(
-          'No pudimos cargar los programas',
-          'Verifica tu sesión y la conexión con el backend.',
-        ),
-    });
+    if (this.destroyRef.destroyed) return;
+    this.api
+      .trainingProgramsAll()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (items) => {
+          this.programItems.set(items);
+          this.programSel.set(items.length ? 0 : -1);
+          this.programDraft.set({ ...(items[0] ?? AdminContent.BLANK_PROGRAM) });
+        },
+        error: () =>
+          this.toast.error(
+            'No pudimos cargar los programas',
+            'Verifica tu sesión y la conexión con el backend.',
+          ),
+      });
   }
 
   pickCourse(i: number): void {
@@ -696,18 +761,22 @@ export class AdminContent {
   }
 
   private loadCoursesTab(): void {
-    this.api.coursesAll().subscribe({
-      next: (items) => {
-        this.courseItems.set(items);
-        this.courseSel.set(items.length ? 0 : -1);
-        this.courseDraft.set({ ...(items[0] ?? AdminContent.BLANK_COURSE) });
-      },
-      error: () =>
-        this.toast.error(
-          'No pudimos cargar los cursos',
-          'Verifica tu sesión y la conexión con el backend.',
-        ),
-    });
+    if (this.destroyRef.destroyed) return;
+    this.api
+      .coursesAll()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (items) => {
+          this.courseItems.set(items);
+          this.courseSel.set(items.length ? 0 : -1);
+          this.courseDraft.set({ ...(items[0] ?? AdminContent.BLANK_COURSE) });
+        },
+        error: () =>
+          this.toast.error(
+            'No pudimos cargar los cursos',
+            'Verifica tu sesión y la conexión con el backend.',
+          ),
+      });
   }
 
   setHeaderLink(i: number, key: keyof HeaderLink, value: string): void {
@@ -849,6 +918,7 @@ export class AdminContent {
 
     if (tab === 'footer') {
       const footer = this.cms.footer();
+      this.socialLinks.set(this.cms.socialLinks().map((link) => ({ ...link })));
       this.footerAbout.set(footer.about);
       this.footerEmail.set(footer.email);
       this.footerPhone.set(footer.phone);

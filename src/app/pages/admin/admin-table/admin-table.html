@@ -11,10 +11,11 @@
   @if(hasExtraFilters() && expandedFilters()) {
     <div id="additional-filters" class="additional-filters">
       @if(resource() === 'tickets') {<app-select label="Prioridad" [value]="role()" [options]="priorityOptions" (valueChange)="filterChanged('role',$event)" />}
+      @if(resource() === 'reclamaciones') {<app-select label="Tipo" [value]="role()" [options]="claimTypeOptions" [searchable]="false" (valueChange)="filterChanged('role',$event)" />}
     </div>
   }
 </section>
-<app-module-actions [selected]="selected()?.name || ''" [busy]="loading()" [canCreate]="resource() !== 'tickets'" [canRemove]="resource() !== 'tickets'" [removeLabel]="resource() === 'proyectos' ? 'Eliminar' : 'Inactivar'" (create)="addRecord()" (view)="viewRecord()" (edit)="editRecord()" (remove)="removeRecord()"><app-button variant="outline" size="sm" icon="reset" [mobileIcon]="true" label="Recargar registros" [disabled]="loading()" (clicked)="refresh('reload')">Recargar</app-button></app-module-actions>
+<app-module-actions [selected]="selected()?.name || ''" [busy]="loading()" [canCreate]="!readOnlyList()" [canRemove]="!readOnlyList()" [removeLabel]="resource() === 'proyectos' ? 'Eliminar' : 'Inactivar'" (create)="addRecord()" (view)="viewRecord()" (edit)="editRecord()" (remove)="removeRecord()"><app-button variant="outline" size="sm" icon="reset" [mobileIcon]="true" label="Recargar registros" [disabled]="loading()" (clicked)="refresh('reload')">Recargar</app-button></app-module-actions>
 <div class="mobile-sort" aria-label="Ordenamiento de registros">
   <app-select label="Ordenar por" [value]="sort()" [options]="sortOptions()" [searchable]="false" [disabled]="loading()" (valueChange)="mobileSort($event)" />
   <app-button variant="outline" size="sm" [iconOnly]="true" [icon]="direction()==='asc'?'sortAscending':'sortDescending'" [label]="direction()==='asc'?'Orden ascendente. Cambiar a descendente':'Orden descendente. Cambiar a ascendente'" [disabled]="loading()" (clicked)="toggleDirection()" />

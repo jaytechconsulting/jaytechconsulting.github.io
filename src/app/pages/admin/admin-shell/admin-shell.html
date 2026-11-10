@@ -1,6 +1,4 @@
 <div
-  [attr.inert]="loading.hasPendingRequests() ? '' : null"
-  [attr.aria-busy]="loading.hasPendingRequests()"
   class="admin-layout"
   [class.is-collapsed]="collapsed()"
   [class.sidebar-expanding]="sidebarMotion() === 'expanding'"
@@ -113,7 +111,11 @@
       <span class="sidebar-label">Contraer menú</span>
     </button>
   </aside>
-  <main class="admin-main" [attr.inert]="mobile() && mobileOpen() ? '' : null">
+  <main
+    class="admin-main"
+    [attr.inert]="(mobile() && mobileOpen()) || loading.hasPendingRequests() ? '' : null"
+    [attr.aria-busy]="loading.hasPendingRequests()"
+  >
     <header class="admin-topbar">
       <button
         class="hamburger shell-button"

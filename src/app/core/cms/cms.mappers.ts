@@ -1,3 +1,4 @@
+import { parseSocialLinks } from './social-links';
 import { normalizeAnnouncement, type Announcement } from '../models/announcement';
 import type {
   ApiCms,
@@ -43,13 +44,22 @@ function parseAnnouncementDetails(body: string): Partial<Announcement> {
   }
 }
 
-function parsePageDesignDetails(body: string): { description: string; backgroundColor: string } {
+function parsePageDesignDetails(body: string): {
+  description: string;
+  backgroundColor: string;
+  content?: string;
+} {
   try {
     const parsed = JSON.parse(body || '{}') as Partial<{
       description: string;
+      content: string;
       backgroundColor: string;
     }>;
-    return { description: parsed.description ?? '', backgroundColor: parsed.backgroundColor ?? '' };
+    return {
+      description: parsed.description ?? '',
+      backgroundColor: parsed.backgroundColor ?? '',
+      content: typeof parsed.content === 'string' ? parsed.content : '',
+    };
   } catch {
     return { description: '', backgroundColor: '' };
   }
@@ -203,6 +213,7 @@ export function stateFromApi(cms: ApiCms, content: ApiSiteContent[]): CmsContent
             image: '',
           };
     }),
+    socialLinks: parseSocialLinks(content.find((item) => item.key === 'site.social-links')?.body),
     announcement: announcementFromApi(content),
     pages: (() => {
       const ids: CmsPageDesignId[] = [
@@ -212,18 +223,24 @@ export function stateFromApi(cms: ApiCms, content: ApiSiteContent[]): CmsContent
         'asesorias',
         'capacitaciones',
         'conocenos',
+        'terminos-y-condiciones',
+        'avisos-legales',
       ];
       const result = {} as Record<CmsPageDesignId, CmsPageDesign>;
       for (const id of ids) {
         const stored = content.find((item) => item.key === `page.${id}`);
         if (!stored) {
-          result[id] = { heading: '', description: '', backgroundColor: '', backgroundImage: '' };
+          result[id] =
+            id === 'terminos-y-condiciones' || id === 'avisos-legales'
+              ? { ...defaults.pages[id] }
+              : { heading: '', description: '', backgroundColor: '', backgroundImage: '' };
           continue;
         }
         const details = parsePageDesignDetails(stored.body);
         result[id] = {
           heading: text(stored.title),
           description: details.description,
+          ...(details.content !== undefined ? { content: details.content } : {}),
           backgroundColor: details.backgroundColor,
           backgroundImage: text(stored.imageUrl),
         };

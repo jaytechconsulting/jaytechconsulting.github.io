@@ -29,11 +29,11 @@ export class AdminTable {
   private readonly dialogs = inject(DialogService);
   readonly selected = signal<AdminRow|null>(null);
   readonly editor = signal<{row:AdminRow|null;readOnly:boolean}|null>(null);
-  statusTone(status:string):string {return ['Activo','Entregado','Resuelto'].includes(status)?'success':['Abierto','En desarrollo','En progreso'].includes(status)?'warning':['QA','En revisión'].includes(status)?'info':'neutral';}
+  statusTone(status:string):string {return ['Activo','Entregado','Resuelto','Atendido'].includes(status)?'success':['Abierto','En desarrollo','En progreso','Pendiente'].includes(status)?'warning':['QA','En revisión'].includes(status)?'info':'neutral';}
   select(row:AdminRow):void {if(!this.loading())this.selected.set(this.selected()?.id===row.id?null:row);}
-  addRecord():void {if(this.resource()==='usuarios')this.create.emit();else this.editor.set({row:null,readOnly:false});}
-  editRecord():void {const row=this.selected();if(!row)return;if(this.resource()==='usuarios')this.edit.emit(row);else this.editor.set({row,readOnly:false});}
-  viewRecord():void {const row=this.selected();if(!row)return;if(this.resource()==='usuarios')this.view.emit(row);else this.editor.set({row,readOnly:true});}
+  addRecord():void {if(this.external())this.create.emit();else this.editor.set({row:null,readOnly:false});}
+  editRecord():void {const row=this.selected();if(!row)return;if(this.external())this.edit.emit(row);else this.editor.set({row,readOnly:false});}
+  viewRecord():void {const row=this.selected();if(!row)return;if(this.external())this.view.emit(row);else this.editor.set({row,readOnly:true});}
   async removeRecord():Promise<void> {
     const row=this.selected();if(!row || this.loading() || this.dialogs.dialog())return;
     const isUser=['clientes','usuarios'].includes(this.resource());
@@ -41,6 +41,10 @@ export class AdminTable {
     this.loading.set(true);
     this.http.delete(`${environment.apiUrl}/${isUser?'users':'projects'}/${row.id}`).subscribe({next:()=>{this.toast.success(isUser?'Cuenta inactivada':'Proyecto eliminado');this.refresh();},error:()=>{this.loading.set(false);this.toast.error('No pudimos completar la acción','Verifica los permisos e inténtalo de nuevo.');}});
   }
+  /** Resources whose create/view/edit UI lives in the host page instead of the generic record editor. */
+  private external():boolean {return ['usuarios','reclamaciones'].includes(this.resource());}
+  /** Lists that are only consulted from here: no "Agregar" and no "Eliminar". */
+  readonly readOnlyList = computed(() => ['tickets','reclamaciones'].includes(this.resource()));
   editorSaved():void {this.editor.set(null);this.refresh();}
   readonly searchInput = signal(''); readonly expandedFilters = signal(false);
   readonly search = signal(''); readonly status = signal(''); readonly role = signal('');
@@ -54,7 +58,8 @@ export class AdminTable {
   readonly roleOptions = [{value:'',label:'Todos los roles'},{value:'admin',label:'Administrador'},{value:'client',label:'Cliente'}];
   readonly priorityOptions = [{value:'',label:'Todas las prioridades'},'Alta','Media','Baja'];
   readonly statusOptions = computed(() => [{value:'',label:'Todos los estados'},...this.statuses()]);
-  readonly hasExtraFilters = computed(() => this.resource() === 'tickets');
+  readonly claimTypeOptions = [{value:'',label:'Todos los tipos'},'Reclamo','Queja'];
+  readonly hasExtraFilters = computed(() => ['tickets','reclamaciones'].includes(this.resource()));
   readonly firstRecord = computed(() => this.data().total ? (this.data().page - 1) * this.data().pageSize + 1 : 0);
   readonly lastRecord = computed(() => Math.min(this.data().page * this.data().pageSize, this.data().total));
   readonly pageNumbers = computed(() => {
@@ -67,9 +72,10 @@ export class AdminTable {
     }
     return result;
   });
-  readonly title = computed(() => ({clientes:'Clientes', proyectos:'Proyectos', tickets:'Tickets', usuarios:'Usuarios'}[this.resource()] ?? 'Registros'));
-  readonly statuses = computed(() => this.resource() === 'proyectos' ? ['En desarrollo','QA','Entregado'] : this.resource() === 'tickets' ? ['Abierto','En revisión','En progreso','Resuelto','Cerrado'] : ['Activo','Inactivo']);
+  readonly title = computed(() => ({clientes:'Clientes', proyectos:'Proyectos', tickets:'Tickets', usuarios:'Usuarios', reclamaciones:'Libro de reclamaciones'}[this.resource()] ?? 'Registros'));
+  readonly statuses = computed(() => this.resource() === 'proyectos' ? ['En desarrollo','QA','Entregado'] : this.resource() === 'tickets' ? ['Abierto','En revisión','En progreso','Resuelto','Cerrado'] : this.resource() === 'reclamaciones' ? ['Pendiente','Atendido'] : ['Activo','Inactivo']);
   readonly columns = computed(() => {
+    if (this.resource() === 'reclamaciones') return [{key:'detail',label:'N.º de hoja'},{key:'name',label:'Consumidor'},{key:'client',label:'Correo'},{key:'role',label:'Tipo'},{key:'status',label:'Estado'},{key:'createdAt',label:'Registrado'}];
     const base = [{ key:'name', label: this.resource() === 'tickets' ? 'Asunto' : this.resource() === 'proyectos' ? 'Proyecto' : 'Nombre' }, { key:'detail', label: this.resource() === 'tickets' ? 'Código' : this.resource() === 'proyectos' ? 'Categoría' : 'Correo' }];
     if (['proyectos','tickets'].includes(this.resource())) base.push({key:'client',label:'Cliente'});
     if (this.resource() === 'usuarios') base.push({key:'role',label:'Tipo de cuenta'});
@@ -96,7 +102,7 @@ export class AdminTable {
       const titles:Record<RefreshReason,string>={load:'Tabla cargada',update:'Tabla actualizada',reload:'Tabla recargada',clear:'Filtros limpiados'};
       this.toast.success(titles[result.reason],`${result.data.total} registros encontrados.`,2500);
     } this.loading.set(false); });
-    effect(() => { this.resource(); untracked(() => { this.searchInput.set(''); this.search.set(''); this.typing.next({value:'',immediate:true}); this.expandedFilters.set(false); this.status.set(''); this.role.set(''); this.page.set(1); this.sort.set('name'); this.refresh('load'); }); });
+    effect(() => { this.resource(); untracked(() => { this.searchInput.set(''); this.search.set(''); this.typing.next({value:'',immediate:true}); this.expandedFilters.set(false); this.status.set(''); this.role.set(''); this.page.set(1); const newestFirst = this.resource() === 'reclamaciones'; this.sort.set(newestFirst ? 'createdAt' : 'name'); this.direction.set(newestFirst ? 'desc' : 'asc'); this.refresh('load'); }); });
   }
   refresh(reason:RefreshReason='update'): void { this.requests.next(reason); }
   searchChanged(value: string): void { this.searchInput.set(value); this.typing.next({value, immediate:false}); }

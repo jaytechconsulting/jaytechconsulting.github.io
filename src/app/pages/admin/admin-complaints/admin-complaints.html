@@ -1,0 +1,255 @@
+<app-admin-shell title="Libro de reclamaciones" active="reclamaciones">
+  @if (view() === 'lista') {
+    <div class="p-4 md:p-8">
+      <app-admin-table resource="reclamaciones" (view)="open($event)" (edit)="open($event)" />
+    </div>
+  } @else {
+    <div class="ac-page">
+      <section class="ac-panel">
+        @if (settingsFailed()) {
+          <div class="ac-empty" role="alert">
+            <p>No pudimos cargar la configuración.</p>
+            <app-button variant="outline" size="sm" (clicked)="loadSettings()"
+              >Reintentar</app-button
+            >
+          </div>
+        } @else if (settingsDraft(); as d) {
+          @if (settings() && !settings()!.smtpEnabled) {
+            <p class="ac-warning" role="alert">
+              <app-icon name="warning" />El envío de correos está desactivado en el servidor
+              (SMTP). Las hojas se registran, pero no saldrá ningún correo hasta activarlo.
+            </p>
+          }
+          <form novalidate (submit)="$event.preventDefault(); saveSettings()">
+            <fieldset [disabled]="!canUpdate() || saving()">
+              <div class="ac-block">
+                <h3>Correos al registrar una hoja</h3>
+                <p>
+                  Elige quién recibe un correo cada vez que alguien registra un reclamo o queja.
+                </p>
+                <app-checkbox
+                  label="Enviar copia al cliente"
+                  text="Enviar al cliente una copia de su hoja de reclamación"
+                  [checked]="d.notifyCustomer"
+                  [disabled]="!canUpdate() || saving()"
+                  (checkedChange)="setSetting('notifyCustomer', $event)"
+                />
+                <app-checkbox
+                  label="Enviar aviso interno"
+                  text="Enviarme un aviso interno con el detalle de la hoja"
+                  [checked]="d.notifyOwner"
+                  [disabled]="!canUpdate() || saving()"
+                  (checkedChange)="setSetting('notifyOwner', $event)"
+                />
+                <app-textarea
+                  label="Correos que reciben el aviso interno"
+                  placeholder="correo@empresa.com"
+                  hint="Hasta 5 correos, separados por coma o en líneas distintas."
+                  [rows]="2"
+                  [disabled]="!canUpdate() || saving() || !d.notifyOwner"
+                  [value]="d.ownerEmails"
+                  (valueChange)="setSetting('ownerEmails', $event)"
+                />
+              </div>
+
+              <div class="ac-block">
+                <h3>Datos del proveedor</h3>
+                <p>
+                  Aparecen en la hoja pública y en los correos. La norma exige razón social, RUC y
+                  dirección.
+                </p>
+                <div class="ac-grid">
+                  <app-input
+                    label="Razón social"
+                    [required]="true"
+                    [maxLength]="150"
+                    [value]="d.businessName"
+                    (valueChange)="setSetting('businessName', $event)"
+                  />
+                  <app-input
+                    label="RUC"
+                    inputMode="numeric"
+                    placeholder="11 dígitos"
+                    [maxLength]="11"
+                    [value]="d.businessRuc"
+                    (valueChange)="setSetting('businessRuc', $event)"
+                  />
+                  <app-input
+                    class="ac-full"
+                    label="Dirección"
+                    [maxLength]="250"
+                    [value]="d.businessAddress"
+                    (valueChange)="setSetting('businessAddress', $event)"
+                  />
+                  <app-input
+                    label="Plazo de respuesta (días hábiles)"
+                    inputMode="numeric"
+                    hint="El plazo legal máximo es de 15 días hábiles."
+                    [maxLength]="2"
+                    [value]="d.responseDays"
+                    (valueChange)="setSetting('responseDays', $event)"
+                  />
+                </div>
+              </div>
+            </fieldset>
+            @if (canUpdate()) {
+              <div class="ac-save">
+                <app-button type="submit" icon="check" [disabled]="saving()">{{
+                  saving() ? 'Guardando…' : 'Guardar configuración'
+                }}</app-button>
+              </div>
+            }
+          </form>
+        } @else {
+          <p class="ac-empty" role="status">Cargando configuración…</p>
+        }
+      </section>
+    </div>
+  }
+
+  @if (detailOpen()) {
+    <div class="ac-overlay" (mousedown)="onBackdrop($event)">
+      <div
+        class="ac-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="complaint-title"
+        [attr.aria-busy]="detailLoading() || responding()"
+      >
+        <header class="ac-modal-head">
+          <span class="ac-modal-icon"><app-icon name="book" /></span>
+          <div>
+            <h2 id="complaint-title">Hoja {{ detailTitle() }}</h2>
+            @if (complaint(); as c) {
+              <span
+                >{{ c.claimType === 'queja' ? 'Queja' : 'Reclamo' }} ·
+                {{ c.createdAt | date: 'dd/MM/yyyy HH:mm' }} ·
+                {{ c.status === 'atendido' ? 'Atendido' : 'Pendiente' }}</span
+              >
+            }
+          </div>
+          <button
+            type="button"
+            class="ac-close"
+            aria-label="Cerrar detalle"
+            [disabled]="responding()"
+            (click)="close()"
+          >
+            <app-icon name="close" />
+          </button>
+        </header>
+
+        <div class="ac-modal-body" appOverlayScroll>
+          @if (detailLoading()) {
+            <p class="ac-empty" role="status">Cargando hoja…</p>
+          } @else if (detailFailed()) {
+            <p class="ac-empty" role="alert">No pudimos cargar la hoja. Ciérrala e inténtalo de nuevo.</p>
+          } @else if (complaint(); as c) {
+            <dl class="ac-facts">
+              <div>
+                <dt>Consumidor</dt>
+                <dd>{{ c.fullName }}</dd>
+              </div>
+              <div>
+                <dt>Documento</dt>
+                <dd>{{ c.documentType }} {{ c.documentNumber }}</dd>
+              </div>
+              <div>
+                <dt>Correo</dt>
+                <dd>
+                  <a [href]="'mailto:' + c.email">{{ c.email }}</a>
+                </dd>
+              </div>
+              <div>
+                <dt>Teléfono</dt>
+                <dd>{{ c.phone }}</dd>
+              </div>
+              <div>
+                <dt>Domicilio</dt>
+                <dd>{{ c.address }}</dd>
+              </div>
+              @if (c.isMinor) {
+                <div>
+                  <dt>Padre, madre o apoderado</dt>
+                  <dd>{{ c.guardianName }}</dd>
+                </div>
+              }
+              <div>
+                <dt>Bien contratado</dt>
+                <dd>{{ c.itemType === 'producto' ? 'Producto' : 'Servicio' }}</dd>
+              </div>
+              @if (c.amount !== null) {
+                <div>
+                  <dt>Monto reclamado</dt>
+                  <dd>S/ {{ c.amount | number: '1.2-2' }}</dd>
+                </div>
+              }
+              @if (c.orderReference) {
+                <div>
+                  <dt>Pedido o comprobante</dt>
+                  <dd>{{ c.orderReference }}</dd>
+                </div>
+              }
+            </dl>
+
+            <div class="ac-text">
+              <h4>Descripción del bien</h4>
+              <p>{{ c.itemDescription }}</p>
+              <h4>Detalle</h4>
+              <p>{{ c.detail }}</p>
+              <h4>Pedido del consumidor</h4>
+              <p>{{ c.request }}</p>
+            </div>
+
+            <p class="ac-mail">
+              Copia al cliente:
+              <strong>{{ c.customerEmailSent ? 'enviada' : 'no enviada' }}</strong> · Aviso interno:
+              <strong>{{ c.ownerEmailSent ? 'enviado' : 'no enviado' }}</strong>
+            </p>
+
+            <app-textarea
+              label="Respuesta al consumidor"
+              placeholder="Escribe la respuesta que recibirá el consumidor."
+              [rows]="4"
+              [disabled]="!canUpdate() || responding()"
+              [value]="responseDraft()"
+              [hint]="
+                c.respondedAt ? 'Respondido el ' + (c.respondedAt | date: 'dd/MM/yyyy HH:mm') : ''
+              "
+              (valueChange)="responseDraft.set($event)"
+            />
+            @if (canUpdate()) {
+              <app-checkbox
+                label="Enviar la respuesta por correo"
+                text="Enviar la respuesta por correo al consumidor"
+                [checked]="sendEmail()"
+                [disabled]="responding()"
+                (checkedChange)="sendEmail.set($event)"
+              />
+            }
+          }
+        </div>
+
+        <footer class="ac-modal-foot">
+          <app-button icon="close" variant="outline" [disabled]="responding()" (clicked)="close()"
+            >Cerrar</app-button
+          >
+          @if (canUpdate() && complaint(); as c) {
+            <app-button
+              icon="check"
+              [disabled]="!responseDraft().trim() || responding()"
+              (clicked)="respond()"
+              >{{
+                responding()
+                  ? 'Guardando…'
+                  : c.status === 'atendido'
+                    ? 'Actualizar respuesta'
+                    : 'Responder'
+              }}</app-button
+            >
+          }
+        </footer>
+      </div>
+    </div>
+  }
+</app-admin-shell>

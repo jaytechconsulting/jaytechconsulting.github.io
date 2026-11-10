@@ -260,3 +260,56 @@ export interface ApiPublicSite {
   cms: ApiCms;
   content: ApiSiteContent[];
 }
+
+export interface ApiComplaintInput {
+  fullName: string;
+  documentType: string;
+  documentNumber: string;
+  email: string;
+  phone: string;
+  address: string;
+  isMinor: boolean;
+  guardianName: string | null;
+  itemType: 'producto' | 'servicio';
+  itemDescription: string;
+  amount: number | null;
+  orderReference: string | null;
+  claimType: 'reclamo' | 'queja';
+  detail: string;
+  request: string;
+  acceptsTerms: boolean;
+}
+export interface ApiComplaintReceipt {
+  id: string;
+  code: string;
+  createdAt: string;
+  responseDays: number;
+  emailSent: boolean;
+}
+export interface ApiComplaintBookInfo {
+  businessName: string;
+  businessRuc: string;
+  businessAddress: string;
+  responseDays: number;
+}
+export interface ApiComplaint extends Omit<ApiComplaintInput, 'acceptsTerms'> {
+  id: string;
+  code: string;
+  status: 'pendiente' | 'atendido';
+  providerResponse: string | null;
+  respondedAt: string | null;
+  customerEmailSent: boolean;
+  ownerEmailSent: boolean;
+  createdAt: string;
+}
+export interface ApiComplaintSettings {
+  notifyCustomer: boolean;
+  notifyOwner: boolean;
+  ownerEmails: string;
+  businessName: string;
+  businessRuc: string;
+  businessAddress: string;
+  responseDays: number;
+  smtpEnabled: boolean;
+  updatedAt: string;
+}

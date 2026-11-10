@@ -1,0 +1,345 @@
+<div class="min-h-screen bg-surface-page font-body">
+  <app-header
+    class="sticky top-0 z-50"
+    [links]="cms.header().links"
+    [cta]="cms.header().cta"
+    (ctaClicked)="proposal()"
+  />
+
+  <section class="book-hero">
+    <div class="hero-texture" aria-hidden="true"></div>
+    <div class="book-width hero-inner">
+      <div>
+        <a routerLink="/" class="back-link"><app-icon name="chevronLeft" />Volver al inicio</a>
+        <span class="eyebrow">// Atención al consumidor</span>
+        <h1>Libro de Reclamaciones</h1>
+        <p>
+          Conforme al Código de Protección y Defensa del Consumidor, ponemos a tu disposición
+          nuestro Libro de Reclamaciones virtual. Registra tu reclamo o queja y recibirás una copia
+          en tu correo.
+        </p>
+      </div>
+      <div class="hero-badge" aria-hidden="true">
+        <app-icon name="book" />
+        <span>Hoja de<br />reclamación</span>
+      </div>
+    </div>
+  </section>
+
+  <main class="book-width book-main">
+    @if (receipt(); as r) {
+      <section class="receipt" role="status" aria-live="polite">
+        <span class="receipt-check" aria-hidden="true"><app-icon name="check" /></span>
+        <h2>Tu hoja fue registrada</h2>
+        <p>
+          Guarda este número: es la constancia de tu
+          {{ draft().claimType === 'queja' ? 'queja' : 'reclamo' }}.
+        </p>
+        <div class="receipt-code">{{ r.code }}</div>
+        <dl class="receipt-facts">
+          <div>
+            <dt>Consumidor</dt>
+            <dd>{{ draft().fullName }}</dd>
+          </div>
+          <div>
+            <dt>Fecha de registro</dt>
+            <dd>{{ r.createdAt | date: 'dd/MM/yyyy HH:mm' }}</dd>
+          </div>
+          <div>
+            <dt>Plazo de respuesta</dt>
+            <dd>Hasta {{ r.responseDays }} días hábiles</dd>
+          </div>
+        </dl>
+        @if (r.emailSent) {
+          <p class="receipt-note">
+            Enviamos una copia de la hoja a <strong>{{ draft().email }}</strong
+            >.
+          </p>
+        } @else {
+          <p class="receipt-note receipt-note--warn">
+            No pudimos enviarte la copia por correo. Imprime o guarda esta constancia; tu hoja quedó
+            registrada igualmente.
+          </p>
+        }
+        <div class="receipt-actions">
+          <app-button variant="outline" (clicked)="print()">Imprimir constancia</app-button>
+          <app-button variant="ghost" (clicked)="startOver()">Registrar otra hoja</app-button>
+        </div>
+      </section>
+    } @else {
+      <form class="sheet" novalidate (submit)="$event.preventDefault(); submit()">
+        <header class="sheet-head">
+          <div>
+            <span class="sheet-kicker">Hoja de reclamación</span>
+            <strong>{{ info().businessName }}</strong>
+            @if (info().businessRuc) {
+              <span>RUC {{ info().businessRuc }}</span>
+            }
+            @if (info().businessAddress) {
+              <span>{{ info().businessAddress }}</span>
+            }
+          </div>
+          <div class="sheet-date">
+            <span>Fecha</span>
+            <strong>{{ today | date: 'dd/MM/yyyy' }}</strong>
+          </div>
+        </header>
+
+        <fieldset [disabled]="submitting()">
+          <section class="sheet-section">
+            <h2><span>1</span>Identificación del consumidor reclamante</h2>
+            <div class="grid-2">
+              <app-input
+                class="full"
+                label="Nombres y apellidos"
+                autocomplete="name"
+                placeholder="Como figura en tu documento"
+                [required]="true"
+                [maxLength]="150"
+                [value]="draft().fullName"
+                [error]="error('fullName')"
+                (valueChange)="set('fullName', $event)"
+                (focusout)="touch('fullName')"
+              />
+              <app-select
+                label="Tipo de documento"
+                [required]="true"
+                [searchable]="false"
+                [options]="documentTypes"
+                [value]="draft().documentType"
+                [disabled]="submitting()"
+                (valueChange)="changeDocumentType($event)"
+              />
+              <app-input
+                label="Número de documento"
+                placeholder="Ingresa el número"
+                [required]="true"
+                [maxLength]="documentMaxLength()"
+                [inputMode]="
+                  draft().documentType === 'DNI' || draft().documentType === 'RUC'
+                    ? 'numeric'
+                    : 'text'
+                "
+                [value]="draft().documentNumber"
+                [error]="error('documentNumber')"
+                (valueChange)="set('documentNumber', $event)"
+                (focusout)="touch('documentNumber')"
+              />
+              <app-input
+                label="Correo electrónico"
+                type="email"
+                autocomplete="email"
+                placeholder="tu@correo.com"
+                hint="Aquí enviaremos la copia de tu hoja y la respuesta."
+                [required]="true"
+                [maxLength]="254"
+                [value]="draft().email"
+                [error]="error('email')"
+                (valueChange)="set('email', $event)"
+                (focusout)="touch('email')"
+              />
+              <app-input
+                label="Teléfono"
+                type="tel"
+                autocomplete="tel"
+                inputMode="tel"
+                placeholder="Ej. 999 999 999"
+                [required]="true"
+                [maxLength]="32"
+                [value]="draft().phone"
+                [error]="error('phone')"
+                (valueChange)="set('phone', $event)"
+                (focusout)="touch('phone')"
+              />
+              <app-input
+                class="full"
+                label="Domicilio"
+                autocomplete="street-address"
+                placeholder="Dirección, distrito, provincia"
+                [required]="true"
+                [maxLength]="250"
+                [value]="draft().address"
+                [error]="error('address')"
+                (valueChange)="set('address', $event)"
+                (focusout)="touch('address')"
+              />
+              <div class="full">
+                <app-checkbox
+                  label="Soy menor de edad"
+                  text="Soy menor de edad"
+                  [checked]="draft().isMinor"
+                  [disabled]="submitting()"
+                  (checkedChange)="set('isMinor', $event)"
+                />
+              </div>
+              @if (draft().isMinor) {
+                <app-input
+                  class="full"
+                  label="Padre, madre o apoderado"
+                  placeholder="Nombres y apellidos"
+                  [required]="true"
+                  [maxLength]="150"
+                  [value]="draft().guardianName"
+                  [error]="error('guardianName')"
+                  (valueChange)="set('guardianName', $event)"
+                  (focusout)="touch('guardianName')"
+                />
+              }
+            </div>
+          </section>
+
+          <section class="sheet-section">
+            <h2><span>2</span>Identificación del bien contratado</h2>
+            <div class="segmented" role="radiogroup" aria-label="Tipo de bien contratado">
+              <button
+                type="button"
+                role="radio"
+                [attr.aria-checked]="draft().itemType === 'servicio'"
+                [class.selected]="draft().itemType === 'servicio'"
+                (click)="set('itemType', 'servicio')"
+              >
+                Servicio
+              </button>
+              <button
+                type="button"
+                role="radio"
+                [attr.aria-checked]="draft().itemType === 'producto'"
+                [class.selected]="draft().itemType === 'producto'"
+                (click)="set('itemType', 'producto')"
+              >
+                Producto
+              </button>
+            </div>
+            <div class="grid-2">
+              <app-textarea
+                class="full"
+                label="Descripción"
+                placeholder="¿Qué producto o servicio contrataste?"
+                [rows]="3"
+                [required]="true"
+                [value]="draft().itemDescription"
+                [error]="error('itemDescription')"
+                (valueChange)="set('itemDescription', $event)"
+                (focusout)="touch('itemDescription')"
+              />
+              <app-input
+                label="Monto reclamado (S/)"
+                inputMode="decimal"
+                placeholder="Opcional"
+                [maxLength]="12"
+                [value]="draft().amount"
+                [error]="error('amount')"
+                (valueChange)="set('amount', $event)"
+                (focusout)="touch('amount')"
+              />
+              <app-input
+                label="N.º de pedido o comprobante"
+                placeholder="Opcional"
+                [maxLength]="100"
+                [value]="draft().orderReference"
+                (valueChange)="set('orderReference', $event)"
+              />
+            </div>
+          </section>
+
+          <section class="sheet-section">
+            <h2><span>3</span>Detalle de la reclamación y pedido del consumidor</h2>
+            <div class="claim-types" role="radiogroup" aria-label="Tipo de reclamación">
+              @for (type of claimTypes; track type.value) {
+                <button
+                  type="button"
+                  role="radio"
+                  class="claim-type"
+                  [attr.aria-checked]="draft().claimType === type.value"
+                  [class.selected]="draft().claimType === type.value"
+                  (click)="set('claimType', type.value)"
+                >
+                  <span class="radio-dot" aria-hidden="true"></span>
+                  <span>
+                    <strong>{{ type.title }}</strong>
+                    <small>{{ type.description }}</small>
+                  </span>
+                </button>
+              }
+            </div>
+            <div class="grid-1">
+              <app-textarea
+                label="Detalle"
+                placeholder="Describe los hechos: qué ocurrió, cuándo y cómo."
+                [rows]="5"
+                [required]="true"
+                [value]="draft().detail"
+                [error]="error('detail')"
+                (valueChange)="set('detail', $event)"
+                (focusout)="touch('detail')"
+              />
+              <app-textarea
+                label="Pedido"
+                placeholder="¿Qué solución esperas de nuestra parte?"
+                [rows]="3"
+                [required]="true"
+                [value]="draft().request"
+                [error]="error('request')"
+                (valueChange)="set('request', $event)"
+                (focusout)="touch('request')"
+              />
+            </div>
+          </section>
+
+          <section class="sheet-section sheet-section--submit">
+            <app-checkbox
+              label="Declaro que la información es verdadera"
+              text="Declaro que la información consignada es verdadera y autorizo su tratamiento para atender esta hoja de reclamación."
+              [checked]="draft().acceptsTerms"
+              [disabled]="submitting()"
+              (checkedChange)="set('acceptsTerms', $event); touch('acceptsTerms')"
+            />
+            @if (error('acceptsTerms')) {
+              <p class="field-error" role="alert">{{ error('acceptsTerms') }}</p>
+            }
+            <div class="submit-row">
+              <p>
+                Los campos con <span class="req">*</span> son obligatorios. Al registrar recibirás
+                una copia en tu correo.
+              </p>
+              <app-button type="submit" size="lg" [disabled]="submitting()">
+                {{ submitting() ? 'Registrando…' : 'Registrar hoja' }}
+                <span slot="icon-right">→</span>
+              </app-button>
+            </div>
+          </section>
+        </fieldset>
+      </form>
+
+      <aside class="notes" aria-label="Información sobre el Libro de Reclamaciones">
+        <div class="note note--accent">
+          <span class="note-figure">{{ info().responseDays }}</span>
+          <div>
+            <strong>días hábiles</strong>
+            <p>Plazo máximo en que responderemos tu reclamo o queja.</p>
+          </div>
+        </div>
+        <div class="note">
+          <h3>Reclamo o queja</h3>
+          <dl>
+            <dt>Reclamo</dt>
+            <dd>Disconformidad con el producto o servicio.</dd>
+            <dt>Queja</dt>
+            <dd>Malestar por la atención recibida.</dd>
+          </dl>
+        </div>
+        <div class="note">
+          <h3>Ten en cuenta</h3>
+          <ul>
+            <li>
+              Registrar un reclamo no impide acudir a otras vías de solución de controversias ni es
+              requisito previo para presentar una denuncia ante el INDECOPI.
+            </li>
+            <li>Recibirás la copia de tu hoja y nuestra respuesta en el correo que indiques.</li>
+          </ul>
+        </div>
+      </aside>
+    }
+  </main>
+  <app-footer />
+</div>

@@ -9,7 +9,7 @@
         />
       } @else if (tab() === 'paginas') {
         <!-- Pages design manager -->
-        <div class="grid grid-cols-[minmax(220px,280px)_1fr] items-start gap-5">
+        <div class="grid grid-cols-1 md:grid-cols-[minmax(220px,280px)_1fr] items-start gap-5">
           <app-card elevation="sm" padding="0">
             <div class="border-b border-border-subtle px-[18px] py-4">
               <span class="font-display text-base font-semibold text-text-strong"
@@ -55,7 +55,11 @@
                 {{ selectedPage().label }}
               </h3>
               <p class="m-0 mb-5 text-sm text-text-muted">
-                Encabezado, texto de apoyo y fondo del panel de esta página.
+                @if (isLegalPage()) {
+                  Edita el documento legal aprobado. Al guardar, el contenido se publica en la web.
+                } @else {
+                  Encabezado, texto de apoyo y fondo del panel de esta página.
+                }
               </p>
 
               <div class="flex flex-col gap-4">
@@ -71,6 +75,19 @@
                   (valueChange)="pageDescription.set($event)"
                 />
 
+                @if (isLegalPage()) {
+                  <app-textarea
+                    label="Contenido del documento"
+                    [rows]="18"
+                    [value]="pageContent()"
+                    (valueChange)="pageContent.set($event)"
+                    placeholder="Escribe el texto aprobado. Separa los párrafos con una línea en blanco."
+                  />
+                  <p class="text-xs text-text-muted">
+                    Para crear un subtítulo, escribe «## » al inicio de su línea y coloca el texto debajo. Separa las secciones con una línea en blanco. Completa y
+                    revisa los datos de la empresa y las condiciones aplicables antes de publicar.
+                  </p>
+                }
                 <div class="border-t border-border-subtle pt-4">
                   <label class="mb-2.5 block text-sm font-semibold text-text-strong"
                     >Color de fondo</label
@@ -934,6 +951,72 @@
               >{{ saving() ? 'Guardando...' : 'Guardar footer' }}</app-button
             >
           </div>
+          <section
+            class="mt-8 border-t border-border-subtle pt-6"
+            aria-labelledby="social-settings-title"
+          >
+            <h4 id="social-settings-title" class="m-0 font-display text-base text-text-strong">
+              Redes sociales
+            </h4>
+            <p class="my-3 text-sm text-text-muted">
+              Los enlaces iniciales son de prueba y abren las páginas de cada plataforma.
+              Reemplázalos por los perfiles de la empresa. Puedes añadir, ocultar o quitar redes.
+            </p>
+            <div class="grid gap-4">
+              @for (link of socialLinks(); track $index; let i = $index) {
+                <div
+                  class="grid gap-3 rounded-lg border border-border-subtle bg-surface-sunken p-4 md:grid-cols-[150px_1fr]"
+                >
+                  <app-select
+                    label="Red social"
+                    [options]="socialNetworks"
+                    [value]="link.network"
+                    (valueChange)="setSocialLink(i, 'network', $event)"
+                    [disabled]="saving()"
+                  />
+                  <app-input
+                    label="Enlace del perfil (HTTPS)"
+                    placeholder="https://www.instagram.com/tuempresa/"
+                    [value]="link.url"
+                    (valueChange)="setSocialLink(i, 'url', $event)"
+                    [disabled]="saving()"
+                  />
+                  <app-checkbox
+                    text="Mostrar en el footer"
+                    [checked]="link.enabled"
+                    (checkedChange)="setSocialLink(i, 'enabled', $event)"
+                    [disabled]="saving()"
+                  />
+                  <app-button
+                    variant="ghost"
+                    size="sm"
+                    (clicked)="removeSocialLink(i)"
+                    [disabled]="saving()"
+                    [appAccessAction]="'update'"
+                    >Quitar red</app-button
+                  >
+                </div>
+              }
+            </div>
+            <div class="mt-4 flex flex-wrap justify-between gap-3">
+              <app-button
+                variant="outline"
+                size="sm"
+                (clicked)="addSocialLink()"
+                [disabled]="saving() || socialLinks().length >= socialNetworks.length"
+                [appAccessAction]="'update'"
+                >Añadir red social</app-button
+              >
+              <app-button
+                variant="primary"
+                size="sm"
+                (clicked)="saveSocialLinks()"
+                [disabled]="saving()"
+                [appAccessAction]="'update'"
+                >Guardar redes sociales</app-button
+              >
+            </div>
+          </section>
         </app-card>
       } @else if (currentEntity(); as def) {
         <!-- Collection manager -->

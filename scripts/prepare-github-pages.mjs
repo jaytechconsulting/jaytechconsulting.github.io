@@ -42,6 +42,8 @@ const withBuildId = index
 const siteUrl = 'https://eldronenlasopa.github.io';
 const defaultImage = `${siteUrl}/og-cover.jpg`;
 const publicRoutes = [
+  { path: 'terminos-y-condiciones', title: 'Términos y condiciones | Jaytech', description: 'Condiciones de uso del sitio web de Jaytech.' },
+  { path: 'avisos-legales', title: 'Avisos legales | Jaytech', description: 'Información legal del sitio web de Jaytech.' },
   {
     path: 'proyectos',
     title: 'Proyectos de software y automatización | DronLab',

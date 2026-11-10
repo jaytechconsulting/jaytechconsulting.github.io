@@ -1,6 +1,7 @@
 import type { CmsContentState } from './cms.models';
 
 export const DEFAULT_STATE: CmsContentState = {
+  socialLinks: [],
   companies: [],
   reviews: [],
   services: [],
@@ -81,6 +82,65 @@ export const DEFAULT_STATE: CmsContentState = {
     backgroundImage: '',
   },
   pages: {
+    'terminos-y-condiciones': {
+      heading: 'Términos y condiciones',
+      description: 'Condiciones de uso del sitio, contratación de servicios y compra de cursos.',
+      content: `Este texto es referencial. Las condiciones de cada servicio se detallan en la propuesta aceptada o en la información de compra que se presenta antes de pagar.
+
+## Servicios y cotizaciones
+Jaytech ofrece desarrollo de software y aplicaciones web, diseño de sitios, automatizaciones, integraciones, asesorías y capacitaciones. Solicitar una propuesta permite evaluar tu necesidad. Antes de contratar, revisa el alcance, los entregables, el precio, los plazos y los costos de terceros que figuren en la propuesta.
+
+## Ejecución de proyectos
+Para iniciar el trabajo se acuerdan los accesos, materiales y aprobaciones que debe facilitar cada parte. Los cambios de alcance se cotizan y se acuerdan por escrito. Las condiciones de entrega, soporte, mantenimiento y uso del código se detallan en la propuesta o el contrato.
+
+## Cursos y capacitaciones
+Antes de inscribirte o pagar, revisa el temario, modalidad, precio, requisitos y condiciones de acceso indicados para cada actividad. Las solicitudes de reprogramación, cancelación o devolución se atienden según las condiciones informadas para la compra y la normativa aplicable.
+
+## Cuenta y soporte
+Mantén tus credenciales bajo resguardo y utiliza el portal solo para las operaciones autorizadas. Si tienes acceso al portal de clientes, puedes abrir un ticket para consultar sobre un proyecto o solicitar soporte.
+
+## Consultas y reclamos
+Usa los canales publicados en el pie de página para consultas comerciales o de soporte. Para reclamos, utiliza el Libro de Reclamaciones cuando corresponda. Se respetan los derechos reconocidos por la normativa peruana aplicable, incluido el Código de Protección y Defensa del Consumidor.`,
+      backgroundColor: '',
+      backgroundImage: '',
+    },
+    'avisos-legales': {
+      heading: 'Avisos legales',
+      description: 'Información sobre Jaytech, privacidad, cookies y atención de solicitudes.',
+      content: `Este aviso es referencial. Jaytech presenta en este sitio sus servicios de desarrollo, automatización, asesoría y capacitación. Puedes contactar al equipo mediante los canales indicados en el pie de página.
+
+## Contenido y propiedad intelectual
+Los textos, diseños, marcas y materiales del sitio pertenecen a sus respectivos titulares. Para reproducirlos o redistribuirlos, verifica los permisos aplicables. Las condiciones de uso de los entregables de un proyecto y de los materiales de cursos se establecen en la propuesta o en las condiciones de compra.
+
+## Portafolio y enlaces externos
+Los proyectos publicados describen trabajos concretos. El alcance y los resultados dependen de las necesidades de cada cliente. Los enlaces a redes sociales, servicios de pago u otras plataformas llevan a sitios administrados por terceros, con sus propias condiciones.
+
+## Formularios y portal de clientes
+Al enviar un formulario puedes proporcionar tu nombre, correo, teléfono y detalles de tu proyecto. Usamos esa información para responder, preparar propuestas y dar seguimiento a tus solicitudes. El portal permite gestionar consultas y soporte. Evita incluir contraseñas o datos de tarjetas en formularios o tickets.
+
+## Cookies y analítica
+El sitio utiliza cookies necesarias para la sesión y la seguridad. Si aceptas la analítica, Google Tag Manager carga la configuración de Google Analytics para medir visitas. Puedes cambiar tu decisión desde el botón Cookies. El inicio de sesión funciona aunque rechaces la analítica.
+
+## Contacto por WhatsApp
+Si eliges escribirnos por WhatsApp, usamos tu número y los mensajes que compartas para atender tu consulta. WhatsApp aplica sus propias condiciones y política de privacidad.
+
+## Proveedores y pagos
+El sitio se apoya en servicios de alojamiento y, según la operación, en plataformas de mensajería, analítica o pago. Si una compra se procesa mediante una pasarela, esta puede solicitar los datos necesarios para autorizar la transacción. Consulta la información de privacidad del proveedor que se muestre durante la compra.
+
+## Conservación de datos
+El periodo de conservación depende de la finalidad de la información, del servicio contratado y de las obligaciones aplicables. Los datos de una consulta sirven para responderla y darle seguimiento. Los registros de una compra pueden estar sujetos a obligaciones adicionales.
+
+## Derechos sobre tus datos
+Conforme a la Ley N.º 29733 y su Reglamento, aprobado por el Decreto Supremo N.º 016-2024-JUS, puedes solicitar información sobre el tratamiento de tus datos y ejercer los derechos de acceso, rectificación, cancelación y oposición, según corresponda. También puedes retirar tu consentimiento cuando sea la base del tratamiento. Usa los canales del pie de página e indica qué solicitud deseas presentar.
+
+## Cancelaciones y devoluciones
+Si necesitas cancelar una compra o solicitar una devolución, contacta al equipo con la referencia de la operación y el motivo de tu solicitud. Se revisarán las condiciones informadas al contratar y los derechos que correspondan. Cuando proceda una devolución, se te informará el medio y el plazo estimado.
+
+## Actualizaciones del aviso
+Puedes consultar la versión vigente de este aviso en esta página.`,
+      backgroundColor: '',
+      backgroundImage: '',
+    },
     proyectos: {
       heading: 'Lo que hemos construido para empresas como la tuya',
       description: '',

@@ -1,0 +1,61 @@
+<div class="min-h-screen bg-surface-page font-body">
+  <app-header
+    class="sticky top-0 z-50"
+    [links]="cms.header().links"
+    [cta]="cms.header().cta"
+    (ctaClicked)="proposal()"
+  />
+  <section class="legal-hero" [style]="heroStyle()">
+    <div class="legal-width">
+      <a routerLink="/" class="back-link"><app-icon name="chevronLeft" />Volver al inicio</a>
+      <span class="eyebrow">// Información legal</span>
+      <h1>{{ page().heading || title() }}</h1>
+      <p>
+        {{
+          page().description || 'Información para conocer las condiciones de uso de nuestro sitio.'
+        }}
+      </p>
+    </div>
+  </section>
+  <main class="legal-width legal-main">
+    <nav class="legal-nav" aria-label="Documentos legales">
+      <a
+        routerLink="/terminos-y-condiciones"
+        [class.selected]="kind() === 'terminos-y-condiciones'"
+        [attr.aria-current]="kind() === 'terminos-y-condiciones' ? 'page' : null"
+        >Términos y condiciones<app-icon name="chevronRight"
+      /></a>
+      <a
+        routerLink="/avisos-legales"
+        [class.selected]="kind() === 'avisos-legales'"
+        [attr.aria-current]="kind() === 'avisos-legales' ? 'page' : null"
+        >Avisos legales<app-icon name="chevronRight"
+      /></a>
+    </nav>
+    <article class="legal-document" [attr.aria-busy]="cms.contentStatus() === 'loading'">
+      @if (cms.contentStatus() === 'loading') {
+        <p role="status">Cargando documento…</p>
+      } @else if (cms.contentStatus() === 'error') {
+        <h2>No pudimos cargar el documento</h2>
+        <p>Inténtalo nuevamente en unos momentos.</p>
+        <app-button variant="outline" size="sm" (clicked)="retry()">Reintentar</app-button>
+      } @else if (paragraphs().length) {
+        @for (paragraph of paragraphs(); track $index) {
+          @if (paragraph.title) {
+            <section class="legal-section">
+              <h2>{{ paragraph.title }}</h2>
+              <p class="legal-paragraph">{{ paragraph.body }}</p>
+            </section>
+          } @else {
+            <p class="legal-paragraph">{{ paragraph.body }}</p>
+          }
+        }
+      } @else {
+        <span class="empty-icon"><app-icon name="info" /></span>
+        <h2>Documento pendiente de publicación</h2>
+        <p>El contenido de {{ title().toLowerCase() }} aún no está disponible.</p>
+      }
+    </article>
+  </main>
+  <app-footer />
+</div>

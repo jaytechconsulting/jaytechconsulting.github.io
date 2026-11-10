@@ -110,3 +110,13 @@ El contenedor activo es `GTM-PZBV2SLJ`, configurado en ambos entornos. Se carga 
 En el contenedor, configurar y publicar la etiqueta de Google con el ID de medición de la propiedad GA4 correcta. La aplicación emite `app_page_view` con `page_path` al iniciar la medición y al navegar: crear un activador de evento personalizado para este nombre y una etiqueta GA4 que envíe `page_view` con ese parámetro. Desactivar el envío automático de vistas iniciales y por historial si se usa este flujo para evitar duplicados. Respetar el consentimiento de analítica en las etiquetas; la publicidad permanece denegada. Las etiquetas HTML personalizadas requieren configurar sus comprobaciones de consentimiento.
 
 Verificar con Tag Assistant y Tiempo real de Analytics después de aceptar; rechazar no debe descargar el contenedor. La configuración y publicación del contenedor se realizan en Google Tag Manager, fuera del repositorio.
+
+## Documentos legales
+
+`/terminos-y-condiciones` y `/avisos-legales` se editan en Administración → Páginas. Reutilizan `PUT /api/content/{key}` y los permisos existentes de contenido: las claves son `page.terminos-y-condiciones` y `page.avisos-legales`. El cuerpo JSON conserva `description`, `backgroundColor` y añade `content` para el texto completo. El guardado publica el registro con `status: 1`, como el editor de páginas existente. No requiere migraciones ni cambios de backend.
+
+Las páginas públicas leen la instantánea `/api/public-site`, muestran estados de carga/error y usan texto referencial si todavía no existe un documento guardado. El texto se interpola de forma segura y conserva párrafos; no admite HTML ejecutable. Completar el documento aprobado desde el CMS antes de su publicación efectiva.
+
+## Redes sociales del footer
+
+Administración → Pie de página permite gestionar Instagram, Facebook, LinkedIn, YouTube y GitHub. El botón «Guardar redes sociales» guarda la lista en `site.social-links` mediante la API de contenido existente, sin migraciones. Cada entrada contiene `network`, `url` y `enabled`; su orden determina el del footer. Una lista vacía guardada oculta todas las redes. Si todavía no existe configuración, se muestran enlaces de prueba a las páginas principales de las plataformas. Los enlaces solo admiten HTTPS sin credenciales, abren otra pestaña y no cargan widgets ni seguimiento social.

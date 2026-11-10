@@ -149,4 +149,13 @@ describe('Responsive admin navigation', () => {
     fixture.componentInstance.revealActiveMenu();
     expect(focus).not.toHaveBeenCalled();
   });
+  it('reveals the active menu while a request is still pending', () => {
+    const fixture = TestBed.createComponent(AdminShell);
+    const shell = fixture.componentInstance;
+    shell.loading.start();
+    const reveal = vi.spyOn(shell, 'revealActiveMenu');
+    fixture.detectChanges();
+    expect(reveal).toHaveBeenCalledOnce();
+    expect(shell.loading.hasPendingRequests()).toBe(true);
+  });
 });

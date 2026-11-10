@@ -69,6 +69,8 @@
   <button
     type="button"
     class="cookie-reopen"
+    animate.enter="cookie-button-enter"
+    animate.leave="cookie-button-leave"
     (click)="customize()"
     aria-label="Preferencias de cookies"
     title="Preferencias de cookies"
@@ -76,4 +78,3 @@
     <app-icon name="shield" /><span>Cookies</span>
   </button>
 }
-

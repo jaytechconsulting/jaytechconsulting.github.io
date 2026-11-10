@@ -139,3 +139,37 @@ describe('Published site snapshot', () => {
     expect(stored[0].imageUrl).toBe(value.backgroundImage);
   });
 });
+
+describe('Legal document persistence', () => {
+  it('saves full document text through the existing content API', async () => {
+    const updateSiteContent = vi.fn(() => of({}));
+    const api = {
+      publicSite: () => of(snapshot()),
+      updateSiteContent,
+      cms: () => of(snapshot().cms),
+      siteContent: () => of([]),
+    };
+    TestBed.configureTestingModule({ providers: [{ provide: ApiService, useValue: api }] });
+    await firstValueFrom(
+      TestBed.inject(CmsContentService).savePageDesign('terminos-y-condiciones', {
+        heading: 'Términos aprobados',
+        description: 'Resumen',
+        content: 'Primero\n\nSegundo',
+        backgroundColor: '',
+        backgroundImage: '',
+      }),
+    );
+    expect(updateSiteContent).toHaveBeenCalledWith(
+      'page.terminos-y-condiciones',
+      expect.objectContaining({
+        title: 'Términos aprobados',
+        status: 1,
+        body: JSON.stringify({
+          description: 'Resumen',
+          content: 'Primero\n\nSegundo',
+          backgroundColor: '',
+        }),
+      }),
+    );
+  });
+});

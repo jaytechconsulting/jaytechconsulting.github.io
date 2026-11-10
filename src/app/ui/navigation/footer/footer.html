@@ -9,14 +9,55 @@
         <div>{{ footer().email }}</div>
         <div>{{ footer().phone }}</div>
       </div>
+      @if (socialLinks().length) {
+        <nav aria-label="Redes sociales" class="mt-6 flex flex-wrap gap-2.5">
+          @for (link of socialLinks(); track link.network) {
+            <a
+              [href]="link.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              [attr.aria-label]="link.label + ' (abre otra pestaña)'"
+              [title]="link.label"
+              class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border-inverse text-text-inverse-muted transition-colors hover:border-brand-voltio hover:bg-white/5 hover:text-brand-voltio focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-voltio"
+            >
+              <app-icon [name]="link.network" />
+            </a>
+          }
+        </nav>
+      }
+      <a
+        routerLink="/libro-de-reclamaciones"
+        aria-label="Ir al Libro de Reclamaciones"
+        class="mt-6 inline-flex items-center gap-3 rounded-lg border border-border-inverse bg-white/5 px-3.5 py-2.5 text-text-on-inverse no-underline transition-colors hover:border-brand-voltio hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-voltio"
+      >
+        <app-icon name="book" class="!h-7 !w-7 text-brand-voltio" />
+        <span class="flex flex-col leading-tight">
+          <span class="font-mono text-[10px] uppercase tracking-[0.14em] text-text-inverse-muted"
+            >Libro de</span
+          >
+          <span class="font-body text-sm font-semibold">Reclamaciones</span>
+        </span>
+      </a>
     </div>
     @for (col of columns(); track col.title) {
       <div>
-        <h4 class="m-0 mb-3 font-mono text-xs uppercase tracking-[0.14em] text-brand-yellow">{{ col.title }}</h4>
+        <h4 class="m-0 mb-3 font-mono text-xs uppercase tracking-[0.14em] text-brand-yellow">
+          {{ col.title }}
+        </h4>
         @for (item of col.items; track item) {
-          <a href="#" class="block py-1.5 font-body text-sm text-text-inverse-muted no-underline hover:text-white">{{
-            item
-          }}</a>
+          @if (legalRoute(item); as route) {
+            <a
+              [routerLink]="route"
+              class="block py-1.5 font-body text-sm text-text-inverse-muted no-underline hover:text-white"
+              >{{ item }}</a
+            >
+          } @else {
+            <a
+              href="#"
+              class="block py-1.5 font-body text-sm text-text-inverse-muted no-underline hover:text-white"
+              >{{ item }}</a
+            >
+          }
         }
       </div>
     }
@@ -25,6 +66,23 @@
     class="mx-auto mt-10 flex max-w-[1200px] flex-wrap justify-between gap-3 border-t border-border-inverse pt-6 font-mono text-xs text-text-faint"
   >
     <span>© 2026 Jaytech</span>
+    <nav aria-label="Información legal" class="flex flex-wrap gap-4">
+      <a
+        routerLink="/terminos-y-condiciones"
+        class="text-text-inverse-muted hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4"
+        >Términos y condiciones</a
+      >
+      <a
+        routerLink="/avisos-legales"
+        class="text-text-inverse-muted hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4"
+        >Avisos legales</a
+      >
+      <a
+        routerLink="/libro-de-reclamaciones"
+        class="text-text-inverse-muted hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4"
+        >Libro de reclamaciones</a
+      >
+    </nav>
     <span>Hecho con café en Perú ☕</span>
   </div>
 </footer>

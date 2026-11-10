@@ -58,7 +58,7 @@ export class App {
     this.errorRecovery.startTracking();
     const consent = inject(CookieConsentService);
     effect(() => {
-      if (consent.choice()?.analytics) this.analytics.init();
+      if (!this.inAdmin() && consent.choice()?.analytics) this.analytics.init();
     });
     this.seo.init();
     const subscription = this.router.events
@@ -84,13 +84,16 @@ export class App {
           }
         }
         if (event instanceof NavigationEnd) {
-          this.analytics.pageView(event.urlAfterRedirects);
+          const admin = /^\/admin(?:[/?#;]|$)/.test(event.urlAfterRedirects);
+          this.inAdmin.set(admin);
+          if (!admin) this.analytics.pageView(event.urlAfterRedirects);
           this.navigationReady.set(true);
           this.showProgressBar.set(false);
           this.pageFade.set(false);
           requestAnimationFrame(() => this.pageFade.set(true));
         }
         if (event instanceof NavigationCancel || event instanceof NavigationError) {
+          this.inAdmin.set(/^\/admin(?:[/?#;]|$)/.test(this.router.url));
           this.navigationReady.set(true);
           this.showProgressBar.set(false);
         }

@@ -1,5 +1,10 @@
 import { Component, input } from '@angular/core';
 export const ICON_PATHS = {
+  instagram: 'M7 3h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4z M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0 M17.5 6.5h.01',
+  facebook: 'M14 21v-8h3l.5-4H14V7c0-1 .5-2 2-2h2V2h-3c-3 0-5 2-5 5v2H7v4h3v8',
+  linkedin: 'M4 9h4v12H4z M6 3a2 2 0 1 1 0 4 2 2 0 0 1 0-4 M12 21V9h4v2c1-3 6-3 6 2v8 M16 21v-7c0-2 2-3 2-1v8',
+  youtube: 'M21 7c-.3-1-1-2-2-2-4-.5-10-.5-14 0-1 0-1.7 1-2 2-.5 3-.5 7 0 10 .3 1 1 2 2 2 4 .5 10 .5 14 0 1 0 1.7-1 2-2 .5-3 .5-7 0-10z M10 8l6 4-6 4z',
+  github: 'M9 19c-4 1-4-2-6-2 M9 22v-4c-3-1-5-3-5-6 0-2 1-3 2-4-1-2 0-4 0-4s2 0 4 2h4c2-2 4-2 4-2s1 2 0 4c1 1 2 2 2 4 0 3-2 5-5 6v4',
   dashboard:'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z',
   folder:'M3 7h7l2 2h9v11H3z M3 7V4h6l2 3',
   ticket:'M4 4h16v5a3 3 0 0 0 0 6v5H4v-5a3 3 0 0 0 0-6z M14 4v3 M14 10v4 M14 17v3',
@@ -19,6 +24,7 @@ export const ICON_PATHS = {
   cmsheader:'M3 3h18v18H3z M3 9h18 M6 6h4 M16 6h2',
   cmsfooter:'M3 3h18v18H3z M3 15h18 M6 18h4 M16 18h2',
 
+  book:'M4 4h6a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H4z M20 4h-6a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h6z',
   shield:'M12 3 3 7v6c0 5 9 9 9 9s9-4 9-9V7z M9 12l2 2 4-4',
   user:'M20 21v-2a7 7 0 0 0-14 0v2 M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0',
   logout:'M9 4H4v16h5 M14 8l4 4-4 4 M8 12h13',

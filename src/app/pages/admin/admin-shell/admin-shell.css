@@ -280,7 +280,7 @@ h1 {
   position: fixed;
   inset: 0;
   z-index: 80;
-  cursor: progress;
+  pointer-events: none;
 }
 .admin-request-lock span {
   position: absolute;

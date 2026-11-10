@@ -1,3 +1,4 @@
+import type { SocialLink } from './social-links';
 import { CmsCollectionRepository } from './cms-collection.repository';
 import { normalizeAnnouncement } from '../models/announcement';
 import { Injectable, computed, inject, signal } from '@angular/core';
@@ -57,6 +58,7 @@ export class CmsContentService {
   readonly heroAnimation = computed(() => this.state().heroAnimation);
   readonly header = computed(() => this.state().header);
   readonly footer = computed(() => this.state().footer);
+  readonly socialLinks = computed(() => this.state().socialLinks);
 
   constructor() {
     this.load(false).subscribe({ error: () => undefined });
@@ -76,6 +78,7 @@ export class CmsContentService {
           sections: next.sections,
           pages: next.pages,
           announcement: next.announcement,
+          socialLinks: next.socialLinks,
           loader: next.loader,
           heroAnimation: next.heroAnimation,
         }));
@@ -166,6 +169,18 @@ export class CmsContentService {
     return this.api.updateHeader(value).pipe(switchMap(() => this.load(true)));
   }
 
+  saveSocialLinks(links: SocialLink[]): Observable<CmsContentState> {
+    return this.api
+      .updateSiteContent('site.social-links', {
+        key: 'site.social-links',
+        title: 'Redes sociales',
+        body: JSON.stringify(links),
+        imageUrl: null,
+        status: 1,
+      })
+      .pipe(switchMap(() => this.load(true)));
+  }
+
   saveFooter(value: CmsContentState['footer']): Observable<CmsContentState> {
     const input = {
       ...value,
@@ -206,6 +221,7 @@ export class CmsContentService {
     const key = `page.${id}`;
     const details = JSON.stringify({
       description: value.description,
+      ...(value.content !== undefined ? { content: value.content } : {}),
       backgroundColor: value.backgroundColor,
     });
     const input = {

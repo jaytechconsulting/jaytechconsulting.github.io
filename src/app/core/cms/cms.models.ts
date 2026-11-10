@@ -1,3 +1,4 @@
+import type { SocialLink } from './social-links';
 import type { Announcement } from '../models/announcement';
 
 export interface CmsCompany {
@@ -117,9 +118,17 @@ export interface CmsAnnouncement extends Partial<Announcement> {
 }
 
 export type CmsPageDesignId =
-  'proyectos' | 'propuesta' | 'login' | 'asesorias' | 'capacitaciones' | 'conocenos';
+  | 'proyectos'
+  | 'propuesta'
+  | 'login'
+  | 'asesorias'
+  | 'capacitaciones'
+  | 'conocenos'
+  | 'terminos-y-condiciones'
+  | 'avisos-legales';
 
 export interface CmsPageDesign {
+  content?: string;
   heading: string;
   description: string;
   backgroundColor: string;
@@ -137,6 +146,7 @@ export interface CmsHeroAnimation {
 }
 
 export interface CmsContentState {
+  socialLinks: SocialLink[];
   companies: CmsCompany[];
   reviews: CmsReview[];
   services: CmsServiceItem[];

@@ -464,6 +464,13 @@ export const PAGE_LIST: {
   editable: boolean;
 }[] = [
   { id: 'inicio', label: 'Inicio', route: '/', editable: false },
+  {
+    id: 'terminos-y-condiciones',
+    label: 'Términos y condiciones',
+    route: '/terminos-y-condiciones',
+    editable: true,
+  },
+  { id: 'avisos-legales', label: 'Avisos legales', route: '/avisos-legales', editable: true },
   { id: 'proyectos', label: 'Proyectos', route: '/proyectos', editable: true },
   { id: 'propuesta', label: 'Solicitar propuesta', route: '/solicitar-propuesta', editable: true },
   { id: 'login', label: 'Iniciar sesión', route: '/login', editable: true },

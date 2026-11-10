@@ -8,6 +8,11 @@ import type {
   ApiCms,
   ApiPublicSite,
   ApiCompany,
+  ApiComplaint,
+  ApiComplaintBookInfo,
+  ApiComplaintInput,
+  ApiComplaintReceipt,
+  ApiComplaintSettings,
   ApiCourse,
   ApiCourseAdmin,
   ApiCoursePurchase,
@@ -103,6 +108,30 @@ export class ApiService {
   }
   createContact(input: unknown): Observable<unknown> {
     return this.client.post<unknown>(`/contacts`, input);
+  }
+
+  complaintBookInfo(): Observable<ApiComplaintBookInfo> {
+    return this.client.getPublic<ApiComplaintBookInfo>(`/complaints/info`);
+  }
+  createComplaint(input: ApiComplaintInput): Observable<ApiComplaintReceipt> {
+    return this.client.post<ApiComplaintReceipt>(`/complaints`, input);
+  }
+  complaint(id: string): Observable<ApiComplaint> {
+    return this.client.get<ApiComplaint>(`/complaints/${encodeURIComponent(id)}`);
+  }
+  respondComplaint(id: string, response: string, sendEmail: boolean): Observable<ApiComplaint> {
+    return this.client.patch<ApiComplaint>(`/complaints/${encodeURIComponent(id)}/response`, {
+      response,
+      sendEmail,
+    });
+  }
+  complaintSettings(): Observable<ApiComplaintSettings> {
+    return this.client.get<ApiComplaintSettings>(`/complaints/settings`);
+  }
+  updateComplaintSettings(
+    input: Omit<ApiComplaintSettings, 'smtpEnabled' | 'updatedAt'>,
+  ): Observable<ApiComplaintSettings> {
+    return this.client.put<ApiComplaintSettings>(`/complaints/settings`, input);
   }
 
   publicSite(): Observable<ApiPublicSite> {

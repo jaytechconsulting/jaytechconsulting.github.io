@@ -5,6 +5,46 @@ import { Home } from './pages/home/home';
 import { authGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
+  ...(['terminos-y-condiciones', 'avisos-legales'] as const).map((path) => ({
+    path,
+    loadComponent: () => import('./pages/legal/legal-page').then((m) => m.LegalPage),
+    data: {
+      legalPage: path,
+      seo: {
+        title: `${path === 'avisos-legales' ? 'Avisos legales' : 'Términos y condiciones'} | Jaytech`,
+        description: 'Información legal y condiciones de uso del sitio de Jaytech.',
+      },
+    },
+  })),
+  {
+    path: 'libro-de-reclamaciones',
+    loadComponent: () =>
+      import('./pages/complaints-book/complaints-book').then((m) => m.ComplaintsBook),
+    data: {
+      seo: {
+        title: 'Libro de Reclamaciones | Jaytech',
+        description:
+          'Registra un reclamo o una queja en el Libro de Reclamaciones virtual de Jaytech y recibe una copia en tu correo.',
+      },
+    },
+  },
+  { path: 'admin/reclamaciones', redirectTo: 'admin/reclamaciones/lista', pathMatch: 'full' },
+  ...(['lista', 'configuracion'] as const).map((view) => ({
+    path: `admin/reclamaciones/${view}`,
+    loadComponent: () =>
+      import('./pages/admin/admin-complaints/admin-complaints').then((m) => m.AdminComplaints),
+    canActivate: [authGuard],
+    runGuardsAndResolvers: 'always' as const,
+    data: {
+      role: 'admin',
+      complaintsView: view,
+      seo: {
+        title: `Libro de reclamaciones · ${view === 'lista' ? 'Lista' : 'Configuración'} | Jaytech`,
+        description: 'Administración del Libro de Reclamaciones de Jaytech.',
+        index: false,
+      },
+    },
+  })),
   {
     path: '',
     component: Home,
