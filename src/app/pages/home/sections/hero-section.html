@@ -11,55 +11,36 @@
     class="pointer-events-none absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-[0.07] [mask-image:radial-gradient(circle_at_30%_70%,#000,transparent_65%)] min-[821px]:hidden"
   ></div>
 
-  <!-- MP4 goes first: Safari reports WebM as playable, then stalls loading it and never falls back. -->
-  <!-- background video — bleeds into the page, no card/box; the fade on both sides keeps its edges from ever reading as a rectangle -->
-  @if (heroAnimation().enabled && videoMounted()) {
+  @if (heroAnimation().enabled) {
     <div
       class="pointer-events-none absolute inset-y-0 right-0 hidden w-[58%] overflow-hidden min-[821px]:block [mask-image:linear-gradient(90deg,transparent_0%,black_24%,black_82%,transparent_100%)]"
+      aria-hidden="true"
     >
-      @if (heroAnimation().videoUrl) {
-        <video
-          #heroVideo
-          class="h-full w-full object-cover"
-          muted
-          [muted]="true"
-          [autoplay]="!reducedMotion"
-          loop
-          playsinline
-          [preload]="reducedMotion ? 'auto' : 'metadata'"
-        >
-          <source [src]="heroAnimation().videoUrl" />
-        </video>
-      } @else if (theme() === 'dark') {
-        <video
-          #heroVideo
-          class="h-full w-full object-cover"
-          muted
-          [muted]="true"
-          [autoplay]="!reducedMotion"
-          loop
-          playsinline
-          [preload]="reducedMotion ? 'auto' : 'metadata'"
-        >
-          <source src="hero/hero-oscuro.mp4" type="video/mp4" />
-          <source src="hero/hero-oscuro.webm" type="video/webm" />
-        </video>
-      } @else {
-        <video
-          #heroVideo
-          class="h-full w-full object-cover"
-          muted
-          [muted]="true"
-          [autoplay]="!reducedMotion"
-          loop
-          playsinline
-          [preload]="reducedMotion ? 'auto' : 'metadata'"
-        >
-          <source src="hero/hero-claro.mp4" type="video/mp4" />
-          <source src="hero/hero-claro.webm" type="video/webm" />
-        </video>
+      @if (videoAllowed()) {
+        @for (src of [videoSrc()]; track src) {
+          <video
+            #heroVideo
+            class="h-full w-full object-cover"
+            muted
+            [muted]="true"
+            loop
+            playsinline
+            preload="auto"
+            [src]="src"
+            (playing)="playing.set(true); needsPlay.set(false)"
+            (pause)="playing.set(false); needsPlay.set(true)"
+            (error)="playing.set(false); needsPlay.set(false)"
+          ></video>
+        }
       }
     </div>
+    @if (videoAllowed() && (needsPlay() || playing())) {
+      <button
+        type="button"
+        class="absolute right-8 bottom-6 z-20 rounded-pill border border-border-subtle bg-surface-card px-4 py-2 text-sm text-text-strong"
+        (click)="toggleVideo()"
+      >{{ playing() ? 'Pausar animación' : 'Reproducir animación' }}</button>
+    }
   }
 
   <div class="relative z-10 mx-auto w-full max-w-[1320px]">

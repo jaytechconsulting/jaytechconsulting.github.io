@@ -1,11 +1,10 @@
-import { isBrowser } from '../../../core/platform';
 import {
   Component,
   DestroyRef,
   ElementRef,
   afterNextRender,
   computed,
-  effect,
+  afterRenderEffect,
   inject,
   signal,
   viewChild,
@@ -34,49 +33,50 @@ export class HeroSection {
   );
   readonly theme = this.themeService.theme;
   readonly heroAnimation = this.cms.heroAnimation;
-  readonly reducedMotion =
-    isBrowser && matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  /** Single hero CTA — reuses the header's admin-configurable button text (Admin → Cabecera web). */
   readonly ctaLabel = computed(() => this.cms.header().cta);
-
-  /**
-   * The decorative video is created in the browser, never prerendered: Safari leaves a video that
-   * arrived in the HTML paused after hydration, while one created by the app autoplays.
-   */
-  readonly videoMounted = signal(false);
+  readonly videoAllowed = signal(false);
+  readonly playing = signal(false);
+  readonly needsPlay = signal(false);
+  readonly videoSrc = computed(() => this.heroAnimation().videoUrl ||
+    (this.theme() === 'dark' ? 'hero/hero-oscuro.mp4' : 'hero/hero-claro.mp4'));
 
   private readonly video = viewChild<ElementRef<HTMLVideoElement>>('heroVideo');
 
   constructor() {
-    afterNextRender(() => this.videoMounted.set(true));
-
-    // Do not rely on the autoplay attribute alone. Safari decides whether a video may start
-    // on its own from its muted state at that instant, and can refuse one whose muted flag was
-    // set by script: start it explicitly, and if the browser still refuses (autoplay disabled,
-    // low power mode), start it on the visitor's first interaction with the page.
     const destroyRef = inject(DestroyRef);
-    let stopWaiting = () => {};
-    destroyRef.onDestroy(() => stopWaiting());
-    effect(() => {
-      const video = this.video()?.nativeElement;
-      stopWaiting();
-      if (!video || this.reducedMotion) return;
-      video.muted = true;
-      video.defaultMuted = true;
-      const start = () => video.play();
-      start().catch(() => {
-        const events = ['pointerdown', 'keydown', 'touchend'] as const;
-        const resume = () => {
-          stopWaiting();
-          start().catch(() => undefined);
-        };
-        stopWaiting = () => {
-          for (const event of events) document.removeEventListener(event, resume);
-          stopWaiting = () => {};
-        };
-        for (const event of events) document.addEventListener(event, resume, { passive: true });
+    afterNextRender(() => {
+      const desktop = matchMedia('(min-width: 821px)');
+      const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+      const update = () => this.videoAllowed.set(desktop.matches && !reducedMotion.matches);
+      update();
+      desktop.addEventListener('change', update);
+      reducedMotion.addEventListener('change', update);
+      destroyRef.onDestroy(() => {
+        desktop.removeEventListener('change', update);
+        reducedMotion.removeEventListener('change', update);
       });
+    });
+
+    afterRenderEffect(() => {
+      const video = this.video()?.nativeElement;
+      this.playing.set(false);
+      this.needsPlay.set(false);
+      if (video) this.startVideo(video);
+    });
+  }
+
+  toggleVideo(): void {
+    const video = this.video()?.nativeElement;
+    if (!video) return;
+    if (this.playing()) video.pause();
+    else this.startVideo(video);
+  }
+
+  private startVideo(video: HTMLVideoElement): void {
+    video.muted = true;
+    void video.play().catch((error: DOMException) => {
+      if (this.video()?.nativeElement === video && error.name === 'NotAllowedError')
+        this.needsPlay.set(true);
     });
   }
 
