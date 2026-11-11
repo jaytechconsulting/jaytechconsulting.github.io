@@ -1,5 +1,15 @@
 import { isBrowser } from '../../../core/platform';
-import { Component, afterNextRender, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  afterNextRender,
+  computed,
+  effect,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { Button } from '../../../ui/actions/button/button';
 import { CmsContentService } from '../../../core/cms/cms-content.service';
@@ -36,8 +46,38 @@ export class HeroSection {
    */
   readonly videoMounted = signal(false);
 
+  private readonly video = viewChild<ElementRef<HTMLVideoElement>>('heroVideo');
+
   constructor() {
     afterNextRender(() => this.videoMounted.set(true));
+
+    // Do not rely on the autoplay attribute alone. Safari decides whether a video may start
+    // on its own from its muted state at that instant, and can refuse one whose muted flag was
+    // set by script: start it explicitly, and if the browser still refuses (autoplay disabled,
+    // low power mode), start it on the visitor's first interaction with the page.
+    const destroyRef = inject(DestroyRef);
+    let stopWaiting = () => {};
+    destroyRef.onDestroy(() => stopWaiting());
+    effect(() => {
+      const video = this.video()?.nativeElement;
+      stopWaiting();
+      if (!video || this.reducedMotion) return;
+      video.muted = true;
+      video.defaultMuted = true;
+      const start = () => video.play();
+      start().catch(() => {
+        const events = ['pointerdown', 'keydown', 'touchend'] as const;
+        const resume = () => {
+          stopWaiting();
+          start().catch(() => undefined);
+        };
+        stopWaiting = () => {
+          for (const event of events) document.removeEventListener(event, resume);
+          stopWaiting = () => {};
+        };
+        for (const event of events) document.addEventListener(event, resume, { passive: true });
+      });
+    });
   }
 
   goToProposal(): void {

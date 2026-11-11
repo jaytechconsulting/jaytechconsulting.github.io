@@ -19,10 +19,11 @@
     >
       @if (heroAnimation().videoUrl) {
         <video
+          #heroVideo
           class="h-full w-full object-cover"
-          [autoplay]="!reducedMotion"
           muted
           [muted]="true"
+          [autoplay]="!reducedMotion"
           loop
           playsinline
           [preload]="reducedMotion ? 'auto' : 'metadata'"
@@ -31,10 +32,11 @@
         </video>
       } @else if (theme() === 'dark') {
         <video
+          #heroVideo
           class="h-full w-full object-cover"
-          [autoplay]="!reducedMotion"
           muted
           [muted]="true"
+          [autoplay]="!reducedMotion"
           loop
           playsinline
           [preload]="reducedMotion ? 'auto' : 'metadata'"
@@ -44,10 +46,11 @@
         </video>
       } @else {
         <video
+          #heroVideo
           class="h-full w-full object-cover"
-          [autoplay]="!reducedMotion"
           muted
           [muted]="true"
+          [autoplay]="!reducedMotion"
           loop
           playsinline
           [preload]="reducedMotion ? 'auto' : 'metadata'"
