@@ -130,6 +130,17 @@ export class AuthService {
       }),
     );
   }
+  loadAdminSession() {
+    const generation = this.generation;
+    return this.api.adminBootstrap().pipe(
+      map(({ profile, access }) => {
+        this.requireCurrentSession(generation);
+        this.persistProfile(profile);
+        this.access.acceptBootstrap(access);
+        return access;
+      }),
+    );
+  }
   updateProfile(
     input: string | PersonalProfileInput,
   ): Observable<AuthUser & PersonalProfileFields> {

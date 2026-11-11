@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 const source = await readFile(new URL('../public/cms-bootstrap.js', import.meta.url), 'utf8');
 function context(fetch) {
   return {
-    window: {}, fetch, AbortController, setTimeout, clearTimeout,
+    window: { location: { pathname: "/" } }, fetch, AbortController, setTimeout, clearTimeout,
     performance: { now: () => 42 },
     document: { querySelector: () => ({ content: 'https://api.test/api/public-site' }) },
   };
@@ -31,4 +31,11 @@ test('settles network and parsing failures without an unhandled rejection', asyn
     runInNewContext(source, sandbox);
     assert.equal((await sandbox.window.__publicSiteBootstrap.result).ok, false);
   }
+});
+
+test('skips the public request on direct admin entry', () => {
+  const sandbox = context(() => assert.fail('unexpected public request'));
+  sandbox.window.location.pathname = '/admin/usuarios';
+  runInNewContext(source, sandbox);
+  assert.equal(sandbox.window.__publicSiteBootstrap, undefined);
 });

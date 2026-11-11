@@ -2,6 +2,7 @@ import type { CatalogDetails } from './catalog/catalog.models';
 import type { ApiProfile, PersonalProfileInput, DocumentLookupResult } from './models/api.models';
 import { Injectable, inject } from '@angular/core';
 import { ApiClient } from './http/api-client';
+import type { AccessSession } from './access/access.service';
 import { Observable } from 'rxjs';
 import type {
   ApiAdminUser,
@@ -54,6 +55,9 @@ export class ApiService {
   }
   currentProfile(): Observable<ApiProfile> {
     return this.client.get<ApiProfile>(`/auth/me`);
+  }
+  adminBootstrap(): Observable<{ profile: ApiProfile; access: AccessSession }> {
+    return this.client.get('/auth/admin-bootstrap');
   }
   updateProfile(input: string | PersonalProfileInput): Observable<ApiProfile> {
     return this.client.put<ApiProfile>(

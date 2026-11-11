@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { catchError, map, of, switchMap } from 'rxjs';
+import { catchError, map, of } from 'rxjs';
 import { AccessService, AccessSession } from '../access/access.service';
 import { AuthService, AuthUser, UserRole } from './auth.service';
 import { ErrorRecovery } from '../errors/error-recovery';
@@ -50,13 +50,13 @@ export const authGuard: CanActivateFn = (route, state) => {
     if (result === true && requiredRole === 'admin') access.revalidateAfterNavigation();
     return result;
   }
-  return auth.loadProfile().pipe(
-    switchMap((user) => {
-      if (!auth.isAuthenticated()) return of(login());
-      return requiredRole === 'admin'
-        ? access.load(true).pipe(map(authorizeAdmin))
-        : of(authorizeUser(user));
-    }),
+  const verification =
+    requiredRole === 'admin'
+      ? auth.loadAdminSession().pipe(map(authorizeAdmin))
+      : auth
+          .loadProfile()
+          .pipe(map((user) => (auth.isAuthenticated() ? authorizeUser(user) : login())));
+  return verification.pipe(
     catchError((error) => {
       if (error.status === 401 || (error.status === undefined && !auth.isAuthenticated())) {
         auth.clearSession();

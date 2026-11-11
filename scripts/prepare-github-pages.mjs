@@ -145,6 +145,7 @@ function routeHtml(source, route) {
 }
 
 await writeFile(indexPath, withBuildId);
+await writeFile(resolve(outputDir, 'version.json'), JSON.stringify({ buildId }));
 for (const route of [...publicRoutes, ...privateRoutes]) {
   const routeDirectory = resolve(outputDir, route.path);
   await mkdir(routeDirectory, { recursive: true });

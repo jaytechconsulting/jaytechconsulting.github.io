@@ -40,8 +40,8 @@ describe('Independent content modules', () => {
       isAuthenticated: () => authenticated,
       currentUser: () => ({ role: 'admin' }),
       clearSession: () => {},
-      loadProfile: () =>
-        authenticated ? of({ role: 'admin' }) : throwError(() => ({ status: 401 })),
+      loadAdminSession: () =>
+        authenticated ? of(access.session()) : throwError(() => ({ status: 401 })),
     };
     const access = {
       loaded: () => true,

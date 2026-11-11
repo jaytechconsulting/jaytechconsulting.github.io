@@ -20,6 +20,7 @@ describe('Private route authorization', () => {
       isAuthenticated: vi.fn(() => true),
       clearSession: vi.fn(),
       loadProfile: vi.fn(() => of({ role: 'admin' })),
+      loadAdminSession: vi.fn(() => access.load()),
     };
     const session = { canAdmin: true, menus: [], permissions: [{ id: 'read' }] };
     access = {
@@ -52,15 +53,15 @@ describe('Private route authorization', () => {
     return isObservable(result) ? await firstValueFrom(result) : await result;
   }
   it('redirects logged-out deep links with their full query string', async () => {
-    auth.loadProfile.mockReturnValue(throwError(() => ({ status: 401 })));
+    auth.loadAdminSession.mockReturnValue(throwError(() => ({ status: 401 })));
     const result = await navigate('/admin?section=clientes');
     expect(router.serializeUrl(result as any)).toBe(
       '/login?redirectTo=%2Fadmin%3Fsection%3Dclientes',
     );
-    expect(auth.loadProfile).toHaveBeenCalled();
+    expect(auth.loadAdminSession).toHaveBeenCalled();
   });
   it('redirects expired sessions to login instead of forbidden', async () => {
-    auth.loadProfile.mockReturnValue(throwError(() => ({ status: 401 })));
+    auth.loadAdminSession.mockReturnValue(throwError(() => ({ status: 401 })));
     expect(router.serializeUrl((await navigate()) as any)).toBe(
       '/login?redirectTo=%2Fadmin%2Fusuarios',
     );
@@ -92,7 +93,7 @@ describe('Private route authorization', () => {
   });
   it('shows service unavailability instead of login when restoring an unknown session fails', async () => {
     auth.isAuthenticated.mockReturnValue(false);
-    auth.loadProfile.mockReturnValue(throwError(() => ({ status: 503 })));
+    auth.loadAdminSession.mockReturnValue(throwError(() => ({ status: 503 })));
     expect(router.serializeUrl((await navigate()) as any)).toBe(
       '/error/503?returnTo=%2Fadmin%2Fusuarios',
     );
@@ -136,9 +137,9 @@ describe('Private route authorization', () => {
   it('does not use a previous account permission cache when the session has been cleared', async () => {
     access.loaded.mockReturnValue(true);
     auth.isAuthenticated.mockReturnValue(false);
-    auth.loadProfile.mockReturnValue(throwError(() => ({ status: 401 })));
+    auth.loadAdminSession.mockReturnValue(throwError(() => ({ status: 401 })));
     expect(router.serializeUrl((await navigate()) as any)).toContain('/login');
-    expect(auth.loadProfile).toHaveBeenCalled();
+    expect(auth.loadAdminSession).toHaveBeenCalled();
     expect(access.revalidateAfterNavigation).not.toHaveBeenCalled();
   });
   it('accepts private internal return URLs and rejects external or malformed destinations', () => {

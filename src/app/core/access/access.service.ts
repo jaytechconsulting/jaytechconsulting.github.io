@@ -119,6 +119,11 @@ export class AccessService {
     this.session.set(empty());
     this.loaded.set(false);
   }
+  acceptBootstrap(session: AccessSession): void {
+    this.clear();
+    this.session.set(session);
+    this.loaded.set(true);
+  }
   can(resource: string, action: string): boolean {
     return (
       !!resource &&

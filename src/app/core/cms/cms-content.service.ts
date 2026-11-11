@@ -61,7 +61,7 @@ export class CmsContentService {
   readonly socialLinks = computed(() => this.state().socialLinks);
 
   constructor() {
-    this.load(false).subscribe({ error: () => undefined });
+    if (!/^\/admin(?:[\/;]|$)/.test(window.location.pathname)) this.retryPublic();
   }
 
   load(includeUnpublished: boolean): Observable<CmsContentState> {

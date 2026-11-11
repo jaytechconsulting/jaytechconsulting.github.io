@@ -1,6 +1,7 @@
 /* Start only published content before Angular; never send a session cookie. */
 (() => {
   if (window.__publicSiteBootstrap || typeof fetch !== 'function') return;
+  if (/^\/admin(?:[\/;]|$)/.test(window.location.pathname)) return;
   const endpoint = document.querySelector('meta[name="public-site-endpoint"]')?.content;
   if (!endpoint) return;
   const controller = new AbortController();
