@@ -4,7 +4,7 @@ import { Meta, Title } from '@angular/platform-browser';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 
-export const SITE_URL = 'https://eldronenlasopa.github.io';
+export const SITE_URL = 'https://jaytechconsulting.github.io';
 const DEFAULT_IMAGE = `${SITE_URL}/og-cover.jpg`;
 
 // Commit de prueba

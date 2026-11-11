@@ -2,10 +2,11 @@ import { DestroyRef, Injectable, InjectionToken, inject } from '@angular/core';
 import { CanActivateFn, NavigationEnd, NavigationStart, Router, UrlTree } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { loginRedirect } from '../auth/auth-navigation';
+import { isBrowser } from '../platform';
 
 export const DOCUMENT_ENTRY_PATH = new InjectionToken<string>('DOCUMENT_ENTRY_PATH', {
   providedIn: 'root',
-  factory: () => window.location.pathname,
+  factory: () => (isBrowser ? window.location.pathname : '/'),
 });
 
 export const DOCUMENT_NAVIGATION_TYPE = new InjectionToken<string>('DOCUMENT_NAVIGATION_TYPE', {
@@ -42,6 +43,7 @@ export class ErrorRecovery {
   private context: { attempted?: string; valid?: string; target?: string } = {};
 
   constructor() {
+    if (!isBrowser) return;
     try {
       const saved = JSON.parse(sessionStorage.getItem(this.storageKey) ?? '{}');
       this.context = {
@@ -63,6 +65,7 @@ export class ErrorRecovery {
     return safe;
   }
   private save(): void {
+    if (!isBrowser) return;
     try {
       sessionStorage.setItem(this.storageKey, JSON.stringify(this.context));
     } catch {}

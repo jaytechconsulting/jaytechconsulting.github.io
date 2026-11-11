@@ -1,87 +1,82 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { join, relative, resolve, sep } from 'node:path';
 
-const candidates = [
-  resolve('dist/app-eldronenlasopa-web/browser'),
-  resolve('dist/app-eldronenlasopa-web'),
-];
+// Angular prerenders every public route to its own index.html with the published CMS content
+// and its SEO tags already inside. This step only adds what a static host needs around them:
+// a build id, the client-rendered fallbacks for private routes and the 404 page.
+const outputDir = resolve(process.argv[2] ?? 'dist/app-eldronenlasopa-web/browser');
 
-let outputDir;
-for (const candidate of candidates) {
-  try {
-    await readFile(resolve(candidate, 'index.html'));
-    outputDir = candidate;
-    break;
-  } catch {
-    // Try the next Angular output layout.
+async function htmlFiles(directory) {
+  const found = [];
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) found.push(...(await htmlFiles(path)));
+    else if (entry.name.endsWith('.html')) found.push(path);
   }
+  return found;
 }
 
-if (!outputDir) throw new Error('No se encontró el index.html compilado de Angular.');
+const home = await readFile(resolve(outputDir, 'index.html'), 'utf8').catch(() => {
+  throw new Error(`No se encontró el index.html prerenderizado en ${outputDir}.`);
+});
+// A publish that could not read the CMS would replace the live site with empty pages.
+if (home.includes('<app-cms-placeholder') || !/<h1[\s>]/.test(home))
+  throw new Error(
+    'La portada se prerenderizó sin contenido del CMS (¿API inaccesible durante el build?). Publicación cancelada.',
+  );
 
-const indexPath = resolve(outputDir, 'index.html');
-const buildId = new Date().toISOString();
-const index = await readFile(indexPath, 'utf8');
-// Start DNS/TLS while the browser downloads Angular, rather than after bootstrap.
 const productionEnvironment = await readFile(
   resolve('src/environments/environment.prod.ts'),
   'utf8',
 );
-const apiUrl = productionEnvironment.match(/apiUrl:\s*['"]([^'"]+)['"]/)[1];
-const apiOrigin = new URL(apiUrl).origin;
-const bootstrap = await readFile(resolve('public/cms-bootstrap.js'), 'utf8');
-// Inline the small bootstrap before styles and Angular so the API download starts
-// with HTML parsing, without another script download on the critical path.
-const withBuildId = index
-  .replace(/<meta name="public-site-endpoint" content="[^"]*"\s*\/?>/,
-    `<meta name="public-site-endpoint" content="${escapeAttribute(apiUrl.replace(/\/$/, '') + '/public-site')}">\n  <link rel="preconnect" href="${escapeAttribute(apiOrigin)}" crossorigin>`)
-  .replace(/<script src="\/cms-bootstrap.js"><\/script>/,
-    `<script>${bootstrap.replaceAll('</script', '<\\/script')}</script>`)
-  .replace('</head>', `  <meta name="build-id" content="${buildId}">\n</head>`);
+const apiOrigin = new URL(productionEnvironment.match(/apiUrl:\s*['"]([^'"]+)['"]/)[1]).origin;
+const buildId = new Date().toISOString();
+const headExtras =
+  `  <link rel="preconnect" href="${escapeAttribute(apiOrigin)}" crossorigin>\n` +
+  `  <meta name="build-id" content="${buildId}">\n</head>`;
 
-const siteUrl = 'https://eldronenlasopa.github.io';
-const defaultImage = `${siteUrl}/og-cover.jpg`;
-const publicRoutes = [
-  { path: 'terminos-y-condiciones', title: 'Términos y condiciones | Jaytech', description: 'Condiciones de uso del sitio web de Jaytech.' },
-  { path: 'avisos-legales', title: 'Avisos legales | Jaytech', description: 'Información legal del sitio web de Jaytech.' },
-  {
-    path: 'proyectos',
-    title: 'Proyectos de software y automatización | DronLab',
-    description:
-      'Conoce proyectos de aplicaciones web, landings, automatizaciones e integraciones desarrollados por DronLab para empresas.',
-  },
-  {
-    path: 'proyectos/comercial-andina-panel-de-inventario',
-    title: 'Panel de inventario para Comercial Andina | DronLab',
-    description:
-      'Control de stock en tiempo real con alertas y reportes, desarrollado por DronLab para Comercial Andina.',
-    type: 'article',
-  },
-  {
-    path: 'proyectos/estudio-vega-automatizacion-de-facturas',
-    title: 'Automatización de facturas para Estudio Vega | DronLab',
-    description:
-      'Emisión y envío de comprobantes conectando ventas con la SUNAT, desarrollado por DronLab para Estudio Vega.',
-    type: 'article',
-  },
-  {
-    path: 'solicitar-propuesta',
-    title: 'Solicita una propuesta de software | DronLab',
-    description:
-      'Cuéntanos tu proyecto de software, página web, automatización o integración y recibe una primera propuesta de alcance y presupuesto.',
-  },
-];
+const pages = await htmlFiles(outputDir);
+for (const page of pages)
+  await writeFile(page, (await readFile(page, 'utf8')).replace('</head>', headExtras));
+
+// The sitemap lists exactly what was prerendered, so new CMS records reach search engines with
+// the publish that creates their page.
+const seoService = await readFile(resolve('src/app/core/services/seo.service.ts'), 'utf8');
+const siteUrl = seoService.match(/SITE_URL\s*=\s*['"]([^'"]+)['"]/)[1].replace(/\/$/, '');
+const sitemapUrls = pages
+  .filter((page) => page.endsWith('index.html'))
+  .map((page) => relative(outputDir, page).split(sep).join('/').replace(/\/?index\.html$/, ''))
+  .sort()
+  .map((path) => (path ? `${siteUrl}/${path}` : `${siteUrl}/`));
+const sitemapEntries = sitemapUrls.map(
+  (url) => `  <url><loc>${escapeAttribute(url)}</loc><lastmod>${buildId.slice(0, 10)}</lastmod></url>`,
+);
+await writeFile(
+  resolve(outputDir, 'sitemap.xml'),
+  [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ...sitemapEntries,
+    '</urlset>',
+    '',
+  ].join('\n'),
+);
+
+// Private areas depend on the visitor's session: they get the client-rendered shell, never
+// prerendered content, and are kept out of search results.
+const shell = await readFile(resolve(outputDir, 'index.csr.html'), 'utf8');
 const privateRoutes = [
-  ['restablecer-contrasena', 'Restablecer contrasena | DronLab'],
-  ['login', 'Acceso de clientes | DronLab'],
-  ['olvide-password', 'Recuperar contraseña | DronLab'],
-  ['restablecer-password', 'Restablecer contraseña | DronLab'],
-  ['loader', 'Cargando | DronLab'],
-  ['panel-cliente', 'Panel de cliente | DronLab'],
-  ['panel-cliente/tickets/nuevo', 'Nuevo ticket | DronLab'],
-  ['admin', 'Administración | DronLab'],
-  ['admin/contenido', 'CMS | DronLab'],
-].map(([path, title]) => ({ path, title, description: 'Área privada de DronLab.', index: false }));
+  ['restablecer-contrasena', 'Restablecer contraseña | Jaytech'],
+  ['login', 'Acceso de clientes | Jaytech'],
+  ['olvide-password', 'Recuperar contraseña | Jaytech'],
+  ['restablecer-password', 'Restablecer contraseña | Jaytech'],
+  ['loader', 'Cargando | Jaytech'],
+  ['cursos/checkout', 'Checkout de cursos | Jaytech'],
+  ['panel-cliente', 'Panel de cliente | Jaytech'],
+  ['panel-cliente/tickets/nuevo', 'Nuevo ticket | Jaytech'],
+  ['admin', 'Administración | Jaytech'],
+  ['admin/contenido', 'CMS | Jaytech'],
+];
 
 function escapeAttribute(value) {
   return value
@@ -91,76 +86,28 @@ function escapeAttribute(value) {
     .replaceAll('>', '&gt;');
 }
 
-function replaceMeta(html, attribute, name, content) {
-  const pattern = new RegExp(`<meta\\s+${attribute}="${name}"\\s+content="[^"]*"\\s*\\/?>`, 'i');
-  const tag = `<meta ${attribute}="${name}" content="${escapeAttribute(content)}">`;
-  return pattern.test(html)
-    ? html.replace(pattern, tag)
-    : html.replace('</head>', `  ${tag}\n</head>`);
+function privateHtml(title) {
+  return shell
+    .replace(/<title>[^<]*<\/title>/i, `<title>${title}</title>`)
+    .replace(
+      /<meta\s+name="robots"\s+content="[^"]*"\s*\/?>/i,
+      '<meta name="robots" content="noindex, nofollow">',
+    )
+    .replace(/<link rel="(?:canonical|alternate)"[^>]*>\s*/gi, '');
 }
 
-function routeHtml(source, route) {
-  const canonical = route.path ? `${siteUrl}/${route.path}` : `${siteUrl}/`;
-  const robots =
-    route.index === false ? 'noindex, nofollow' : 'index, follow, max-image-preview:large';
-  let html = source.replace(/<title>[^<]*<\/title>/i, `<title>${route.title}</title>`);
-  html = replaceMeta(html, 'name', 'description', route.description);
-  html = replaceMeta(html, 'name', 'robots', robots);
-  html = replaceMeta(html, 'property', 'og:type', route.type ?? 'website');
-  html = replaceMeta(html, 'property', 'og:title', route.title);
-  html = replaceMeta(html, 'property', 'og:description', route.description);
-  html = replaceMeta(html, 'property', 'og:url', canonical);
-  html = replaceMeta(html, 'property', 'og:image', defaultImage);
-  html = replaceMeta(html, 'name', 'twitter:title', route.title);
-  html = replaceMeta(html, 'name', 'twitter:description', route.description);
-  html = replaceMeta(html, 'name', 'twitter:image', defaultImage);
-  html = html.replace(
-    /<link rel="canonical" href="[^"]*"\s*\/?>/i,
-    `<link rel="canonical" href="${canonical}">`,
-  );
-  html = html.replace(
-    /<link rel="alternate" hreflang="es-PE" href="[^"]*"\s*\/?>/i,
-    `<link rel="alternate" hreflang="es-PE" href="${canonical}">`,
-  );
-  html = html.replace(
-    /<link rel="alternate" hreflang="x-default" href="[^"]*"\s*\/?>/i,
-    `<link rel="alternate" hreflang="x-default" href="${canonical}">`,
-  );
-  const pageId = canonical.endsWith('/') ? `${canonical}#webpage` : `${canonical}/#webpage`;
-  const pageSchema = {
-    '@context': 'https://schema.org',
-    '@type': route.type === 'article' ? 'CreativeWork' : 'WebPage',
-    '@id': pageId,
-    url: canonical,
-    name: route.title,
-    description: route.description,
-    inLanguage: 'es-PE',
-    ...(route.index === false ? {} : { creator: { '@id': `${siteUrl}/#organization` } }),
-  };
-  html = html.replace(
-    /<script id="seo-structured-data" type="application\/ld\+json">[\s\S]*?<\/script>/i,
-    `<script id="seo-structured-data" type="application/ld+json">${JSON.stringify(pageSchema).replaceAll('<', '\\u003c')}</script>`,
-  );
-  return html;
-}
-
-await writeFile(indexPath, withBuildId);
-await writeFile(resolve(outputDir, 'version.json'), JSON.stringify({ buildId }));
-for (const route of [...publicRoutes, ...privateRoutes]) {
-  const routeDirectory = resolve(outputDir, route.path);
+for (const [path, title] of privateRoutes) {
+  const routeDirectory = resolve(outputDir, path);
   await mkdir(routeDirectory, { recursive: true });
-  await writeFile(resolve(routeDirectory, 'index.html'), routeHtml(withBuildId, route));
+  await writeFile(resolve(routeDirectory, 'index.html'), privateHtml(title));
 }
 
-const notFound = routeHtml(withBuildId, {
-  path: '',
-  title: 'Página no encontrada | DronLab',
-  description: 'La página solicitada no existe.',
-  index: false,
-});
-await writeFile(resolve(outputDir, '404.html'), notFound);
+// GitHub Pages serves 404.html for any path without a file: unknown URLs and records created
+// after the last publish both boot the app there and are resolved by the client router.
+await writeFile(resolve(outputDir, '404.html'), privateHtml('Jaytech'));
+await writeFile(resolve(outputDir, 'version.json'), JSON.stringify({ buildId }));
 await writeFile(resolve(outputDir, '.nojekyll'), '');
 
 console.log(
-  `GitHub Pages preparado: ${outputDir} (${buildId}, ${publicRoutes.length + privateRoutes.length} rutas SEO)`,
+  `GitHub Pages preparado: ${outputDir} (${buildId}, ${sitemapUrls.length} páginas prerenderizadas en el sitemap, ${privateRoutes.length} rutas privadas)`,
 );

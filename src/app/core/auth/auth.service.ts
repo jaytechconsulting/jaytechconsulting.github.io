@@ -18,6 +18,7 @@ import { DestroyRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { loginRedirect, privateReturnUrl } from './auth-navigation';
 import { ApiService } from '../api.service';
+import { isBrowser } from '../platform';
 
 export type UserRole = 'client' | 'admin';
 
@@ -51,6 +52,8 @@ export class AuthService {
 
   constructor() {
     const router = inject(Router);
+    // Prerendering has no session, storage or other tabs.
+    if (!isBrowser) return;
     // Remove legacy bearer credentials during the transition; they are no longer accepted.
     try {
       localStorage.removeItem('jaytech_token');

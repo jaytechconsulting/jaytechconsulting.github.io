@@ -1,3 +1,4 @@
+import { isBrowser } from '../../core/platform';
 import { CmsPlaceholder } from '../../ui/feedback/cms-placeholder/cms-placeholder';
 import {
   AfterViewInit,
@@ -55,6 +56,7 @@ export class Home implements AfterViewInit {
   );
 
   ngAfterViewInit(): void {
+    if (!isBrowser) return;
     const adsBar = this.adsBarEl().nativeElement;
     const header = this.headerEl().nativeElement;
     const setHeight = () =>

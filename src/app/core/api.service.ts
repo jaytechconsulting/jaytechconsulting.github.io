@@ -14,6 +14,7 @@ import type {
   ApiComplaintInput,
   ApiComplaintReceipt,
   ApiComplaintSettings,
+  ApiPublishStatus,
   ApiCourse,
   ApiCourseAdmin,
   ApiCoursePurchase,
@@ -81,10 +82,10 @@ export class ApiService {
   }
 
   projects(): Observable<ApiProject[]> {
-    return this.client.get<ApiProject[]>(`/projects`);
+    return this.client.getPublic<ApiProject[]>(`/projects`);
   }
   project(slug: string): Observable<ApiProject> {
-    return this.client.get<ApiProject>(`/projects/${encodeURIComponent(slug)}`);
+    return this.client.getPublic<ApiProject>(`/projects/${encodeURIComponent(slug)}`);
   }
   clientProjects(): Observable<ApiProject[]> {
     return this.client.get<ApiProject[]>(`/projects/client`);
@@ -128,6 +129,15 @@ export class ApiService {
       response,
       sendEmail,
     });
+  }
+  publishStatus(): Observable<ApiPublishStatus> {
+    return this.client.get<ApiPublishStatus>(`/publishing`);
+  }
+  publishSite(): Observable<void> {
+    return this.client.post<void>(`/publishing`, {});
+  }
+  updatePublishSettings(autoPublish: boolean): Observable<{ autoPublish: boolean }> {
+    return this.client.put<{ autoPublish: boolean }>(`/publishing/settings`, { autoPublish });
   }
   complaintSettings(): Observable<ApiComplaintSettings> {
     return this.client.get<ApiComplaintSettings>(`/complaints/settings`);
@@ -230,12 +240,12 @@ export class ApiService {
     if (params.page) query.set('page', String(params.page));
     if (params.pageSize) query.set('pageSize', String(params.pageSize));
     const qs = query.toString();
-    return this.client.get<ApiPagedResult<ApiTrainingProgram>>(
+    return this.client.getPublic<ApiPagedResult<ApiTrainingProgram>>(
       `/training-programs${qs ? `?${qs}` : ''}`,
     );
   }
   trainingProgram(id: string): Observable<ApiTrainingProgram> {
-    return this.client.get<ApiTrainingProgram>(`/training-programs/${encodeURIComponent(id)}`);
+    return this.client.getPublic<ApiTrainingProgram>(`/training-programs/${encodeURIComponent(id)}`);
   }
   trainingProgramsAll(): Observable<ApiTrainingProgram[]> {
     return this.client.get<ApiTrainingProgram[]>(`/training-programs/all`);
@@ -254,10 +264,10 @@ export class ApiService {
   }
 
   courses(): Observable<ApiCourse[]> {
-    return this.client.get<ApiCourse[]>(`/courses`);
+    return this.client.getPublic<ApiCourse[]>(`/courses`);
   }
   course(id: string): Observable<ApiCourse> {
-    return this.client.get<ApiCourse>(`/courses/${encodeURIComponent(id)}`);
+    return this.client.getPublic<ApiCourse>(`/courses/${encodeURIComponent(id)}`);
   }
   coursesAll(): Observable<ApiCourseAdmin[]> {
     return this.client.get<ApiCourseAdmin[]>(`/courses/all`);

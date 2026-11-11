@@ -48,12 +48,21 @@
                   "maximumError": "16kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "server": "src/main.server.ts",
+              "outputMode": "static"
             },
             "development": {
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "static-local": {
+              "server": "src/main.server.ts",
+              "outputMode": "static",
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": false
             }
           },
           "defaultConfiguration": "production"

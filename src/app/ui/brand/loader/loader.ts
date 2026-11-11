@@ -1,3 +1,4 @@
+import { isBrowser } from '../../../core/platform';
 import { Component, DestroyRef, inject, output, signal } from '@angular/core';
 
 interface BootLine { cmd: string; out: string | null; }
@@ -33,7 +34,8 @@ export class Loader {
       this.intervals.forEach(clearInterval);
       this.timeouts.forEach(clearTimeout);
     });
-    this.playOnce();
+    // The boot animation only plays in the browser; prerendering keeps its first frame.
+    if (isBrowser) this.playOnce();
   }
 
   private async playOnce(): Promise<void> {

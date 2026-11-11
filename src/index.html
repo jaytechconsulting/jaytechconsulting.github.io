@@ -2,8 +2,15 @@
 <html lang="es">
   <head>
     <meta charset="utf-8" />
-    <meta name="public-site-endpoint" content="http://localhost:5257/api/public-site" />
-    <script src="/cms-bootstrap.js"></script>
+    <script>
+      /* Prerendered HTML has no theme: apply the visitor's before first paint to avoid a flash. */
+      try {
+        var t = localStorage.getItem('jaytech-theme');
+        if (t !== 'light' && t !== 'dark')
+          t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    </script>
     <title>Jaytech | Software y automatizaciones a medida</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -16,9 +23,9 @@
     <meta name="application-name" content="Jaytech" />
     <meta name="theme-color" content="#07090D" />
 
-    <link rel="canonical" href="https://eldronenlasopa.github.io/" />
-    <link rel="alternate" hreflang="es-PE" href="https://eldronenlasopa.github.io/" />
-    <link rel="alternate" hreflang="x-default" href="https://eldronenlasopa.github.io/" />
+    <link rel="canonical" href="https://jaytechconsulting.github.io/" />
+    <link rel="alternate" hreflang="es-PE" href="https://jaytechconsulting.github.io/" />
+    <link rel="alternate" hreflang="x-default" href="https://jaytechconsulting.github.io/" />
     <link rel="manifest" href="site.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -31,8 +38,8 @@
       property="og:description"
       content="Aplicaciones web, páginas, automatizaciones e integraciones para empresas en Perú."
     />
-    <meta property="og:url" content="https://eldronenlasopa.github.io/" />
-    <meta property="og:image" content="https://eldronenlasopa.github.io/og-cover.jpg" />
+    <meta property="og:url" content="https://jaytechconsulting.github.io/" />
+    <meta property="og:image" content="https://jaytechconsulting.github.io/og-cover.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="Jaytech, software y automatizaciones a medida" />
@@ -43,7 +50,7 @@
       name="twitter:description"
       content="Aplicaciones web, páginas, automatizaciones e integraciones para empresas en Perú."
     />
-    <meta name="twitter:image" content="https://eldronenlasopa.github.io/og-cover.jpg" />
+    <meta name="twitter:image" content="https://jaytechconsulting.github.io/og-cover.jpg" />
     <meta name="twitter:image:alt" content="Jaytech, software y automatizaciones a medida" />
     <!--
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -59,31 +66,31 @@
         "@graph": [
           {
             "@type": "Organization",
-            "@id": "https://eldronenlasopa.github.io/#organization",
+            "@id": "https://jaytechconsulting.github.io/#organization",
             "name": "Jaytech",
             "legalName": "Jaytech",
-            "url": "https://eldronenlasopa.github.io/",
-            "logo": "https://eldronenlasopa.github.io/favicon.svg",
+            "url": "https://jaytechconsulting.github.io/",
+            "logo": "https://jaytechconsulting.github.io/favicon.svg",
             "email": "hola@dronlab.pe",
             "telephone": "+51 993 908 435",
             "areaServed": "PE"
           },
           {
             "@type": "WebSite",
-            "@id": "https://eldronenlasopa.github.io/#website",
-            "url": "https://eldronenlasopa.github.io/",
+            "@id": "https://jaytechconsulting.github.io/#website",
+            "url": "https://jaytechconsulting.github.io/",
             "name": "Jaytech",
             "inLanguage": "es-PE",
-            "publisher": { "@id": "https://eldronenlasopa.github.io/#organization" }
+            "publisher": { "@id": "https://jaytechconsulting.github.io/#organization" }
           },
           {
             "@type": "WebPage",
-            "@id": "https://eldronenlasopa.github.io/#webpage",
-            "url": "https://eldronenlasopa.github.io/",
+            "@id": "https://jaytechconsulting.github.io/#webpage",
+            "url": "https://jaytechconsulting.github.io/",
             "name": "Jaytech | Software y automatizaciones a medida",
             "description": "Diseñamos aplicaciones web, páginas, automatizaciones e integraciones para empresas en Perú.",
             "inLanguage": "es-PE",
-            "isPartOf": { "@id": "https://eldronenlasopa.github.io/#website" }
+            "isPartOf": { "@id": "https://jaytechconsulting.github.io/#website" }
           }
         ]
       }

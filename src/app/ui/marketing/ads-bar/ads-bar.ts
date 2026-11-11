@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { AnnouncementBanner } from '../announcement-banner/announcement-banner';
 import { CmsContentService } from '../../../core/cms/cms-content.service';
+import { isBrowser } from '../../../core/platform';
 
 const DISMISS_KEY = 'jaytech-announcement-dismissed';
 
@@ -15,7 +16,9 @@ const DISMISS_KEY = 'jaytech-announcement-dismissed';
 })
 export class AdsBar {
   private readonly cms = inject(CmsContentService);
-  private readonly dismissed = signal<string | null>(localStorage.getItem(DISMISS_KEY));
+  private readonly dismissed = signal<string | null>(
+    isBrowser ? localStorage.getItem(DISMISS_KEY) : null,
+  );
 
   readonly announcement = this.cms.announcement;
   readonly visible = computed(() => {

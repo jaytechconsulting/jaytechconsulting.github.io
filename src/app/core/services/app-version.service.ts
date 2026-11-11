@@ -1,6 +1,7 @@
 import { DOCUMENT } from '@angular/common';
 import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 import { environment } from '../../../environments/environment';
+import { isBrowser } from '../platform';
 
 @Injectable({ providedIn: 'root' })
 export class AppVersionService {
@@ -11,7 +12,7 @@ export class AppVersionService {
     const destroy = inject(DestroyRef);
     const browser = document.defaultView;
     const current = document.querySelector<HTMLMetaElement>('meta[name="build-id"]')?.content;
-    if (!environment.production || !browser || !current) return;
+    if (!isBrowser || !environment.production || !browser || !current) return;
 
     const controller = new AbortController();
     let checking = false;

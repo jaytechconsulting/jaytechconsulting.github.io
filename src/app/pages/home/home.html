@@ -16,8 +16,8 @@
 } @else {
   <app-cms-placeholder [hero]="true" [error]="failed()" (retry)="cms.retryPublic()" />
 }
-<!-- Noncritical section code loads after the first screen has rendered. -->
-@defer (on idle) {
+<!-- Prerendered with the page; its code loads and hydrates after the first screen. -->
+@defer (on idle; hydrate on idle) {
   @if (cms.contentStatus() === 'ready' && cms.collectionsStatus() === 'ready') {
     <app-clients-section /><app-services-section /><app-pricing-section /><app-reviews-section />
   } @else {

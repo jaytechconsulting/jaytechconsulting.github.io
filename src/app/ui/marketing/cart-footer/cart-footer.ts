@@ -1,3 +1,4 @@
+import { isBrowser } from '../../../core/platform';
 import { formatSoles } from '../../../core/formatting/money';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -36,7 +37,7 @@ export class CartFooter {
   constructor() {
     effect(() => {
       const count = this.cart.count();
-      if (count > this.lastCount) {
+      if (isBrowser && count > this.lastCount) {
         this.pulsing.set(false);
         requestAnimationFrame(() => this.pulsing.set(true));
         setTimeout(() => this.pulsing.set(false), 420);

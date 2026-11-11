@@ -1,4 +1,5 @@
 import { Injectable, signal } from '@angular/core';
+import { isBrowser } from '../platform';
 
 const STORAGE_KEY = 'jaytech-cookie-consent';
 const MAX_AGE = 180 * 24 * 60 * 60 * 1000;
@@ -46,6 +47,7 @@ export class CookieConsentService {
   }
 
   private read(): Consent | null {
+    if (!isBrowser) return null;
     try {
       const value = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null');
       if (

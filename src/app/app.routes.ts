@@ -28,6 +28,21 @@ export const routes: Routes = [
       },
     },
   },
+  {
+    path: 'admin/publicacion',
+    loadComponent: () =>
+      import('./pages/admin/admin-publishing/admin-publishing').then((m) => m.AdminPublishing),
+    canActivate: [authGuard],
+    runGuardsAndResolvers: 'always' as const,
+    data: {
+      role: 'admin',
+      seo: {
+        title: 'Publicación web | Jaytech',
+        description: 'Estado e historial de publicación del sitio de Jaytech.',
+        index: false,
+      },
+    },
+  },
   { path: 'admin/reclamaciones', redirectTo: 'admin/reclamaciones/lista', pathMatch: 'full' },
   ...(['lista', 'configuracion'] as const).map((view) => ({
     path: `admin/reclamaciones/${view}`,

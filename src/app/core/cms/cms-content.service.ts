@@ -1,6 +1,7 @@
 import type { SocialLink } from './social-links';
 import { CmsCollectionRepository } from './cms-collection.repository';
 import { normalizeAnnouncement } from '../models/announcement';
+import { DOCUMENT } from '@angular/common';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import {
   Observable,
@@ -61,7 +62,7 @@ export class CmsContentService {
   readonly socialLinks = computed(() => this.state().socialLinks);
 
   constructor() {
-    if (!/^\/admin(?:[\/;]|$)/.test(window.location.pathname)) this.retryPublic();
+    if (!/^\/admin(?:[\/;]|$)/.test(inject(DOCUMENT).location.pathname)) this.retryPublic();
   }
 
   load(includeUnpublished: boolean): Observable<CmsContentState> {

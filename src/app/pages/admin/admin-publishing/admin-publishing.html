@@ -1,0 +1,112 @@
+<app-admin-shell title="Publicación web" active="publicacion">
+  <div class="ap-page">
+    @if (failed()) {
+      <section class="ap-panel">
+        <div class="ap-empty" role="alert">
+          <p>No pudimos cargar el estado de la publicación.</p>
+          <app-button variant="outline" size="sm" (clicked)="load()">Reintentar</app-button>
+        </div>
+      </section>
+    } @else if (status(); as s) {
+      <section class="ap-panel ap-summary" [attr.aria-busy]="s.publishing">
+        <div class="ap-summary-text">
+          <app-badge [tone]="summary().tone" [dot]="true">{{ summary().label }}</app-badge>
+          <p>{{ summary().text }}</p>
+          <dl>
+            @if (s.lastPublishedAt) {
+              <div>
+                <dt>Última publicación</dt>
+                <dd>{{ s.lastPublishedAt | date: 'dd/MM/yyyy HH:mm' }}</dd>
+              </div>
+            }
+            @if (s.contentChangedAt) {
+              <div>
+                <dt>Último cambio en el CMS</dt>
+                <dd>
+                  {{ s.contentChangedAt | date: 'dd/MM/yyyy HH:mm'
+                  }}{{ s.contentChangedBy ? ' · ' + s.contentChangedBy : '' }}
+                </dd>
+              </div>
+            }
+          </dl>
+        </div>
+        @if (canPublish()) {
+          <app-button
+            icon="send"
+            [disabled]="!s.configured || requesting()"
+            (clicked)="publish()"
+            >{{ requesting() ? 'Iniciando…' : 'Publicar ahora' }}</app-button
+          >
+        }
+      </section>
+
+      @if (s.error) {
+        <p class="ap-warning" role="alert"><app-icon name="warning" />{{ s.error }}</p>
+      }
+
+      <section class="ap-panel ap-block">
+        <h3>Publicación automática</h3>
+        <p>
+          La web pública se genera por adelantado, por eso carga rápido y no consulta el CMS en cada
+          visita. Los cambios que guardas aparecen cuando termina una publicación.
+        </p>
+        <app-checkbox
+          label="Publicar automáticamente"
+          text="Publicar solos los cambios del CMS, poco después del último guardado"
+          [checked]="s.autoPublish"
+          [disabled]="!canConfigure() || savingSettings()"
+          (checkedChange)="setAutoPublish($event)"
+        />
+      </section>
+
+      <section class="ap-panel">
+        <header class="ap-head">
+          <h3>Historial de publicaciones</h3>
+          <app-button variant="outline" size="sm" (clicked)="load()">Actualizar</app-button>
+        </header>
+        @if (s.runs.length) {
+          <div class="ap-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">N.º</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Origen</th>
+                  <th scope="col">Inicio</th>
+                  <th scope="col">Duración</th>
+                  <th scope="col"><span class="sr-only">Detalle</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (run of s.runs; track run.id) {
+                  <tr>
+                    <td class="ap-mono">#{{ run.number }}</td>
+                    <td>
+                      <app-badge [tone]="runState(run).tone" [dot]="true">{{
+                        runState(run).label
+                      }}</app-badge>
+                    </td>
+                    <td>{{ origin(run) }}</td>
+                    <td>{{ run.startedAt ?? run.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+                    <td>{{ duration(run) }}</td>
+                    <td>
+                      <a [href]="run.url" target="_blank" rel="noopener noreferrer">Ver detalle</a>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <p class="ap-empty" role="status">
+            {{ s.configured ? 'Aún no hay publicaciones.' : 'Configura la publicación para ver su historial.' }}
+          </p>
+        }
+      </section>
+    } @else {
+      <section class="ap-panel">
+        <p class="ap-empty" role="status">Cargando estado de la publicación…</p>
+      </section>
+    }
+  </div>
+</app-admin-shell>

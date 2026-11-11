@@ -88,20 +88,27 @@ Todas las directivas visuales se agrupan en `ui/behaviors`. `AccessAction` solo 
 ```sh
 npm run check
 npm run test:ci
-node --test scripts/cms-bootstrap.test.mjs
 npm run build -- --configuration production
 ```
 
 TypeScript comprueba declaraciones, parámetros e imports sin uso. Las pruebas HTTP usan `HttpTestingController`; las de recursos verifican cancelación, fallos y destrucción; las de permisos usan la sesión efectiva. No hacer pagos ni enviar mensajes reales para validar una refactorización.
 
 
-## Conexión inicial de producción
+## Prerenderizado y publicación
 
-El postbuild agrega `preconnect` al origen de `environment.prod.ts` para anticipar DNS/TLS durante la descarga de Angular. El contenido público se revalida con ETag y no se persiste en localStorage para mostrar una versión antigua antes de la actual. Publicar el backend con `/api/public-site` antes del frontend que lo consume.
+Las páginas públicas se generan como HTML estático en cada build de producción (`outputMode: static`). `src/app/app.routes.server.ts` decide el modo de cada ruta: las públicas se prerenderizan con el contenido publicado del CMS; login, panel de cliente y admin se renderizan en el navegador porque dependen de la sesión. Las rutas de detalle listan ahí sus registros publicados; un registro creado después de la última publicación se resuelve con el fallback de cliente (`404.html`) hasta la siguiente.
 
-`public/cms-bootstrap.js` inicia el GET público durante el análisis del HTML, con `credentials: omit`, revalidación y un límite de 15 segundos. En desarrollo se carga desde `src/index.html`; el postbuild lo incrusta al principio del HTML y sustituye el endpoint por el de producción para evitar una descarga adicional del script.
+El navegador adopta ese HTML (hidratación) y reutiliza las respuestas de la API capturadas en el build, así que una página pública no consulta el CMS al cargar. Para que una lectura anónima se reutilice debe pasar por `ApiClient.getPublic`. La navegación interna posterior sí consulta la API.
 
-`publicSiteBootstrapInterceptor` se ejecuta dentro del interceptor de autenticación/carga y entrega esa respuesta una sola vez al GET público marcado con `PUBLIC_READ`. Comprueba URL exacta y antigüedad; nunca reemplaza operaciones privadas. Las siguientes recargas y reintentos usan HTTP normalmente. Los errores anticipados se convierten a `HttpErrorResponse`; no se realiza un segundo intento automático ni se guarda contenido entre navegaciones.
+El código que corre durante el prerender no tiene `window`: protege almacenamiento, temporizadores, observadores, scroll y media queries con `isBrowser` (`core/platform.ts`), y lee la URL con `DOCUMENT`. El estado del visitante (carrito, cookies, tema) nunca se hornea en el HTML compartido; el tema se aplica con un script en `index.html` antes del primer pintado.
+
+`scripts/prepare-github-pages.mjs` agrega el identificador de build, los fallbacks de rutas privadas y `404.html`, y cancela la publicación si la portada se generó sin contenido del CMS (API inaccesible).
+
+Un cambio guardado en el CMS aparece en la web cuando termina una publicación: el backend ejecuta este workflow (`workflow_dispatch`) y el admin muestra estado e historial en **Publicación web**. Para verificar el prerender en local contra la API local:
+
+```sh
+npx ng build -c static-local
+```
 
 ## Medición con Tag Manager
 

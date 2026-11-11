@@ -27,7 +27,8 @@
     >Actualizar</button>
   </aside>
 }
-@if (!inAdmin()) {
+<!-- Visitor state (cart, cookie choice) lives in the browser: never bake it into shared HTML. -->
+@if (browser && !inAdmin()) {
   <app-cart-footer />
   <app-cookie-consent />
 }

@@ -1,4 +1,5 @@
 import { Directive, ElementRef, OnDestroy, OnInit, inject, input } from '@angular/core';
+import { isBrowser } from '../../core/platform';
 
 /**
  * Scroll-reveal: fades/slides an element in the first time it enters the viewport.
@@ -13,6 +14,8 @@ export class Reveal implements OnInit, OnDestroy {
   readonly appRevealDelay = input(0);
 
   ngOnInit(): void {
+    // Prerendered HTML stays fully visible; the animation is armed in the browser.
+    if (!isBrowser) return;
     const element = this.el.nativeElement;
     const delay = Number.isFinite(this.appRevealDelay())
       ? Math.min(240, Math.max(0, this.appRevealDelay()))

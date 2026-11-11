@@ -1,3 +1,4 @@
+import { isBrowser } from '../../../core/platform';
 import { Component, computed, input, output, effect, signal } from '@angular/core';
 import { normalizeAnnouncement, type Announcement } from '../../../core/models/announcement';
 import { Icon } from '../../data-display/icon/icon';
@@ -67,7 +68,7 @@ export class AnnouncementBanner {
       const countdown = this.design().countdown;
       if (!countdown.enabled || !Number.isFinite(Date.parse(countdown.endsAt))) return;
       this.now.set(Date.now());
-      if (Date.parse(countdown.endsAt) <= Date.now()) return;
+      if (!isBrowser || Date.parse(countdown.endsAt) <= Date.now()) return;
       const timer = setInterval(() => {
         this.now.set(Date.now());
         if (Date.parse(countdown.endsAt) <= Date.now()) clearInterval(timer);

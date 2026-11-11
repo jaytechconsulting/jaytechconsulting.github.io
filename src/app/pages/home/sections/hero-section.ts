@@ -1,3 +1,4 @@
+import { isBrowser } from '../../../core/platform';
 import { Component, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Button } from '../../../ui/actions/button/button';
@@ -23,7 +24,8 @@ export class HeroSection {
   );
   readonly theme = this.themeService.theme;
   readonly heroAnimation = this.cms.heroAnimation;
-  readonly reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  readonly reducedMotion =
+    isBrowser && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /** Single hero CTA — reuses the header's admin-configurable button text (Admin → Cabecera web). */
   readonly ctaLabel = computed(() => this.cms.header().cta);

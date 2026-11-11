@@ -313,3 +313,33 @@ export interface ApiComplaintSettings {
   smtpEnabled: boolean;
   updatedAt: string;
 }
+
+export interface ApiPublishRun {
+  id: number;
+  number: number;
+  /** GitHub Actions run status: queued, in_progress, completed… */
+  status: string;
+  conclusion: string | null;
+  event: string;
+  title: string;
+  createdAt: string;
+  startedAt: string | null;
+  updatedAt: string;
+  url: string;
+}
+export interface ApiPublishStatus {
+  configured: boolean;
+  repository: string | null;
+  autoPublish: boolean;
+  contentChangedAt: string | null;
+  contentChangedBy: string | null;
+  dispatchedAt: string | null;
+  dispatchedBy: string | null;
+  /** Saved CMS changes that the published website does not show yet. */
+  pendingChanges: boolean;
+  publishing: boolean;
+  lastPublishedAt: string | null;
+  /** Set when the history could not be read from the host. */
+  error: string | null;
+  runs: ApiPublishRun[];
+}

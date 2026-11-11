@@ -1,7 +1,9 @@
 import { CookieConsent } from './ui/feedback/cookie-consent/cookie-consent';
 import { CookieConsentService } from './core/services/cookie-consent.service';
 import { ErrorRecovery } from './core/errors/error-recovery';
+import { DOCUMENT } from '@angular/common';
 import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
+import { isBrowser } from './core/platform';
 import {
   NavigationCancel,
   NavigationEnd,
@@ -38,14 +40,16 @@ import { CartFooter } from './ui/marketing/cart-footer/cart-footer';
   styleUrl: './app.css',
 })
 export class App {
-  private readonly adminEntry = window.location.pathname.startsWith('/admin');
+  // DOCUMENT also carries the route being prerendered, where there is no window.
+  private readonly adminEntry = inject(DOCUMENT).location.pathname.startsWith('/admin');
   private readonly cms = inject(CmsContentService);
   readonly loaderEnabled = computed(() => this.cms.loader().enabled);
   readonly loaderColor = computed(() => this.cms.loader().color);
   readonly showLoader = signal(!this.adminEntry && this.loaderEnabled());
+  readonly browser = isBrowser;
   readonly showProgressBar = signal(false);
   readonly pageFade = signal(false);
-  readonly inAdmin = signal(window.location.pathname.startsWith('/admin'));
+  readonly inAdmin = signal(this.adminEntry);
   private lastRouteWasAdmin = this.adminEntry;
   private readonly booted = signal(this.adminEntry || !this.loaderEnabled());
   private readonly router = inject(Router);
@@ -95,7 +99,7 @@ export class App {
           this.navigationReady.set(true);
           this.showProgressBar.set(false);
           this.pageFade.set(false);
-          requestAnimationFrame(() => this.pageFade.set(true));
+          if (isBrowser) requestAnimationFrame(() => this.pageFade.set(true));
         }
         if (event instanceof NavigationCancel || event instanceof NavigationError) {
           this.inAdmin.set(/^\/admin(?:[/?#;]|$)/.test(this.router.url));
