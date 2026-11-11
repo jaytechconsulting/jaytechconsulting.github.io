@@ -11,6 +11,7 @@
     class="pointer-events-none absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-[0.07] [mask-image:radial-gradient(circle_at_30%_70%,#000,transparent_65%)] min-[821px]:hidden"
   ></div>
 
+  <!-- MP4 goes first: Safari reports WebM as playable, then stalls loading it and never falls back. -->
   <!-- background video — bleeds into the page, no card/box; the fade on both sides keeps its edges from ever reading as a rectangle -->
   @if (heroAnimation().enabled && videoMounted()) {
     <div
@@ -38,8 +39,8 @@
           playsinline
           [preload]="reducedMotion ? 'auto' : 'metadata'"
         >
-          <source src="hero/hero-oscuro.webm" type="video/webm" />
           <source src="hero/hero-oscuro.mp4" type="video/mp4" />
+          <source src="hero/hero-oscuro.webm" type="video/webm" />
         </video>
       } @else {
         <video
@@ -51,8 +52,8 @@
           playsinline
           [preload]="reducedMotion ? 'auto' : 'metadata'"
         >
-          <source src="hero/hero-claro.webm" type="video/webm" />
           <source src="hero/hero-claro.mp4" type="video/mp4" />
+          <source src="hero/hero-claro.webm" type="video/webm" />
         </video>
       }
     </div>
