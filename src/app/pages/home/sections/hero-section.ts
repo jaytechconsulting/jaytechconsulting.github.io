@@ -1,5 +1,5 @@
 import { isBrowser } from '../../../core/platform';
-import { Component, computed, inject } from '@angular/core';
+import { Component, ElementRef, afterNextRender, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Button } from '../../../ui/actions/button/button';
 import { CmsContentService } from '../../../core/cms/cms-content.service';
@@ -29,6 +29,18 @@ export class HeroSection {
 
   /** Single hero CTA — reuses the header's admin-configurable button text (Admin → Cabecera web). */
   readonly ctaLabel = computed(() => this.cms.header().cta);
+
+  constructor() {
+    const host = inject<ElementRef<HTMLElement>>(ElementRef);
+    // The prerendered video was parsed before Angular set `muted`, and browsers such as Safari
+    // only autoplay muted media: start it once the page is interactive.
+    afterNextRender(() => {
+      const video = host.nativeElement.querySelector('video');
+      if (!video || this.reducedMotion || !video.paused) return;
+      video.muted = true;
+      video.play().catch(() => undefined);
+    });
+  }
 
   goToProposal(): void {
     this.router.navigateByUrl('/solicitar-propuesta');
