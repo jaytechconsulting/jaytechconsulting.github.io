@@ -1,5 +1,5 @@
 import { isBrowser } from '../../../core/platform';
-import { Component, ElementRef, afterNextRender, computed, inject } from '@angular/core';
+import { Component, afterNextRender, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Button } from '../../../ui/actions/button/button';
 import { CmsContentService } from '../../../core/cms/cms-content.service';
@@ -30,16 +30,14 @@ export class HeroSection {
   /** Single hero CTA — reuses the header's admin-configurable button text (Admin → Cabecera web). */
   readonly ctaLabel = computed(() => this.cms.header().cta);
 
+  /**
+   * The decorative video is created in the browser, never prerendered: Safari leaves a video that
+   * arrived in the HTML paused after hydration, while one created by the app autoplays.
+   */
+  readonly videoMounted = signal(false);
+
   constructor() {
-    const host = inject<ElementRef<HTMLElement>>(ElementRef);
-    // The prerendered video was parsed before Angular set `muted`, and browsers such as Safari
-    // only autoplay muted media: start it once the page is interactive.
-    afterNextRender(() => {
-      const video = host.nativeElement.querySelector('video');
-      if (!video || this.reducedMotion || !video.paused) return;
-      video.muted = true;
-      video.play().catch(() => undefined);
-    });
+    afterNextRender(() => this.videoMounted.set(true));
   }
 
   goToProposal(): void {

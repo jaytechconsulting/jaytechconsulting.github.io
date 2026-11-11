@@ -12,7 +12,7 @@
   ></div>
 
   <!-- background video — bleeds into the page, no card/box; the fade on both sides keeps its edges from ever reading as a rectangle -->
-  @if (heroAnimation().enabled) {
+  @if (heroAnimation().enabled && videoMounted()) {
     <div
       class="pointer-events-none absolute inset-y-0 right-0 hidden w-[58%] overflow-hidden min-[821px]:block [mask-image:linear-gradient(90deg,transparent_0%,black_24%,black_82%,transparent_100%)]"
     >
