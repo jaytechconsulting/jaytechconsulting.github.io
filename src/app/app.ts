@@ -20,7 +20,6 @@ import { DialogOutlet } from './ui/feedback/dialog/dialog-outlet';
 import { DialogService } from './core/services/dialog.service';
 import { LoadingService } from './core/services/loading.service';
 import { AnalyticsService } from './core/services/analytics.service';
-import { AppVersionService } from './core/services/app-version.service';
 import { SeoService } from './core/services/seo.service';
 import { CmsContentService } from './core/cms/cms-content.service';
 import { CartFooter } from './ui/marketing/cart-footer/cart-footer';
@@ -56,7 +55,6 @@ export class App {
   private readonly errorRecovery = inject(ErrorRecovery);
   readonly loading = inject(LoadingService);
   readonly dialogs = inject(DialogService);
-  readonly version = inject(AppVersionService);
   private readonly analytics = inject(AnalyticsService);
   private readonly seo = inject(SeoService);
   private readonly destroyRef = inject(DestroyRef);
