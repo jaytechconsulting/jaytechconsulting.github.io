@@ -23,24 +23,15 @@
             class="h-full w-full object-cover"
             muted
             [muted]="true"
+            autoplay
             loop
             playsinline
             preload="auto"
             [src]="src"
-            (playing)="playing.set(true); needsPlay.set(false)"
-            (pause)="playing.set(false); needsPlay.set(true)"
-            (error)="playing.set(false); needsPlay.set(false)"
           ></video>
         }
       }
     </div>
-    @if (videoAllowed() && (needsPlay() || playing())) {
-      <button
-        type="button"
-        class="absolute right-8 bottom-6 z-20 rounded-pill border border-border-subtle bg-surface-card px-4 py-2 text-sm text-text-strong"
-        (click)="toggleVideo()"
-      >{{ playing() ? 'Pausar animación' : 'Reproducir animación' }}</button>
-    }
   }
 
   <div class="relative z-10 mx-auto w-full max-w-[1320px]">

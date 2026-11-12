@@ -35,8 +35,6 @@ export class HeroSection {
   readonly heroAnimation = this.cms.heroAnimation;
   readonly ctaLabel = computed(() => this.cms.header().cta);
   readonly videoAllowed = signal(false);
-  readonly playing = signal(false);
-  readonly needsPlay = signal(false);
   readonly videoSrc = computed(() => this.heroAnimation().videoUrl ||
     (this.theme() === 'dark' ? 'hero/hero-oscuro.mp4' : 'hero/hero-claro.mp4'));
 
@@ -57,26 +55,34 @@ export class HeroSection {
       });
     });
 
-    afterRenderEffect(() => {
+    afterRenderEffect((onCleanup) => {
       const video = this.video()?.nativeElement;
-      this.playing.set(false);
-      this.needsPlay.set(false);
-      if (video) this.startVideo(video);
-    });
-  }
+      if (!video) return;
 
-  toggleVideo(): void {
-    const video = this.video()?.nativeElement;
-    if (!video) return;
-    if (this.playing()) video.pause();
-    else this.startVideo(video);
-  }
+      video.defaultMuted = true;
+      video.muted = true;
 
-  private startVideo(video: HTMLVideoElement): void {
-    video.muted = true;
-    void video.play().catch((error: DOMException) => {
-      if (this.video()?.nativeElement === video && error.name === 'NotAllowedError')
-        this.needsPlay.set(true);
+      const document = video.ownerDocument;
+      const events = ['click', 'touchend', 'keydown'] as const;
+      let active = true;
+      const removeListeners = () => {
+        for (const event of events) document.removeEventListener(event, resume);
+      };
+      const resume = () => {
+        removeListeners();
+        if (video.paused) void video.play().catch(() => undefined);
+      };
+
+      onCleanup(() => {
+        active = false;
+        removeListeners();
+      });
+
+      // Native autoplay handles visibility. Retry on interaction if the browser requires one.
+      void video.play().catch((error: DOMException) => {
+        if (!active || error.name !== 'NotAllowedError') return;
+        for (const event of events) document.addEventListener(event, resume, { passive: true });
+      });
     });
   }
 
