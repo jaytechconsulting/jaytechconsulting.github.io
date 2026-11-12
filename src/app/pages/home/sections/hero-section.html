@@ -17,18 +17,24 @@
       aria-hidden="true"
     >
       @if (videoAllowed()) {
-        @for (src of [videoSrc()]; track src) {
-          <video
-            #heroVideo
-            class="h-full w-full object-cover"
-            muted
-            [muted]="true"
-            autoplay
-            loop
-            playsinline
-            preload="auto"
-            [src]="src"
-          ></video>
+        @if (animatedImageSrc(); as imageSrc) {
+          <img [src]="imageSrc" alt="" class="h-full w-full object-cover" />
+        } @else {
+          @for (src of [videoSrc()]; track src) {
+            <video
+              #heroVideo
+              class="h-full w-full object-cover"
+              muted
+              [muted]="true"
+              autoplay
+              loop
+              playsinline
+              preload="auto"
+              [src]="src"
+              [class.opacity-0]="safari() && !videoPlaying()"
+              (playing)="videoPlaying.set(true)"
+            ></video>
+          }
         }
       }
     </div>

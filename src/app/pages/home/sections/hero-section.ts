@@ -35,6 +35,12 @@ export class HeroSection {
   readonly heroAnimation = this.cms.heroAnimation;
   readonly ctaLabel = computed(() => this.cms.header().cta);
   readonly videoAllowed = signal(false);
+  readonly safari = signal(false);
+  readonly videoPlaying = signal(false);
+  readonly animatedImageSrc = computed(() => {
+    if (!this.safari() || this.heroAnimation().videoUrl) return '';
+    return this.theme() === 'dark' ? 'hero/hero-oscuro.webp' : 'hero/hero-claro.webp';
+  });
   readonly videoSrc = computed(() => this.heroAnimation().videoUrl ||
     (this.theme() === 'dark' ? 'hero/hero-oscuro.mp4' : 'hero/hero-claro.mp4'));
 
@@ -43,6 +49,9 @@ export class HeroSection {
   constructor() {
     const destroyRef = inject(DestroyRef);
     afterNextRender(() => {
+      // Safari can block even silent media. The bundled animation can play as an image.
+      this.safari.set(navigator.vendor === 'Apple Computer, Inc.' &&
+        /Version\/[^ ]+.*Safari\//.test(navigator.userAgent));
       const desktop = matchMedia('(min-width: 821px)');
       const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
       const update = () => this.videoAllowed.set(desktop.matches && !reducedMotion.matches);
@@ -57,6 +66,7 @@ export class HeroSection {
 
     afterRenderEffect((onCleanup) => {
       const video = this.video()?.nativeElement;
+      this.videoPlaying.set(false);
       if (!video) return;
 
       video.defaultMuted = true;
