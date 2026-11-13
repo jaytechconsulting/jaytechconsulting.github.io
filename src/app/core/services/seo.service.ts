@@ -71,8 +71,16 @@ export class SeoService {
     this.meta.updateTag({ property: 'og:description', content: config.description });
     this.meta.updateTag({ property: 'og:url', content: canonicalUrl });
     this.meta.updateTag({ property: 'og:image', content: imageUrl });
-    this.meta.updateTag({ property: 'og:image:width', content: '1200' });
-    this.meta.updateTag({ property: 'og:image:height', content: '630' });
+    this.meta.updateTag({ property: 'og:image:secure_url', content: imageUrl });
+    if (imageUrl === DEFAULT_IMAGE) {
+      this.meta.updateTag({ property: 'og:image:type', content: 'image/jpeg' });
+      this.meta.updateTag({ property: 'og:image:width', content: '1200' });
+      this.meta.updateTag({ property: 'og:image:height', content: '630' });
+    } else {
+      this.meta.removeTag('property="og:image:type"');
+      this.meta.removeTag('property="og:image:width"');
+      this.meta.removeTag('property="og:image:height"');
+    }
     this.meta.updateTag({ property: 'og:image:alt', content: 'Jaytech, software y automatizaciones a medida' });
 
     this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
@@ -123,7 +131,11 @@ export class SeoService {
       description: config.description,
       inLanguage: 'es-PE',
       isPartOf: { '@id': `${SITE_URL}/#website` },
-      primaryImageOfPage: { '@type': 'ImageObject', url: imageUrl, width: 1200, height: 630 },
+      primaryImageOfPage: {
+        '@type': 'ImageObject',
+        url: imageUrl,
+        ...(imageUrl === DEFAULT_IMAGE ? { width: 1200, height: 630 } : {}),
+      },
     };
     const websiteSchema = {
       '@type': 'WebSite',

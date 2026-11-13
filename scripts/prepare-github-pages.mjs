@@ -43,13 +43,16 @@ for (const page of pages)
 // the publish that creates their page.
 const seoService = await readFile(resolve('src/app/core/services/seo.service.ts'), 'utf8');
 const siteUrl = seoService.match(/SITE_URL\s*=\s*['"]([^'"]+)['"]/)[1].replace(/\/$/, '');
-const sitemapUrls = pages
-  .filter((page) => page.endsWith('index.html'))
-  .map((page) => relative(outputDir, page).split(sep).join('/').replace(/\/?index\.html$/, ''))
-  .sort()
-  .map((path) => (path ? `${siteUrl}/${path}` : `${siteUrl}/`));
+const sitemapUrls = [];
+for (const page of pages.filter((path) => path.endsWith('index.html'))) {
+  const html = await readFile(page, 'utf8');
+  if (/<meta\b[^>]*name="robots"[^>]*content="[^"]*\bnoindex\b/i.test(html)) continue;
+  const path = relative(outputDir, page).split(sep).join('/').replace(/\/?index\.html$/, '');
+  sitemapUrls.push(path ? `${siteUrl}/${path}` : `${siteUrl}/`);
+}
+sitemapUrls.sort();
 const sitemapEntries = sitemapUrls.map(
-  (url) => `  <url><loc>${escapeAttribute(url)}</loc><lastmod>${buildId.slice(0, 10)}</lastmod></url>`,
+  (url) => `  <url><loc>${escapeAttribute(url)}</loc></url>`,
 );
 await writeFile(
   resolve(outputDir, 'sitemap.xml'),
