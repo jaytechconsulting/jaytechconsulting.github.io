@@ -18,6 +18,7 @@ export const ICON_PATHS = {
   cmspaginas:'M7 3h10v18H7z M7 8h10 M9 12h6 M9 15h6',
   cmsprogramas:'M4 5h16v10H4z M8 19h8 M10 15v4 M14 15v4',
   cmscursos:'M6 3h12v18l-6-3-6 3z',
+  cmsdocentes:'M12 3 2 8l10 5 10-5z M6 10.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-5.5 M22 8v6',
   cmscarga:'M12 3v4 M12 17v4 M5 5l3 3 M16 16l3 3 M3 12h4 M17 12h4 M5 19l3-3 M16 8l3-3',
   cmsanimacion:'M5 4h14v16H5z M10 9l6 3-6 3z',
   cmsequipo:'M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0 M20 21v-2a7 7 0 0 0-7-7h-2a7 7 0 0 0-7 7v2',

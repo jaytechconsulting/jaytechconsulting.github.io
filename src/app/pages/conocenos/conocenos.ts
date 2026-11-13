@@ -7,6 +7,7 @@ import { Footer } from '../../ui/navigation/footer/footer';
 import { WhatsAppFab } from '../../ui/marketing/whatsapp-fab/whatsapp-fab';
 import { FaqAccordion } from '../../ui/marketing/faq-accordion/faq-accordion';
 import { CmsContentService } from '../../core/cms/cms-content.service';
+import { PAGE_FAQS } from '../../core/cms/page-faqs';
 import { Reveal } from '../../ui/behaviors/reveal';
 
 interface FeatureSection {
@@ -87,39 +88,6 @@ const STATS: StatItem[] = [
   { value: '24h', label: 'primera respuesta' },
 ];
 
-interface FaqItem {
-  question: string;
-  answer: string;
-}
-
-const FAQS: FaqItem[] = [
-  {
-    question: '¿Por qué elegir Jaytech en lugar de un freelancer o una agencia grande?',
-    answer:
-      'Con un freelancer dependes de una sola persona; con una agencia grande hablas con gestores, no con quien programa. Con nosotros tienes la cercanía de un freelancer y la solidez de un equipo real.',
-  },
-  {
-    question: '¿Cómo garantizan la calidad del código?',
-    answer:
-      'Revisamos la arquitectura antes de construir, seguimos buenas prácticas del stack elegido y documentamos las decisiones clave, para que el proyecto sea mantenible por cualquier equipo, no solo por nosotros.',
-  },
-  {
-    question: '¿Qué pasa si necesito cambios después de la entrega?',
-    answer:
-      'Es parte del trabajo. Ofrecemos soporte y mejoras continuas después del lanzamiento — no desaparecemos cuando el proyecto sale a producción.',
-  },
-  {
-    question: '¿Trabajan con empresas de cualquier tamaño?',
-    answer:
-      'Sí. Hemos trabajado con negocios que recién digitalizan su operación y con empresas que ya tienen sistemas en producción y necesitan integrarlos o escalarlos.',
-  },
-  {
-    question: '¿Cómo empiezo a trabajar con ustedes?',
-    answer:
-      'Cuéntanos tu proyecto en el formulario de "Solicitar propuesta" — respondemos en menos de 24 horas con una primera idea de alcance y presupuesto.',
-  },
-];
-
 /** "Conócenos" — company/about page. Reuses the same shared header/footer shell and dark
  * gradient-ink intro banner as Asesorías/Capacitaciones, plus a floating stats card, an
  * alternating feature-by-feature breakdown, a real CMS-backed team grid and an FAQ. */
@@ -136,7 +104,8 @@ export class Conocenos {
   readonly team = this.cms.teamMembers;
   readonly features = FEATURES;
   readonly stats = STATS;
-  readonly faqs = FAQS;
+  /** Edited in the CMS (Páginas); the built-in list shows until it is saved there. */
+  readonly faqs = computed(() => this.cms.pages().conocenos.faqs ?? PAGE_FAQS.conocenos);
 
   readonly pageDesign = computed(() => this.cms.pages().conocenos);
   readonly headerStyle = computed(() => backgroundStyle(this.pageDesign()));

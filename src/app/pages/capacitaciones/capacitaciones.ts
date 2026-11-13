@@ -13,43 +13,11 @@ import { DetailModal } from '../../ui/feedback/detail-modal/detail-modal';
 import { Input } from '../../ui/forms/input/input';
 import { Select } from '../../ui/forms/select/select';
 import { CmsContentService } from '../../core/cms/cms-content.service';
+import { PAGE_FAQS } from '../../core/cms/page-faqs';
 import { Reveal } from '../../ui/behaviors/reveal';
 import { ApiService } from '../../core/api.service';
 import { CartService } from '../../core/commerce/cart.service';
 import type { ApiCourse, ApiTrainingProgram, ApiPagedResult } from '../../core/models/api.models';
-
-interface FaqItem {
-  question: string;
-  answer: string;
-}
-
-const FAQS: FaqItem[] = [
-  {
-    question: '¿Las capacitaciones son para todo mi equipo o solo para algunas personas?',
-    answer:
-      'Se adaptan a lo que necesites: desde una sesión para un par de personas clave hasta un programa para toda el área.',
-  },
-  {
-    question: '¿Puedo pedir un programa a medida para mi empresa?',
-    answer:
-      'Sí, de hecho es lo más común. Partimos de tus procesos y herramientas reales, no de un temario genérico.',
-  },
-  {
-    question: '¿Entregan algún material de referencia?',
-    answer:
-      'Siempre dejamos una guía resumen y, cuando aplica, las plantillas o flujos que construimos durante la sesión.',
-  },
-  {
-    question: '¿Cuántas personas pueden participar por sesión?',
-    answer:
-      'Funciona bien con grupos de hasta 12 personas para mantener la sesión práctica. Si tu equipo es más grande, lo dividimos en cohortes.',
-  },
-  {
-    question: '¿Las capacitaciones son remotas o presenciales?',
-    answer:
-      'Ambas opciones existen según el programa — lo coordinamos contigo al momento de armar la propuesta.',
-  },
-];
 
 const MODALITY_OPTIONS = ['Todas', 'In-company', 'Remoto'];
 const SORT_OPTIONS = ['Orden sugerido', 'Título (A-Z)', 'Título (Z-A)', 'Duración'];
@@ -82,7 +50,8 @@ export class Capacitaciones {
   readonly header = this.cms.header;
   private readonly coursesRequest = createLatestRequest<ApiCourse[]>([]);
   readonly virtualCourses = this.coursesRequest.value;
-  readonly faqs = FAQS;
+  /** Edited in the CMS (Páginas); the built-in list shows until it is saved there. */
+  readonly faqs = computed(() => this.cms.pages().capacitaciones.faqs ?? PAGE_FAQS.capacitaciones);
   readonly selectedProgram = signal<ApiTrainingProgram | null>(null);
 
   readonly modalityOptions = MODALITY_OPTIONS;
@@ -121,7 +90,7 @@ export class Capacitaciones {
   }
 
   openCoursePage(course: ApiCourse): void {
-    this.router.navigate(['/cursos', course.id]);
+    this.router.navigate(['/cursos', course.slug || course.id]);
   }
 
   addCourseToCart(course: ApiCourse): void {

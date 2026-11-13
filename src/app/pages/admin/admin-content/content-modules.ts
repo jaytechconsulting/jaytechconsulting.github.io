@@ -10,6 +10,7 @@ export const CONTENT_MODULES = [
  { section:'paginas', label:'Páginas', route:'/admin/paginas', path:'M7 3h10v18H7z M7 8h10 M9 12h6 M9 15h6' },
  { section:'programas', label:'Programas', route:'/admin/programas', path:'M4 5h16v10H4z M8 19h8 M10 15v4 M14 15v4' },
  { section:'cursos', label:'Cursos', route:'/admin/cursos', path:'M6 3h12v18l-6-3-6 3z' },
+ { section:'docentes', label:'Docentes', route:'/admin/docentes', path:'M12 3 2 8l10 5 10-5z M6 10.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-5.5 M22 8v6' },
  { section:'carga', label:'Carga', route:'/admin/carga', path:'M12 3v4 M12 17v4 M5 5l3 3 M16 16l3 3 M3 12h4 M17 12h4 M5 19l3-3 M16 8l3-3' },
  { section:'animacion', label:'Animación de inicio', route:'/admin/animacion', path:'M5 4h14v16H5z M10 9l6 3-6 3z' },
  { section:'header', label:'Cabecera web', route:'/admin/cabecera', path:'M3 3h18v18H3z M3 9h18 M6 6h4 M16 6h2' },

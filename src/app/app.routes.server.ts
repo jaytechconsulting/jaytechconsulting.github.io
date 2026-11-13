@@ -47,7 +47,7 @@ export const serverRoutes: ServerRoute[] = [
     path: 'cursos/:id',
     renderMode: RenderMode.Prerender,
     getPrerenderParams: async () =>
-      (await firstValueFrom(inject(ApiService).courses())).map(({ id }) => ({ id })),
+      (await firstValueFrom(inject(ApiService).courses())).map(({ id, slug }) => ({ id: slug || id })),
   },
   { path: '**', renderMode: RenderMode.Client },
 ];

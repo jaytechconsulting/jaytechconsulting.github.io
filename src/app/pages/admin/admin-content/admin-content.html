@@ -68,6 +68,42 @@
                     revisa los datos de la empresa y las condiciones aplicables antes de publicar.
                   </p>
                 }
+
+                @if (pageFaqs(); as faqs) {
+                  <section class="grid gap-3 rounded-lg border border-border-subtle p-4">
+                    <div>
+                      <h3 class="font-semibold">Preguntas frecuentes</h3>
+                      <p class="text-xs text-text-muted">
+                        Se muestran al final de esta página, en este orden.
+                      </p>
+                    </div>
+                    @for (faq of faqs; track $index; let i = $index; let first = $first; let last = $last) {
+                      <div class="grid gap-3 rounded-lg bg-surface-sunken p-4">
+                        <app-input
+                          [label]="'Pregunta ' + (i + 1)"
+                          [value]="faq.question"
+                          (valueChange)="setPageFaq(i, 'question', $event)"
+                        />
+                        <app-textarea
+                          label="Respuesta"
+                          [rows]="3"
+                          [value]="faq.answer"
+                          (valueChange)="setPageFaq(i, 'answer', $event)"
+                        />
+                        <div class="flex flex-wrap gap-2">
+                          <app-button variant="outline" size="sm" [disabled]="first" (clicked)="movePageFaq(i, -1)" [appAccessAction]="'update'">Subir</app-button>
+                          <app-button variant="outline" size="sm" [disabled]="last" (clicked)="movePageFaq(i, 1)" [appAccessAction]="'update'">Bajar</app-button>
+                          <app-button variant="outline" size="sm" (clicked)="removePageFaq(i)" [appAccessAction]="'update'">Quitar pregunta</app-button>
+                        </div>
+                      </div>
+                    } @empty {
+                      <p class="text-sm text-text-muted">Esta página no mostrará preguntas.</p>
+                    }
+                    <div>
+                      <app-button variant="outline" size="sm" (clicked)="addPageFaq()" [appAccessAction]="'update'">Añadir pregunta</app-button>
+                    </div>
+                  </section>
+                }
                 <div class="border-t border-border-subtle pt-4">
                   <label class="mb-2.5 block text-sm font-semibold text-text-strong"
                     >Color de fondo</label
@@ -577,6 +613,85 @@
               </div>
 
               <div class="col-span-full border-t border-border-subtle pt-4">
+                <label class="block text-sm font-semibold text-text-strong">Página del curso</label>
+                <p class="m-0 mt-1 text-xs text-text-muted">
+                  Se muestra en la página propia del curso
+                  @if (courseDraft().slug) {
+                    (/cursos/{{ courseDraft().slug }})
+                  }
+                  , en este orden: descripción, contenido, requisitos, docente y reseñas.
+                </p>
+              </div>
+              <app-input
+                label="Nivel"
+                placeholder="Básico"
+                [value]="courseDraft().level ?? ''"
+                (valueChange)="setCourseDraftField('level', $event)"
+              />
+              <app-input
+                label="Duración"
+                placeholder="4 horas"
+                [value]="courseDraft().duration ?? ''"
+                (valueChange)="setCourseDraftField('duration', $event)"
+              />
+              <div class="col-span-full">
+                <app-textarea
+                  label="Descripción completa"
+                  [rows]="6"
+                  placeholder="Explica de qué trata el curso y qué se construye. Separa los párrafos con una línea en blanco."
+                  [value]="courseDraft().overview ?? ''"
+                  (valueChange)="setCourseDraftField('overview', $event)"
+                />
+              </div>
+              <div class="col-span-full">
+                <app-textarea
+                  label="Qué aprenderás (una idea por línea)"
+                  [rows]="4"
+                  placeholder="Organizar datos en una tabla."
+                  [value]="courseDraftLines('outcomes')"
+                  (valueChange)="setCourseDraftLines('outcomes', $event)"
+                />
+              </div>
+              <div class="col-span-full">
+                <app-textarea
+                  label="Requisitos (uno por línea)"
+                  [rows]="3"
+                  placeholder="Manejo básico de archivos y carpetas."
+                  [value]="courseDraftLines('requirements')"
+                  (valueChange)="setCourseDraftLines('requirements', $event)"
+                />
+              </div>
+
+              <div class="col-span-full border-t border-border-subtle pt-4">
+                <label class="block text-sm font-semibold text-text-strong">Docente</label>
+              </div>
+              <div class="col-span-full flex flex-wrap items-end gap-4">
+                <div class="min-w-[240px] flex-1">
+                  <app-select
+                    label="Quién dicta el curso"
+                    placeholder="Sin docente"
+                    [options]="instructorOptions()"
+                    [value]="courseDraft().instructorId ?? ''"
+                    (valueChange)="setCourseDraftField('instructorId', $event)"
+                  />
+                </div>
+                @if (courseInstructor(); as teacher) {
+                  <span class="inline-flex items-center gap-3 pb-1">
+                    <span
+                      class="inline-flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border-subtle bg-surface-sunken bg-cover bg-center text-xs text-text-faint"
+                      [style.background-image]="teacher.photoUrl ? 'url(' + teacher.photoUrl + ')' : 'none'"
+                    ></span>
+                    <span class="text-[13px] text-text-muted">{{ teacher.title || 'Sin título' }}</span>
+                  </span>
+                }
+              </div>
+              <p class="col-span-full m-0 text-[13px] text-text-muted">
+                Los docentes se crean y editan en
+                <a class="text-accent-primary underline" routerLink="/admin/docentes">Docentes</a>; aquí solo
+                se elige quién dicta este curso.
+              </p>
+
+              <div class="col-span-full border-t border-border-subtle pt-4">
                 <div class="mb-3 flex items-center justify-between">
                   <label class="block text-sm font-semibold text-text-strong"
                     >Material (videos, PDFs, archivos)</label
@@ -731,6 +846,134 @@
                 (clicked)="saveCourseDraft()"
                 [appAccessAction]="courseIsNew() ? 'create' : 'update'"
                 >{{ saving() ? 'Guardando...' : courseIsNew() ? 'Crear' : 'Guardar cambios'
+                }}<span slot="icon-right">→</span></app-button
+              >
+            </div>
+          </section>
+        </app-sticky-sidebar-layout>
+      } @else if (tab() === 'docentes') {
+        <!-- Instructors: their own records, assigned to courses from the course form -->
+        <app-sticky-sidebar-layout>
+          <aside class="cms-editor-directory" layoutSidebar>
+            <div class="cms-directory-header">
+              <span class="cms-directory-title">Docentes</span>
+              <app-badge tone="neutral">{{ instructorItems().length }}</app-badge>
+            </div>
+            <div class="cms-editor-records" appOverlayScroll>
+              @for (t of instructorItems(); track t.id; let i = $index) {
+                <button type="button" class="cms-editor-record" [class.active]="instructorSel() === i" [attr.aria-pressed]="instructorSel() === i" (click)="pickInstructor(i)">
+                  <span
+                    class="inline-flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full border border-border-subtle bg-surface-sunken bg-cover bg-center text-[13px] font-semibold text-text-muted"
+                    [style.background-image]="t.photoUrl ? 'url(' + t.photoUrl + ')' : 'none'"
+                    >{{ t.photoUrl ? '' : t.name.charAt(0) }}</span
+                  >
+                  <span class="min-w-0 text-left">
+                    <span class="block truncate text-[14.5px] font-semibold text-text-strong">{{ t.name }}</span>
+                    <span class="block truncate text-[12.5px] text-text-muted">{{ t.title || 'Sin título' }}</span>
+                  </span>
+                </button>
+              }
+            </div>
+            <div class="p-3.5">
+              <app-button variant="outline" size="sm" [fullWidth]="true" (clicked)="addNewInstructor()" [appAccessAction]="'create'"
+                ><span slot="icon-left">+</span>Añadir docente</app-button
+              >
+            </div>
+          </aside>
+
+          <section class="cms-editor-panel">
+            <div class="cms-editor-header">
+              <div class="cms-editor-heading"><span class="cms-editor-icon"><app-icon name="cmsdocentes" /></span><div><h2 class="m-0 font-display text-[18px] font-semibold text-text-strong">
+                {{ instructorIsNew() ? 'Nuevo docente' : 'Editar docente' }}
+              </h2><p>Perfil que se muestra en la página de cada curso que dicta</p></div></div>
+              @if (!instructorIsNew()) {
+                <button type="button" class="cursor-pointer text-sm font-medium text-danger" (click)="deleteInstructorDraft()" [appAccessAction]="'delete'">
+                  Eliminar
+                </button>
+              }
+            </div>
+
+            <div class="cms-editor-fields">
+              <div class="col-span-full">
+                <label class="mb-2.5 block text-sm font-semibold text-text-strong">Foto</label>
+                <div class="flex flex-wrap items-center gap-4">
+                  <span
+                    class="inline-flex h-[100px] w-[80px] shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border-[1.5px] border-dashed border-border-default bg-surface-sunken bg-cover bg-center"
+                    [style.background-image]="instructorDraft().photoUrl ? 'url(' + instructorDraft().photoUrl + ')' : 'none'"
+                    (click)="instructorPhotoInput.click()"
+                  >
+                    @if (!instructorDraft().photoUrl) {
+                      <span class="text-xl text-brand-cyan">↑</span>
+                    }
+                  </span>
+                  <div class="flex flex-col gap-2">
+                    <div class="flex gap-2">
+                      <app-button variant="outline" size="sm" (clicked)="instructorPhotoInput.click()">{{
+                        instructorDraft().photoUrl ? 'Cambiar' : 'Subir'
+                      }}</app-button>
+                      @if (instructorDraft().photoUrl) {
+                        <button type="button" class="cursor-pointer px-1 text-sm font-medium text-danger" (click)="setInstructorField('photoUrl', '')">
+                          Quitar
+                        </button>
+                      }
+                    </div>
+                    <span class="text-[12.5px] text-text-muted">Retrato vertical (4:5). Sin foto se muestran las iniciales.</span>
+                  </div>
+                  <input
+                    #instructorPhotoInput
+                    [imageResetKey]="instructorSel()"
+                    type="file"
+                    accept="image/*"
+                    class="hidden"
+                    appImageFile
+                    (imageSelected)="setInstructorField('photoUrl', $event)"
+                    (imageError)="imageUploadError($event)"
+                  />
+                </div>
+              </div>
+              <app-input
+                label="Nombre"
+                placeholder="Nombre y apellido"
+                [value]="instructorDraft().name ?? ''"
+                (valueChange)="setInstructorField('name', $event)"
+              />
+              <app-input
+                label="Título o especialidad"
+                placeholder="Especialista en automatización"
+                [value]="instructorDraft().title ?? ''"
+                (valueChange)="setInstructorField('title', $event)"
+              />
+              <div class="col-span-full">
+                <app-textarea
+                  label="Reseña breve"
+                  [rows]="5"
+                  placeholder="Experiencia y trayectoria, en uno o dos párrafos."
+                  [value]="instructorDraft().bio ?? ''"
+                  (valueChange)="setInstructorField('bio', $event)"
+                />
+              </div>
+              <div class="col-span-full">
+                <app-textarea
+                  label="Logros (uno por línea)"
+                  [rows]="5"
+                  placeholder="Certificación, premio, proyecto destacado o años de experiencia."
+                  [value]="instructorAchievementLines()"
+                  (valueChange)="setInstructorAchievements($event)"
+                />
+              </div>
+              <p class="col-span-full m-0 text-[13px] text-text-muted">
+                Para asignarlo a un curso: <a class="text-accent-primary underline" routerLink="/admin/cursos">Cursos</a> →
+                "Quién dicta el curso".
+              </p>
+            </div>
+
+            <div class="cms-editor-actions">
+              <app-button
+                variant="primary"
+                [disabled]="saving()"
+                (clicked)="saveInstructorDraft()"
+                [appAccessAction]="instructorIsNew() ? 'create' : 'update'"
+                >{{ saving() ? 'Guardando...' : instructorIsNew() ? 'Crear' : 'Guardar cambios'
                 }}<span slot="icon-right">→</span></app-button
               >
             </div>

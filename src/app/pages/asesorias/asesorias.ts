@@ -9,41 +9,9 @@ import { FeatureCard } from '../../ui/marketing/feature-card/feature-card';
 import { FaqAccordion } from '../../ui/marketing/faq-accordion/faq-accordion';
 import { DetailModal } from '../../ui/feedback/detail-modal/detail-modal';
 import { CmsContentService } from '../../core/cms/cms-content.service';
+import { PAGE_FAQS } from '../../core/cms/page-faqs';
 import { Reveal } from '../../ui/behaviors/reveal';
 import { COURSES, type Course } from './courses-data';
-
-interface FaqItem {
-  question: string;
-  answer: string;
-}
-
-const FAQS: FaqItem[] = [
-  {
-    question: '¿Cómo funciona una sesión de asesoría?',
-    answer:
-      'Partimos de tu caso real: revisamos lo que tienes, identificamos el cuello de botella y salimos con un plan de acción concreto, no solo teoría.',
-  },
-  {
-    question: '¿Necesito conocimientos técnicos previos?',
-    answer:
-      'No es obligatorio. Adaptamos el nivel de la sesión según quién participe — desde fundadores no técnicos hasta equipos de desarrollo.',
-  },
-  {
-    question: '¿Las asesorías son presenciales o remotas?',
-    answer:
-      'Son remotas por videollamada, lo que nos permite agendar rápido y grabar la sesión para que la revises cuando quieras.',
-  },
-  {
-    question: '¿Puedo combinar la asesoría con un proyecto que ya tengo en desarrollo?',
-    answer:
-      'Sí, de hecho es uno de los casos más comunes: revisamos arquitectura, decisiones técnicas o procesos de un proyecto ya iniciado.',
-  },
-  {
-    question: '¿Qué pasa si necesito más de una sesión?',
-    answer:
-      'Podemos armar un programa de acompañamiento con varias sesiones espaciadas en el tiempo, según el alcance que definamos juntos.',
-  },
-];
 
 /** Standalone service page (no primary nav, matches Proyectos/Login/Propuesta pattern): banner,
  * course cards and an FAQ accordion. Reached from the header's "Servicios" hover dropdown. */
@@ -58,7 +26,8 @@ export class Asesorias {
 
   readonly header = this.cms.header;
   readonly courses = COURSES;
-  readonly faqs = FAQS;
+  /** Edited in the CMS (Páginas); the built-in list shows until it is saved there. */
+  readonly faqs = computed(() => this.cms.pages().asesorias.faqs ?? PAGE_FAQS.asesorias);
   readonly selectedCourse = signal<Course | null>(null);
 
   readonly pageDesign = computed(() => this.cms.pages().asesorias);

@@ -1,4 +1,5 @@
 import { readHomeFaqs, type HomeFaq } from '../../../core/cms/home-faqs';
+import { PAGE_FAQS, isFaqPage } from '../../../core/cms/page-faqs';
 import { HERO_TECHNOLOGIES, heroTechnologyLogo } from '../../../core/cms/hero-technologies';
 import { OverlayScroll } from '../../../ui/behaviors/overlay-scroll';
 import { ImageUpload } from '../../../ui/forms/image-upload/image-upload';
@@ -35,7 +36,11 @@ import {
   type CmsPageDesignId,
 } from '../../../core/cms/cms-content.service';
 import { ApiService } from '../../../core/api.service';
-import type { ApiCourseAdmin, ApiTrainingProgram } from '../../../core/models/api.models';
+import type {
+  ApiCourseAdmin,
+  ApiInstructor,
+  ApiTrainingProgram,
+} from '../../../core/models/api.models';
 
 import {
   PALETTE,
@@ -262,6 +267,8 @@ export class AdminContent {
   readonly pageHeading = signal('');
   readonly pageDescription = signal('');
   readonly pageContent = signal('');
+  /** Questions of the selected page; null on pages that have no FAQ block. */
+  readonly pageFaqs = signal<HomeFaq[] | null>(null);
   readonly isLegalPage = computed(() =>
     ['terminos-y-condiciones', 'avisos-legales'].includes(this.selectedPageId()),
   );
@@ -319,7 +326,7 @@ export class AdminContent {
     effect(() => {
       if (this.tab() === 'secciones') this.orderDraft.set([...this.cms.homeSectionOrder()]);
     });
-    if (this.tab() === 'cursos' || this.tab() === 'programas') return;
+    if (['cursos', 'programas', 'docentes'].includes(this.tab())) return;
     this.cms
       .load(true)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -456,8 +463,33 @@ export class AdminContent {
     this.pageHeading.set(design.heading);
     this.pageDescription.set(design.description);
     this.pageContent.set(design.content ?? '');
+    this.pageFaqs.set(isFaqPage(id) ? (design.faqs ?? PAGE_FAQS[id]) : null);
     this.pageBackgroundColor.set(design.backgroundColor);
     this.pageBackgroundImage.set(design.backgroundImage);
+  }
+
+  setPageFaq(index: number, field: keyof HomeFaq, value: string): void {
+    this.pageFaqs.update(
+      (faqs) => faqs?.map((faq, i) => (i === index ? { ...faq, [field]: value } : faq)) ?? null,
+    );
+  }
+
+  addPageFaq(): void {
+    this.pageFaqs.update((faqs) => [...(faqs ?? []), { question: '', answer: '' }]);
+  }
+
+  removePageFaq(index: number): void {
+    this.pageFaqs.update((faqs) => faqs?.filter((_, i) => i !== index) ?? null);
+  }
+
+  movePageFaq(index: number, step: 1 | -1): void {
+    this.pageFaqs.update((faqs) => {
+      const target = index + step;
+      if (!faqs || target < 0 || target >= faqs.length) return faqs;
+      const next = [...faqs];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
   }
 
   setPageBackgroundColor(color: string): void {
@@ -471,10 +503,19 @@ export class AdminContent {
   savePageDesign(): void {
     const id = this.selectedPageId();
     if (this.saving()) return;
+    const faqs = this.pageFaqs()?.map((faq) => ({
+      question: faq.question.trim(),
+      answer: faq.answer.trim(),
+    }));
+    if (faqs?.some((faq) => !faq.question || !faq.answer)) {
+      this.toast.error('Preguntas incompletas', 'Completa o quita las preguntas sin texto.');
+      return;
+    }
     const value: CmsPageDesign = {
       heading: this.pageHeading(),
       description: this.pageDescription(),
       ...(this.isLegalPage() ? { content: this.pageContent() } : {}),
+      ...(faqs ? { faqs } : {}),
       backgroundColor: this.pageBackgroundColor(),
       backgroundImage: this.pageBackgroundImage(),
     };
@@ -648,8 +689,26 @@ export class AdminContent {
     });
   }
 
-  setCourseDraftField(key: 'title' | 'description', value: string): void {
+  setCourseDraftField(
+    key:
+      | 'title'
+      | 'description'
+      | 'overview'
+      | 'level'
+      | 'duration'
+      | 'instructorId',
+    value: string,
+  ): void {
     this.courseDraft.update((d) => ({ ...d, [key]: value }));
+  }
+
+  /** One item per line. Empty lines are kept while typing and dropped when saving. */
+  courseDraftLines(key: 'outcomes' | 'requirements'): string {
+    return (this.courseDraft()[key] ?? []).join('\n');
+  }
+
+  setCourseDraftLines(key: 'outcomes' | 'requirements', value: string): void {
+    this.courseDraft.update((d) => ({ ...d, [key]: value.split('\n') }));
   }
 
   setCourseDraftBestSeller(isBestSeller: boolean): void {
@@ -768,6 +827,12 @@ export class AdminContent {
       price: value.price ?? 0,
       isPublished: value.isPublished ?? true,
       isBestSeller: value.isBestSeller ?? false,
+      overview: value.overview?.trim() || null,
+      level: value.level?.trim() || null,
+      duration: value.duration?.trim() || null,
+      outcomes: (value.outcomes ?? []).map((line) => line.trim()).filter(Boolean),
+      requirements: (value.requirements ?? []).map((line) => line.trim()).filter(Boolean),
+      instructorId: value.instructorId || null,
       displayOrder: value.displayOrder ?? this.courseItems().length + 1,
       materials: (value.materials ?? []).filter((m) => m.title.trim() && m.url.trim()),
       syllabus: (value.syllabus ?? []).filter((s) => s.title.trim()),
@@ -817,6 +882,127 @@ export class AdminContent {
         this.toast.error('No pudimos eliminar', 'El backend no pudo completar la operación.');
       },
     });
+  }
+
+  // ---- Instructors: their own records, assigned to courses from the course form ----
+  readonly instructorItems = signal<ApiInstructor[]>([]);
+  readonly instructorSel = signal(0);
+  readonly instructorDraft = signal<Partial<ApiInstructor>>({});
+  readonly instructorIsNew = computed(() => this.instructorSel() === -1);
+  /** Options of the instructor picker in the course form. */
+  readonly instructorOptions = computed(() => [
+    { value: '', label: 'Sin docente' },
+    ...this.instructorItems().map((item) => ({ value: item.id, label: item.name })),
+  ]);
+  readonly courseInstructor = computed(
+    () => this.instructorItems().find((item) => item.id === this.courseDraft().instructorId) ?? null,
+  );
+
+  pickInstructor(i: number): void {
+    this.instructorSel.set(i);
+    this.instructorDraft.set({ ...this.instructorItems()[i] });
+  }
+
+  addNewInstructor(): void {
+    this.instructorSel.set(-1);
+    this.instructorDraft.set({ name: '', title: '', bio: '', photoUrl: '', achievements: [] });
+  }
+
+  setInstructorField(key: 'name' | 'title' | 'bio' | 'photoUrl', value: string): void {
+    this.instructorDraft.update((d) => ({ ...d, [key]: value }));
+  }
+
+  instructorAchievementLines(): string {
+    return (this.instructorDraft().achievements ?? []).join('\n');
+  }
+
+  setInstructorAchievements(value: string): void {
+    this.instructorDraft.update((d) => ({ ...d, achievements: value.split('\n') }));
+  }
+
+  saveInstructorDraft(): void {
+    if (this.saving()) return;
+    const value = this.instructorDraft();
+    const name = value.name?.trim() ?? '';
+    if (!name) {
+      this.toast.error('Falta el nombre', 'Escribe el nombre del docente.');
+      return;
+    }
+    const payload = {
+      name,
+      title: value.title?.trim() || null,
+      bio: value.bio?.trim() || null,
+      photoUrl: value.photoUrl || null,
+      achievements: (value.achievements ?? []).map((line) => line.trim()).filter(Boolean),
+    };
+    this.saving.set(true);
+    const request = this.instructorIsNew()
+      ? this.api.createInstructor(payload)
+      : this.api.updateInstructor(value.id!, payload);
+    request.subscribe({
+      next: (saved) => {
+        this.saving.set(false);
+        this.toast.success('Cambios guardados', `"${name}" se guardó en el backend.`);
+        this.loadInstructors(saved.id);
+      },
+      error: () => {
+        this.saving.set(false);
+        this.toast.error(
+          'No pudimos guardar',
+          'El backend rechazó el cambio. Revisa los campos e inténtalo otra vez.',
+        );
+      },
+    });
+  }
+
+  async deleteInstructorDraft(): Promise<void> {
+    if (this.instructorIsNew() || this.saving() || this.dialog.dialog()) return;
+    const item = this.instructorItems()[this.instructorSel()];
+    if (!item) return;
+    const confirmed = await this.dialog.confirm({
+      tone: 'danger',
+      title: '¿Eliminar docente?',
+      message: `Se eliminará a "${item.name}". Los cursos que lo tenían asignado quedarán sin docente.`,
+      confirmLabel: 'Sí, eliminar',
+      cancelLabel: 'Cancelar',
+    });
+    if (!confirmed) return;
+    this.saving.set(true);
+    this.api.deleteInstructor(item.id).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.toast.success('Docente eliminado', `"${item.name}" se quitó del backend.`);
+        this.loadInstructors();
+      },
+      error: () => {
+        this.saving.set(false);
+        this.toast.error('No pudimos eliminar', 'El backend no pudo completar la operación.');
+      },
+    });
+  }
+
+  /** Loads the instructors; `selectId` keeps that record open in the editor. */
+  private loadInstructors(selectId?: string): void {
+    if (this.destroyRef.destroyed) return;
+    this.api
+      .instructorsAll()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (items) => {
+          this.instructorItems.set(items);
+          const index = Math.max(
+            0,
+            items.findIndex((item) => item.id === selectId),
+          );
+          if (items.length) this.pickInstructor(index);
+          else this.addNewInstructor();
+        },
+        error: () =>
+          this.toast.error(
+            'No pudimos cargar los docentes',
+            'Verifica tu sesión y la conexión con el backend.',
+          ),
+      });
   }
 
   private loadCoursesTab(): void {
@@ -967,6 +1153,12 @@ export class AdminContent {
 
     if (tab === 'cursos') {
       this.loadCoursesTab();
+      this.loadInstructors();
+      return;
+    }
+
+    if (tab === 'docentes') {
+      this.loadInstructors();
       return;
     }
 

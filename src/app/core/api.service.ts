@@ -19,6 +19,7 @@ import type {
   ApiCourseAdmin,
   ApiCoursePurchase,
   ApiFooter,
+  ApiInstructor,
   ApiHeader,
   ApiPagedResult,
   ApiPlan,
@@ -263,6 +264,7 @@ export class ApiService {
   courses(): Observable<ApiCourse[]> {
     return this.client.getPublic<ApiCourse[]>(`/courses`);
   }
+  /** A published course by its slug (its id is accepted too). */
   course(id: string): Observable<ApiCourse> {
     return this.client.getPublic<ApiCourse>(`/courses/${encodeURIComponent(id)}`);
   }
@@ -280,6 +282,18 @@ export class ApiService {
   }
   deleteCourse(id: string): Observable<void> {
     return this.client.delete<void>(`/courses/${encodeURIComponent(id)}`);
+  }
+  instructorsAll(): Observable<ApiInstructor[]> {
+    return this.client.get<ApiInstructor[]>(`/instructors/all`);
+  }
+  createInstructor(input: unknown): Observable<ApiInstructor> {
+    return this.client.post<ApiInstructor>(`/instructors`, input);
+  }
+  updateInstructor(id: string, input: unknown): Observable<ApiInstructor> {
+    return this.client.put<ApiInstructor>(`/instructors/${encodeURIComponent(id)}`, input);
+  }
+  deleteInstructor(id: string): Observable<void> {
+    return this.client.delete<void>(`/instructors/${encodeURIComponent(id)}`);
   }
   checkoutCart(input: {
     courseIds: string[];

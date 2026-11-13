@@ -111,8 +111,24 @@ export interface ApiCourseMaterialCounts {
 }
 export interface ApiCourse {
   id: string;
+  /** URL name of the course page: /cursos/{slug}. */
+  slug?: string;
   title: string;
+  /** Short text for cards and listings. */
   description: string;
+  /** Full description shown on the course page. */
+  overview?: string | null;
+  level?: string | null;
+  duration?: string | null;
+  outcomes?: string[];
+  requirements?: string[];
+  /** Instructor assigned to the course; the instructor* fields below are read from that record. */
+  instructorId?: string | null;
+  instructorName?: string | null;
+  instructorRole?: string | null;
+  instructorBio?: string | null;
+  instructorPhotoUrl?: string | null;
+  instructorAchievements?: string[];
   glyph?: string | null;
   accentColor?: string | null;
   imageUrl?: string | null;
@@ -124,6 +140,16 @@ export interface ApiCourse {
   syllabus: ApiCourseSyllabusItem[];
   reviews: ApiCourseReview[];
   materialCounts: ApiCourseMaterialCounts;
+}
+/** A person who teaches courses; managed in the admin apart from the courses. */
+export interface ApiInstructor {
+  id: string;
+  name: string;
+  /** Professional title or speciality. */
+  title?: string | null;
+  bio?: string | null;
+  photoUrl?: string | null;
+  achievements: string[];
 }
 export interface ApiCourseAdmin extends ApiCourse {
   materials: ApiCourseMaterial[];

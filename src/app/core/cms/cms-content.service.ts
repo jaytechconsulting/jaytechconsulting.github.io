@@ -224,6 +224,7 @@ export class CmsContentService {
     const details = JSON.stringify({
       description: value.description,
       ...(value.content !== undefined ? { content: value.content } : {}),
+      ...(value.faqs !== undefined ? { faqs: value.faqs } : {}),
       backgroundColor: value.backgroundColor,
     });
     const input = {

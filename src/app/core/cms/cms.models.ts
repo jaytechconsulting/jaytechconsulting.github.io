@@ -1,3 +1,4 @@
+import type { HomeFaq } from './home-faqs';
 import type { HomeSection } from './home-sections';
 import type { SocialLink } from './social-links';
 import type { Announcement } from '../models/announcement';
@@ -130,6 +131,8 @@ export type CmsPageDesignId =
 
 export interface CmsPageDesign {
   content?: string;
+  /** Frequent questions of the page; absent until they are saved from the CMS. */
+  faqs?: HomeFaq[];
   heading: string;
   description: string;
   backgroundColor: string;

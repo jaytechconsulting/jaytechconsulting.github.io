@@ -27,7 +27,7 @@ const STARS = [1, 2, 3, 4, 5];
 
 /** Reviews screen of the home, on a dark band after the light companies block. One review is on
  * stage at a time, as a large quote; the people below work as tabs. It advances by itself: the
- * fill of the active tab is the clock, so pausing that animation (pointer over the block, keyboard
+ * fill of the active tab is the clock, so pausing that animation (keyboard
  * focus, off screen) pauses the rotation. Hidden while there are no published reviews. */
 @Component({
   selector: 'app-reviews-section',
@@ -120,10 +120,9 @@ export class ReviewsSection {
   readonly active = computed(() => Math.min(this.index(), Math.max(this.reviews().length - 1, 0)));
   readonly activeReview = computed(() => this.reviews()[this.active()]);
 
-  readonly hovered = signal(false);
   readonly focused = signal(false);
   private readonly inView = signal(false);
-  readonly playing = computed(() => this.inView() && !this.hovered() && !this.focused());
+  readonly playing = computed(() => this.inView() && !this.focused());
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -141,6 +140,12 @@ export class ReviewsSection {
 
   byline(review: Review): string {
     return [review.role, review.company].filter(Boolean).join(' · ');
+  }
+
+  /** Only keyboard focus pauses the rotation: a mouse click also focuses the tab, and that
+   * must not leave the carousel stopped. */
+  onFocusIn(event: FocusEvent): void {
+    this.focused.set((event.target as HTMLElement).matches(':focus-visible'));
   }
 
   select(index: number): void {

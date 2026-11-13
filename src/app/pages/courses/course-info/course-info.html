@@ -1,159 +1,570 @@
-@if (notFound()) {
-  <div class="flex min-h-screen flex-col items-center justify-center gap-[18px] bg-surface-page p-6 text-center font-body">
-    <div class="text-[46px] opacity-50">◇</div>
-    <h1 class="m-0 font-display text-2xl text-text-strong">Curso no encontrado</h1>
-    <p class="m-0 text-text-muted">El curso que buscas no existe o ya no está disponible.</p>
-    <app-button variant="primary" (clicked)="back()">Ver cursos virtuales</app-button>
-  </div>
-} @else if (course(); as c) {
-  <div class="min-h-screen bg-surface-page font-body">
-    <app-header class="sticky top-0 z-50" [links]="header().links" [cta]="header().cta" (ctaClicked)="requestProposal()" />
-
+<app-header class="sticky top-0 z-50" [links]="header().links" [cta]="header().cta" (ctaClicked)="requestProposal()" />
+@if (course(); as c) {
+  <main class="bg-surface-page pb-24 font-body text-text-body min-[1040px]:pb-0" [style.--course-color]="color()">
     <!-- Hero -->
-    <header class="relative overflow-hidden bg-[image:var(--gradient-ink)] text-text-on-inverse">
-      <div class="pointer-events-none absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-50 [mask-image:radial-gradient(circle_at_80%_40%,#000,transparent_78%)]"></div>
-      <div class="pointer-events-none absolute -top-40 -right-20 h-[560px] w-[560px]" [style.background]="'radial-gradient(circle, ' + c.accentColor + '30, transparent 66%)'"></div>
+    <header class="relative overflow-hidden bg-surface-inverse px-5 pt-7 pb-14 text-text-on-inverse min-[821px]:px-8 min-[821px]:pb-20">
+      <div
+        class="pointer-events-none absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-30 [mask-image:radial-gradient(circle_at_80%_0%,#000,transparent_70%)]"
+      ></div>
+      <div
+        class="pointer-events-none absolute -top-40 right-[6%] h-[560px] w-[560px] rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--course-color)_30%,transparent),transparent_62%)] motion-safe:animate-[float-y_11s_ease-in-out_infinite]"
+      ></div>
+      <div
+        class="pointer-events-none absolute -bottom-52 -left-32 h-[480px] w-[480px] rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.14),transparent_62%)]"
+      ></div>
 
-      <div class="relative mx-auto max-w-[1200px] px-5 pt-[clamp(24px,4vw,40px)] sm:px-10">
-        <div class="mb-[clamp(28px,4vw,48px)]">
-          <app-breadcrumb [items]="breadcrumb()" [inverse]="true" />
-        </div>
-
-        <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,360px),1fr))] items-start gap-[clamp(32px,5vw,64px)] pb-[clamp(48px,7vw,80px)]">
-          <div>
-            <div class="mb-5 flex flex-wrap items-center gap-3">
-              <span class="flex h-11 w-11 items-center justify-center rounded-full text-2xl" [style.background]="c.accentColor + '26'" [style.color]="c.accentColor">{{ c.glyph }}</span>
-              @if (c.reviews.length > 0) {
-                <span class="inline-flex items-center gap-1.5">
-                  <span class="inline-flex gap-0.5 text-base text-brand-yellow" [attr.aria-label]="averageRating() + ' de 5'">
-                    @for (star of stars; track star) {
-                      <span [class.opacity-25]="star > averageRating()">★</span>
-                    }
-                  </span>
-                  <span class="font-mono text-[13px] text-text-inverse-muted">({{ c.reviews.length }})</span>
-                </span>
+      <div class="relative mx-auto w-full max-w-[1200px]">
+        <app-breadcrumb [items]="breadcrumb()" [inverse]="true" />
+        <div class="mt-9 grid items-center gap-10 min-[1040px]:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] min-[1040px]:gap-16">
+          <div class="course-in">
+            <div class="flex flex-wrap items-center gap-2.5">
+              <span
+                class="inline-flex items-center gap-2 rounded-pill border border-[var(--glass-border)] bg-[var(--glass-dark)] px-3.5 py-1.5 font-mono text-[12px] uppercase tracking-[0.14em] text-text-on-inverse backdrop-blur-md"
+              >
+                <span class="h-1.5 w-1.5 rounded-full bg-[var(--course-color)]"></span>
+                Curso virtual
+              </span>
+              @if (c.level) {
+                <span class="rounded-pill bg-[var(--course-color)] px-3 py-1.5 font-mono text-[12px] font-bold uppercase tracking-[0.12em] text-ink-950">{{
+                  c.level
+                }}</span>
+              }
+              @if (c.isBestSeller) {
+                <span class="rounded-pill bg-brand-yellow px-3 py-1.5 font-mono text-[12px] font-bold uppercase tracking-[0.12em] text-ink-950"
+                  >Más vendido</span
+                >
               }
             </div>
-            <h1 class="m-0 text-balance font-display text-[clamp(32px,5.5vw,52px)] font-bold leading-[var(--lh-tight)] tracking-[var(--ls-tight)]">
+            <h1
+              class="m-0 mt-5 font-display text-[clamp(34px,5vw,58px)] font-extrabold leading-[1.05] tracking-[-0.03em] text-text-on-inverse"
+            >
               {{ c.title }}
             </h1>
-            <p class="mt-5 max-w-[560px] text-[clamp(16px,2.2vw,19px)] leading-[var(--lh-snug)] text-text-inverse-muted">
-              {{ c.description }}
-            </p>
+            <p class="m-0 mt-5 max-w-[58ch] text-lg leading-relaxed text-text-inverse-muted">{{ c.description }}</p>
 
-            <div class="mt-7 flex flex-wrap items-center gap-2.5">
-              @if (c.materialCounts.videos > 0) {
-                <span class="inline-flex items-center gap-1.5 rounded-pill border border-[var(--glass-border)] bg-[var(--glass-dark)] px-3.5 py-2 text-[13px]">
-                  <app-icon name="cmsanimacion" class="h-4 w-4" />{{ c.materialCounts.videos }} video{{ c.materialCounts.videos === 1 ? '' : 's' }}
-                </span>
+            <ul class="m-0 mt-7 flex list-none flex-wrap gap-x-7 gap-y-3 p-0 text-[15px] text-text-on-inverse">
+              @if (rating(); as r) {
+                <li>
+                  <button
+                    type="button"
+                    class="inline-flex cursor-pointer items-center gap-2 border-0 bg-transparent p-0 text-inherit hover:text-brand-yellow"
+                    (click)="goTo('resenas')"
+                  >
+                    <span class="text-brand-yellow" aria-hidden="true">★</span>
+                    <strong>{{ r.average }}</strong>
+                    <span class="text-text-inverse-muted">({{ r.count }} {{ r.count === 1 ? 'reseña' : 'reseñas' }})</span>
+                  </button>
+                </li>
               }
-              @if (c.materialCounts.pdfs > 0) {
-                <span class="inline-flex items-center gap-1.5 rounded-pill border border-[var(--glass-border)] bg-[var(--glass-dark)] px-3.5 py-2 text-[13px]">
-                  <app-icon name="cmspaginas" class="h-4 w-4" />{{ c.materialCounts.pdfs }} PDF{{ c.materialCounts.pdfs === 1 ? '' : 's' }}
-                </span>
+              @if (c.duration) {
+                <li class="inline-flex items-center gap-2">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="h-[18px] w-[18px] text-[var(--course-color)]" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+                  {{ c.duration }}
+                </li>
               }
-              @if (c.materialCounts.files > 0) {
-                <span class="inline-flex items-center gap-1.5 rounded-pill border border-[var(--glass-border)] bg-[var(--glass-dark)] px-3.5 py-2 text-[13px]">
-                  <app-icon name="folder" class="h-4 w-4" />{{ c.materialCounts.files }} archivo{{ c.materialCounts.files === 1 ? '' : 's' }}
-                </span>
+              @if (c.syllabus.length) {
+                <li class="inline-flex items-center gap-2">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-[18px] w-[18px] text-[var(--course-color)]" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" /></svg>
+                  {{ c.syllabus.length }} {{ c.syllabus.length === 1 ? 'módulo' : 'módulos' }}
+                </li>
               }
-              <span class="inline-flex items-center gap-1.5 rounded-pill border border-[var(--glass-border)] bg-[var(--glass-dark)] px-3.5 py-2 text-[13px]">
-                <app-icon name="lock" class="h-4 w-4" />Acceso de por vida
-              </span>
-            </div>
+              @if (instructor(); as teacher) {
+                <li class="inline-flex items-center gap-2">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="h-[18px] w-[18px] text-[var(--course-color)]" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
+                  {{ teacher.name }}
+                </li>
+              }
+            </ul>
           </div>
 
-          <!-- Sticky purchase card -->
-          <div appReveal class="lg:sticky lg:top-24">
-            <div class="overflow-hidden rounded-xl border border-[var(--glass-border)] bg-[var(--glass-dark)] backdrop-blur-md">
-              @if (c.imageUrl) {
-                <img [src]="c.imageUrl" [alt]="c.title" class="aspect-[16/9] w-full object-cover" />
-              } @else {
-                <div class="flex aspect-[16/9] w-full items-center justify-center text-5xl" [style.background]="'linear-gradient(135deg, ' + c.accentColor + '33, transparent)'" [style.color]="c.accentColor">{{ c.glyph }}</div>
-              }
-              <div class="p-6">
-                <div class="font-display text-3xl font-bold">{{ formatPrice(c.price) }}</div>
-                <p class="mt-1 mb-5 text-[13px] text-text-inverse-muted">Pago único · acceso inmediato</p>
-                <app-button variant="primary" size="lg" [fullWidth]="true" (clicked)="addToCart(c)">
-                  Agregar al cotizador
-                  <span slot="icon-right">→</span>
-                </app-button>
-                <ul class="mt-5 flex flex-col gap-2.5 text-[13.5px] text-text-inverse-muted">
-                  <li class="flex items-center gap-2"><span class="text-success">✓</span>Material descargable, tuyo para siempre</li>
-                  <li class="flex items-center gap-2"><span class="text-success">✓</span>Acceso desde tu panel de cliente</li>
-                  <li class="flex items-center gap-2"><span class="text-success">✓</span>Pago seguro (Culqi, Niubiz o Mercado Pago)</li>
-                </ul>
-              </div>
+          <div class="course-in relative isolate w-full rounded-[clamp(16px,3vw,32px)] border border-[var(--glass-border)] bg-[var(--glass-dark)] p-1.5 shadow-[0_24px_60px_-36px_var(--course-color)] sm:p-2.5 [animation-delay:120ms]" aria-hidden="true">
+            <div class="relative aspect-[16/10] overflow-hidden rounded-[clamp(11px,2.4vw,23px)]"
+              [style.background]="c.imageUrl ? null : 'linear-gradient(135deg, color-mix(in srgb, var(--course-color) 50%, transparent), color-mix(in srgb, var(--course-color) 8%, transparent))'">
+            @if (c.imageUrl) {
+              <img [src]="c.imageUrl" alt="" fetchpriority="high" class="absolute inset-0 block size-full object-cover object-center" />
+            } @else {
+              <div class="absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-30"></div>
+              <span
+                class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 select-none text-[150px] leading-none text-[var(--course-color)] drop-shadow-[0_0_40px_var(--course-color)] motion-safe:animate-[float-y-sm_6s_ease-in-out_infinite]"
+                >{{ c.glyph || '◆' }}</span
+              >
+            }
             </div>
           </div>
         </div>
       </div>
     </header>
 
-    <!-- Content -->
-    <div class="mx-auto max-w-[1200px] px-5 py-[clamp(48px,7vw,80px)] sm:px-10">
-      <div class="grid grid-cols-1 gap-[clamp(40px,6vw,64px)] lg:grid-cols-[1fr_380px]">
-        <div class="flex flex-col gap-[clamp(40px,6vw,56px)]">
-          @if (c.syllabus.length > 0) {
-            <section appReveal>
-              <div class="mb-6 font-mono text-[13px] uppercase tracking-[0.14em] text-brand-orange-600">// Temario</div>
-              <div class="flex flex-col gap-3">
-                @for (item of c.syllabus; track item.id; let i = $index) {
-                  <div class="flex gap-4 rounded-lg border border-border-subtle bg-surface-card p-5">
-                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-primary text-sm font-bold text-text-on-brand">{{ i + 1 }}</span>
-                    <div class="min-w-0">
-                      <div class="font-display text-[16px] font-semibold text-text-strong">{{ item.title }}</div>
+    <!-- In-page navigation -->
+    <nav
+      class="sticky top-[64px] z-30 border-b border-border-subtle bg-surface-page/90 px-5 backdrop-blur-md min-[821px]:px-8"
+      aria-label="Secciones del curso"
+    >
+      <ul class="mx-auto m-0 flex w-full max-w-[1200px] list-none gap-1 overflow-x-auto p-0 py-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        @for (section of sections(); track section.id) {
+          <li>
+            <button
+              type="button"
+              class="cursor-pointer rounded-pill border-0 bg-transparent px-4 py-2 font-body text-[14px] font-semibold whitespace-nowrap text-text-muted transition-colors duration-200 hover:bg-surface-sunken hover:text-text-strong"
+              (click)="goTo(section.id)"
+            >
+              {{ section.label }}
+            </button>
+          </li>
+        }
+      </ul>
+    </nav>
+
+    <div
+      class="mx-auto grid w-full max-w-[1200px] items-start gap-10 px-5 py-12 min-[821px]:px-8 min-[1040px]:grid-cols-[minmax(0,1fr)_minmax(0,360px)] min-[1040px]:gap-14 min-[1040px]:py-16"
+    >
+      <div class="flex min-w-0 flex-col gap-14">
+        <!-- 1. Descripción -->
+        <section id="descripcion" class="scroll-mt-36" appReveal>
+          <div class="mb-3 font-mono text-[12px] font-semibold uppercase tracking-[0.2em] text-[color-mix(in_srgb,var(--course-color)_70%,var(--text-strong))]">
+            01 · Descripción
+          </div>
+          <h2 class="m-0 mb-5 font-display text-[clamp(26px,3vw,36px)] font-extrabold leading-tight tracking-[-0.02em] text-text-strong">
+            Acerca del curso
+          </h2>
+          @for (paragraph of overview(); track $index) {
+            <p class="m-0 mb-4 text-[16.5px] leading-[1.75] text-text-body">{{ paragraph }}</p>
+          } @empty {
+            <p class="m-0 text-[16.5px] leading-[1.75] text-text-body">{{ c.description }}</p>
+          }
+
+          @if (outcomes().length) {
+            <div class="relative mt-8 overflow-hidden rounded-[22px] border border-border-subtle bg-surface-card p-7 shadow-sm">
+              <span class="pointer-events-none absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,var(--course-color),transparent)]"></span>
+              <h3 class="m-0 mb-5 font-display text-[19px] font-bold text-text-strong">Qué vas a aprender</h3>
+              <ul class="m-0 grid list-none gap-x-8 gap-y-4 p-0 min-[680px]:grid-cols-2">
+                @for (outcome of outcomes(); track $index) {
+                  <li class="flex items-start gap-3 text-[15px] leading-[1.6] text-text-body">
+                    <span
+                      class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--course-color)_18%,transparent)] text-[color-mix(in_srgb,var(--course-color)_75%,var(--text-strong))]"
+                      aria-hidden="true"
+                    >
+                      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><path d="m3.5 8.5 3 3 6-7" /></svg>
+                    </span>
+                    {{ outcome }}
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        </section>
+
+        <!-- 2. Contenido -->
+        @if (c.syllabus.length) {
+          <section id="contenido" class="scroll-mt-36" appReveal>
+            <div class="mb-3 font-mono text-[12px] font-semibold uppercase tracking-[0.2em] text-[color-mix(in_srgb,var(--course-color)_70%,var(--text-strong))]">
+              02 · Contenido
+            </div>
+            <div class="mb-5 flex flex-wrap items-end justify-between gap-3">
+              <h2 class="m-0 font-display text-[clamp(26px,3vw,36px)] font-extrabold leading-tight tracking-[-0.02em] text-text-strong">
+                Contenido del curso
+              </h2>
+              <span class="font-mono text-[13px] text-text-muted">{{ facts(c).join(' · ') }}</span>
+            </div>
+            <ol class="m-0 flex list-none flex-col gap-3 p-0">
+              @for (item of c.syllabus; track item.id ?? $index; let i = $index) {
+                <li
+                  class="group relative overflow-hidden rounded-2xl border transition-[border-color,box-shadow,background-color] duration-300 ease-out"
+                  [class]="
+                    openModule() === i
+                      ? 'border-[var(--course-color)] bg-surface-card shadow-[0_22px_44px_-32px_var(--course-color)]'
+                      : 'border-border-subtle bg-surface-card/70 hover:border-[color-mix(in_srgb,var(--course-color)_50%,transparent)] hover:bg-surface-card'
+                  "
+                >
+                  <span
+                    class="pointer-events-none absolute inset-y-0 left-0 w-1 origin-top bg-[var(--course-color)] transition-transform duration-300 ease-out"
+                    [class]="openModule() === i ? 'scale-y-100' : 'scale-y-0'"
+                  ></span>
+                  <h3 class="m-0">
+                    <button
+                      type="button"
+                      class="flex w-full cursor-pointer items-center gap-4 border-0 bg-transparent px-5 py-[18px] text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--course-color)]"
+                      [id]="'modulo-' + i"
+                      [attr.aria-expanded]="openModule() === i"
+                      [attr.aria-controls]="'modulo-detalle-' + i"
+                      [disabled]="!item.description"
+                      (click)="toggleModule(i)"
+                    >
+                      <span
+                        class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-mono text-[13px] font-bold transition-colors duration-300"
+                        [class]="
+                          openModule() === i
+                            ? 'bg-[var(--course-color)] text-ink-950'
+                            : 'bg-surface-sunken text-text-muted'
+                        "
+                        aria-hidden="true"
+                        >{{ position(i) }}</span
+                      >
+                      <span class="flex-1 font-display text-[16.5px] font-bold leading-snug text-text-strong">{{ item.title }}</span>
                       @if (item.description) {
-                        <p class="m-0 mt-1 text-[14.5px] leading-[1.6] text-text-muted">{{ item.description }}</p>
+                        <svg
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="h-4 w-4 shrink-0 text-text-muted transition-transform duration-300 ease-out"
+                          [class.rotate-180]="openModule() === i"
+                          aria-hidden="true"
+                        >
+                          <path d="m3 6 5 5 5-5" />
+                        </svg>
+                      }
+                    </button>
+                  </h3>
+                  @if (item.description) {
+                    <div
+                      class="grid transition-[grid-template-rows] duration-300 ease-out"
+                      [style.grid-template-rows]="openModule() === i ? '1fr' : '0fr'"
+                    >
+                      <div
+                        class="overflow-hidden"
+                        role="region"
+                        [id]="'modulo-detalle-' + i"
+                        [attr.aria-labelledby]="'modulo-' + i"
+                        [attr.inert]="openModule() === i ? null : ''"
+                      >
+                        <p class="m-0 px-5 pb-5 pl-[76px] text-[15px] leading-[1.7] whitespace-pre-line text-text-muted">
+                          {{ item.description }}
+                        </p>
+                      </div>
+                    </div>
+                  }
+                </li>
+              }
+            </ol>
+          </section>
+        }
+
+        <!-- 3. Requisitos -->
+        @if (requirements().length) {
+          <section id="requisitos" class="scroll-mt-36" appReveal>
+            <div class="mb-3 font-mono text-[12px] font-semibold uppercase tracking-[0.2em] text-[color-mix(in_srgb,var(--course-color)_70%,var(--text-strong))]">
+              03 · Requisitos
+            </div>
+            <h2 class="m-0 mb-5 font-display text-[clamp(26px,3vw,36px)] font-extrabold leading-tight tracking-[-0.02em] text-text-strong">
+              Qué necesitas para empezar
+            </h2>
+            <ul class="m-0 grid list-none gap-3 p-0 min-[680px]:grid-cols-2">
+              @for (requirement of requirements(); track $index; let i = $index) {
+                <li class="flex items-start gap-3.5 rounded-2xl border border-border-subtle bg-surface-card p-5 text-[15px] leading-[1.6] text-text-body">
+                  <span
+                    class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-sunken font-mono text-[12px] font-bold text-text-muted"
+                    aria-hidden="true"
+                    >{{ i + 1 }}</span
+                  >
+                  {{ requirement }}
+                </li>
+              }
+            </ul>
+          </section>
+        }
+
+        <!-- 4. Docente -->
+        @if (instructor(); as teacher) {
+          <section id="docente" class="scroll-mt-36" appReveal>
+            <div class="mb-3 font-mono text-[12px] font-semibold uppercase tracking-[0.2em] text-[color-mix(in_srgb,var(--course-color)_70%,var(--text-strong))]">
+              04 · Docente
+            </div>
+            <h2 class="m-0 mb-5 font-display text-[clamp(26px,3vw,36px)] font-extrabold leading-tight tracking-[-0.02em] text-text-strong">
+              Quién dicta el curso
+            </h2>
+
+            <article
+              class="group relative overflow-hidden rounded-[28px] border border-border-subtle bg-surface-card shadow-[0_30px_70px_-50px_color-mix(in_srgb,var(--course-color)_70%,transparent)]"
+            >
+              <div class="grid min-[760px]:grid-cols-[minmax(0,42%)_minmax(0,1fr)]">
+                <!-- Portrait, edge to edge: the photo, or a monogram in the course colour when there is none. -->
+                <div
+                  class="relative aspect-square overflow-hidden bg-[linear-gradient(155deg,color-mix(in_srgb,var(--course-color)_78%,#0b1220),#0b1220)] min-[760px]:aspect-auto min-[760px]:min-h-[420px]"
+                >
+                  @if (teacher.photo) {
+                    <img
+                      [src]="teacher.photo"
+                      [alt]="'Foto de ' + teacher.name"
+                      loading="lazy"
+                      class="absolute inset-0 h-full w-full object-cover object-top transition-transform duration-[900ms] ease-out group-hover:scale-[1.04]"
+                    />
+                  } @else {
+                    <div class="absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-30"></div>
+                    <span
+                      class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-display text-[clamp(84px,12vw,132px)] font-extrabold leading-none tracking-[-0.05em] text-white/90"
+                      aria-hidden="true"
+                      >{{ teacher.initials }}</span
+                    >
+                  }
+                  <div class="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-[linear-gradient(180deg,transparent,rgba(6,9,16,0.82))]"></div>
+                  <div class="absolute inset-x-5 bottom-5 flex items-end justify-between gap-3">
+                    <span
+                      class="inline-flex items-center gap-2 rounded-pill border border-white/20 bg-white/10 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-white backdrop-blur-md"
+                    >
+                      <span class="h-1.5 w-1.5 rounded-full bg-[var(--course-color)] shadow-[0_0_10px_var(--course-color)]"></span>
+                      Tu docente
+                    </span>
+                    @if (teacher.achievements.length) {
+                      <span class="text-right font-mono text-[11px] uppercase leading-tight tracking-[0.12em] text-white/80">
+                        <strong class="block font-display text-[26px] font-extrabold leading-none tracking-[-0.02em] text-white">{{ teacher.achievements.length }}</strong>
+                        {{ teacher.achievements.length === 1 ? 'logro' : 'logros' }}
+                      </span>
+                    }
+                  </div>
+                </div>
+
+                <div class="relative min-w-0 p-6 min-[760px]:p-9">
+                  <span
+                    class="pointer-events-none absolute right-6 -bottom-16 font-display text-[170px] leading-none text-[color-mix(in_srgb,var(--course-color)_10%,transparent)] select-none"
+                    aria-hidden="true"
+                    >”</span
+                  >
+                  @if (teacher.role) {
+                    <div
+                      class="relative mb-3 font-mono text-[12px] font-semibold uppercase leading-[1.5] tracking-[0.14em] text-[color-mix(in_srgb,var(--course-color)_72%,var(--text-strong))]"
+                    >
+                      {{ teacher.role }}
+                    </div>
+                  }
+                  <h3 class="relative m-0 font-display text-[clamp(28px,3.2vw,40px)] font-extrabold leading-[1.05] tracking-[-0.03em] text-text-strong">
+                    {{ teacher.name }}
+                  </h3>
+                  <span class="mt-5 block h-1 w-14 rounded-full bg-[var(--course-color)]"></span>
+                  @for (paragraph of teacher.bio; track $index; let first = $first) {
+                    @if (first) {
+                      <p class="m-0 mt-5 text-[17px] leading-[1.65] font-medium text-text-strong">{{ paragraph }}</p>
+                    } @else {
+                      <p class="m-0 mt-3.5 text-[15px] leading-[1.75] text-text-muted">{{ paragraph }}</p>
+                    }
+                  }
+                </div>
+              </div>
+
+              @if (teacher.achievements.length) {
+                <div class="border-t border-border-subtle bg-surface-sunken p-6 min-[760px]:px-9 min-[760px]:py-8">
+                  <div class="mb-5 flex items-center gap-3 font-mono text-[12px] font-semibold uppercase tracking-[0.18em] text-text-muted">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-[var(--course-color)]" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0V4Z" /><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M10 17h4" /></svg>
+                    Trayectoria y logros
+                    <span class="h-px flex-1 bg-border-subtle"></span>
+                  </div>
+                  <ol class="m-0 grid list-none gap-x-10 p-0 min-[680px]:grid-cols-2">
+                    @for (achievement of teacher.achievements; track $index; let i = $index) {
+                      <li
+                        class="course-in group/item flex items-baseline gap-4 border-b border-border-subtle py-4 last:border-b-0 min-[680px]:[&:nth-last-child(2):nth-child(odd)]:border-b-0"
+                        [style.animation-delay.ms]="i * 80"
+                      >
+                        <span
+                          class="shrink-0 font-display text-[26px] font-extrabold leading-none tracking-[-0.03em] text-[color-mix(in_srgb,var(--course-color)_38%,transparent)] transition-colors duration-300 group-hover/item:text-[var(--course-color)]"
+                          aria-hidden="true"
+                          >{{ position(i) }}</span
+                        >
+                        <span class="text-[15px] leading-[1.55] text-text-body">{{ achievement }}</span>
+                      </li>
+                    }
+                  </ol>
+                </div>
+              }
+            </article>
+          </section>
+        }
+
+        <!-- 5. Reseñas -->
+        @if (rating(); as r) {
+          <section id="resenas" class="scroll-mt-36" appReveal>
+            <div class="mb-3 font-mono text-[12px] font-semibold uppercase tracking-[0.2em] text-[color-mix(in_srgb,var(--course-color)_70%,var(--text-strong))]">
+              05 · Reseñas
+            </div>
+            <h2 class="m-0 mb-5 font-display text-[clamp(26px,3vw,36px)] font-extrabold leading-tight tracking-[-0.02em] text-text-strong">
+              Lo que dicen los estudiantes
+            </h2>
+            <div class="grid gap-5 min-[760px]:grid-cols-[240px_minmax(0,1fr)]">
+              <div class="rounded-[22px] border border-border-subtle bg-surface-card p-6 text-center shadow-sm">
+                <div class="font-display text-[60px] font-extrabold leading-none tracking-[-0.03em] text-text-strong">{{ r.average }}</div>
+                <div class="mt-2 text-[20px] tracking-[2px]" role="img" [attr.aria-label]="r.average + ' de 5 estrellas'">
+                  @for (star of stars; track star) {
+                    <span [class]="star <= r.full ? 'text-brand-yellow-600' : 'text-text-faint opacity-40'" aria-hidden="true">★</span>
+                  }
+                </div>
+                <div class="mt-1 text-[13px] text-text-muted">{{ r.count }} {{ r.count === 1 ? 'reseña' : 'reseñas' }}</div>
+                <ul class="m-0 mt-5 flex list-none flex-col gap-1.5 p-0">
+                  @for (bar of r.bars; track bar.score) {
+                    <li class="flex items-center gap-2 font-mono text-[12px] text-text-muted">
+                      <span class="w-3 text-right">{{ bar.score }}</span>
+                      <span class="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-sunken">
+                        <span class="block h-full rounded-full bg-brand-yellow-600" [style.width.%]="bar.percent"></span>
+                      </span>
+                      <span class="w-4 text-left">{{ bar.count }}</span>
+                    </li>
+                  }
+                </ul>
+              </div>
+              <ul class="m-0 grid list-none gap-4 p-0">
+                @for (review of c.reviews; track review.id ?? $index) {
+                  <li class="relative overflow-hidden rounded-[22px] border border-border-subtle bg-surface-card p-6 shadow-sm">
+                    <span
+                      class="pointer-events-none absolute -top-3 right-5 select-none font-display text-[110px] leading-none text-[var(--course-color)] opacity-10"
+                      aria-hidden="true"
+                      >”</span
+                    >
+                    <div class="text-[16px] tracking-[1.5px]" role="img" [attr.aria-label]="review.rating + ' de 5 estrellas'">
+                      @for (star of stars; track star) {
+                        <span [class]="star <= review.rating ? 'text-brand-yellow-600' : 'text-text-faint opacity-40'" aria-hidden="true">★</span>
                       }
                     </div>
-                  </div>
+                    <blockquote class="m-0 mt-3 text-[15.5px] leading-[1.7] text-text-body">{{ review.body }}</blockquote>
+                    <div class="mt-4 flex items-center gap-3">
+                      <span
+                        class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--course-color)_18%,transparent)] font-display text-[13px] font-bold text-text-strong"
+                        aria-hidden="true"
+                        >{{ initialsOf(review.authorName) }}</span
+                      >
+                      <span class="font-display text-[15px] font-bold text-text-strong">{{ review.authorName }}</span>
+                    </div>
+                  </li>
                 }
-              </div>
-            </section>
-          }
-
-          @if (c.reviews.length > 0) {
-            <section appReveal>
-              <div class="mb-6 font-mono text-[13px] uppercase tracking-[0.14em] text-brand-orange-600">// Reseñas</div>
-              <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] gap-5">
-                @for (review of c.reviews; track review.id) {
-                  <div class="rounded-lg border border-border-subtle bg-surface-card p-5">
-                    <span class="inline-flex gap-0.5 text-sm text-brand-yellow">
-                      @for (star of stars; track star) {
-                        <span [class.opacity-25]="star > review.rating">★</span>
-                      }
-                    </span>
-                    <p class="m-0 mt-3 text-[14.5px] leading-[1.6] text-text-body">"{{ review.body }}"</p>
-                    <div class="mt-3 text-[13.5px] font-semibold text-text-strong">{{ review.authorName }}</div>
-                  </div>
-                }
-              </div>
-            </section>
-          }
-        </div>
-
-        <!-- spacer column to balance sticky purchase card from hero on large screens where content is short -->
-        <div></div>
+              </ul>
+            </div>
+          </section>
+        }
       </div>
+
+      <!-- Price card: beside the content on wide screens, as a bottom bar on small ones. -->
+      <aside class="hidden min-[1040px]:sticky min-[1040px]:top-36 min-[1040px]:block" aria-label="Precio e inscripción">
+        <div class="relative overflow-hidden rounded-[26px] border border-border-subtle bg-surface-card p-7 shadow-lg">
+          <span class="pointer-events-none absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,var(--course-color),transparent)]"></span>
+          <div class="font-mono text-[12px] uppercase tracking-[0.14em] text-text-muted">Pago único</div>
+          <div class="mt-2 font-display text-[44px] font-extrabold leading-none tracking-[-0.03em] text-text-strong">
+            {{ formatPrice(c.price) }}
+          </div>
+          <div class="mt-6">
+            <app-button variant="primary" size="lg" [fullWidth]="true" (clicked)="addToCart(c)">
+              {{ cart.has(c.id) ? 'Ir a mi selección' : 'Comprar curso' }}
+              <span slot="icon-right">→</span>
+            </app-button>
+          </div>
+          <div class="mt-7 border-t border-border-subtle pt-6">
+            <div class="mb-4 font-display text-[15px] font-bold text-text-strong">Este curso incluye</div>
+            <ul class="m-0 flex list-none flex-col gap-3 p-0">
+              @for (item of includes(); track item) {
+                <li class="flex items-center gap-3 text-[14.5px] text-text-body">
+                  <span
+                    class="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--course-color)_18%,transparent)] text-[color-mix(in_srgb,var(--course-color)_75%,var(--text-strong))]"
+                    aria-hidden="true"
+                  >
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><path d="m3.5 8.5 3 3 6-7" /></svg>
+                  </span>
+                  {{ item }}
+                </li>
+              }
+            </ul>
+          </div>
+        </div>
+      </aside>
     </div>
 
-    <!-- CTA -->
-    <div class="mx-auto max-w-[1200px] px-5 pb-[clamp(56px,8vw,88px)] sm:px-10">
-      <div appReveal class="relative overflow-hidden rounded-xl bg-[image:var(--gradient-ink)] p-[clamp(36px,5vw,56px)] text-center text-text-on-inverse">
-        <div class="pointer-events-none absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-40 [mask-image:radial-gradient(circle_at_50%_0%,#000,transparent_70%)]"></div>
-        <div class="relative">
-          <h2 class="m-0 mb-3 text-balance font-display text-[clamp(24px,3.5vw,34px)] font-bold">¿Listo para empezar?</h2>
-          <p class="mx-auto mb-6 max-w-[440px] text-lg text-text-inverse-muted">{{ formatPrice(c.price) }} · pago único · acceso inmediato a todo el material.</p>
-          <app-button variant="primary" size="lg" (clicked)="addToCart(c)">
-            Agregar al cotizador
-            <span slot="icon-right">→</span>
-          </app-button>
+    <!-- 6. Cursos relacionados -->
+    @if (related().length) {
+      <section class="border-t border-border-subtle bg-surface-sunken px-5 py-16 min-[821px]:px-8" aria-labelledby="relacionados">
+        <div class="mx-auto w-full max-w-[1200px]">
+          <div appReveal class="mb-8 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <div class="mb-3 font-mono text-[12px] font-semibold uppercase tracking-[0.2em] text-brand-orange-600">Sigue aprendiendo</div>
+              <h2 id="relacionados" class="m-0 font-display text-[clamp(26px,3vw,36px)] font-extrabold leading-tight tracking-[-0.02em] text-text-strong">
+                Cursos relacionados
+              </h2>
+            </div>
+            <app-button variant="outline" (clicked)="back()">
+              Ver todos los cursos
+              <span slot="icon-right">→</span>
+            </app-button>
+          </div>
+          <ul class="m-0 grid list-none gap-6 p-0 min-[680px]:grid-cols-2 min-[1040px]:grid-cols-3">
+            @for (item of related(); track item.id; let i = $index) {
+              <li appReveal [appRevealDelay]="i * 80" class="group flex">
+                <article
+                  class="motion-card relative flex w-full flex-col overflow-hidden rounded-[22px] border border-border-subtle bg-surface-card shadow-sm transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(.16,1,.3,1)] group-hover:-translate-y-2 group-hover:border-[var(--item-color)] group-hover:shadow-[0_26px_50px_-26px_var(--item-color)]"
+                  [style.--item-color]="item.accentColor || 'var(--brand-orange)'"
+                >
+                  <div
+                    class="relative h-32 shrink-0 overflow-hidden bg-cover bg-center"
+                    [style.background-image]="
+                      item.imageUrl
+                        ? 'url(' + item.imageUrl + ')'
+                        : 'linear-gradient(135deg, color-mix(in srgb, var(--item-color) 40%, transparent), color-mix(in srgb, var(--item-color) 8%, transparent))'
+                    "
+                  >
+                    @if (!item.imageUrl) {
+                      <span
+                        class="pointer-events-none absolute right-5 bottom-1 select-none text-[76px] leading-none text-[var(--item-color)] transition-transform duration-500 ease-out group-hover:scale-125 group-hover:-rotate-12"
+                        aria-hidden="true"
+                        >{{ item.glyph || '◆' }}</span
+                      >
+                    }
+                    @if (item.level) {
+                      <span class="absolute top-3 left-3 rounded-pill bg-surface-card/90 px-2.5 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-text-strong backdrop-blur-sm">{{
+                        item.level
+                      }}</span>
+                    }
+                  </div>
+                  <div class="flex flex-1 flex-col p-5">
+                    <h3 class="m-0 mb-2 font-display text-[18px] font-bold leading-snug text-text-strong">
+                      <!-- The stretched link makes the whole card open the course. -->
+                      <a
+                        [routerLink]="['/cursos', item.slug || item.id]"
+                        class="text-inherit no-underline outline-none after:absolute after:inset-0 after:content-['']"
+                        >{{ item.title }}</a
+                      >
+                    </h3>
+                    <p
+                      class="m-0 text-[14px] leading-[1.6] text-text-muted [display:-webkit-box] overflow-hidden [-webkit-box-orient:vertical] [-webkit-line-clamp:2]"
+                    >
+                      {{ item.description }}
+                    </p>
+                    <div class="mt-auto flex items-center justify-between pt-5">
+                      <span class="font-display text-[22px] font-extrabold tracking-[-0.02em] text-text-strong">{{ formatPrice(item.price) }}</span>
+                      <span
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border-subtle text-text-strong transition-[background-color,border-color,color] duration-300 group-hover:border-[var(--item-color)] group-hover:bg-[var(--item-color)] group-hover:text-ink-950"
+                        aria-hidden="true"
+                      >
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M3 8h10M9 4l4 4-4 4" /></svg>
+                      </span>
+                    </div>
+                  </div>
+                </article>
+              </li>
+            }
+          </ul>
         </div>
-      </div>
-    </div>
+      </section>
+    }
 
-    <app-footer />
-    <app-whatsapp-fab />
-  </div>
+    <!-- Small screens: price and action always at hand. -->
+    <div
+      class="fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-4 border-t border-border-subtle bg-surface-card/95 px-5 py-3 shadow-lg backdrop-blur-md min-[1040px]:hidden"
+    >
+      <div>
+        <div class="font-mono text-[11px] uppercase tracking-[0.12em] text-text-muted">Pago único</div>
+        <div class="font-display text-[24px] font-extrabold leading-none text-text-strong">{{ formatPrice(c.price) }}</div>
+      </div>
+      <app-button variant="primary" (clicked)="addToCart(c)">
+        {{ cart.has(c.id) ? 'Mi selección' : 'Comprar curso' }}
+        <span slot="icon-right">→</span>
+      </app-button>
+    </div>
+  </main>
+} @else {
+  <main class="grid min-h-[55vh] place-content-center justify-items-center gap-3 bg-surface-page p-6 text-center font-body">
+    @if (notFound()) {
+      <h1 class="m-0 font-display text-3xl font-bold text-text-strong">Curso no encontrado</h1>
+      <p class="m-0 text-text-muted">El curso que buscas no existe o ya no está disponible.</p>
+      <app-button variant="primary" (clicked)="back()">Ver cursos virtuales</app-button>
+    } @else {
+      <p role="status" class="text-text-muted">Cargando curso…</p>
+    }
+  </main>
 }
+<app-footer />
+<app-whatsapp-fab />

@@ -60,9 +60,7 @@
         appReveal
         [appRevealDelay]="120"
         class="relative mt-9"
-        (pointerenter)="hovered.set(true)"
-        (pointerleave)="hovered.set(false)"
-        (focusin)="focused.set(true)"
+        (focusin)="onFocusIn($event)"
         (focusout)="focused.set(false)"
       >
         <figure
@@ -137,7 +135,7 @@
                 [class]="
                   i === active()
                     ? 'border-[var(--tab-color)] bg-[color-mix(in_srgb,var(--tab-color)_14%,transparent)]'
-                    : 'border-[var(--glass-border)] bg-transparent opacity-70 hover:-translate-y-0.5 hover:opacity-100'
+                    : 'border-[var(--glass-border)] bg-transparent opacity-70 hover:opacity-100'
                 "
                 [style.--tab-color]="item.color"
                 (click)="select(i)"

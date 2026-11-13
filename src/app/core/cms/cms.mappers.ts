@@ -1,4 +1,6 @@
+import type { HomeFaq } from './home-faqs';
 import { HOME_SECTIONS } from './home-sections';
+import { readPageFaqs } from './page-faqs';
 import { parseSocialLinks } from './social-links';
 import { normalizeAnnouncement, type Announcement } from '../models/announcement';
 import type {
@@ -49,17 +51,20 @@ function parsePageDesignDetails(body: string): {
   description: string;
   backgroundColor: string;
   content?: string;
+  faqs?: HomeFaq[];
 } {
   try {
     const parsed = JSON.parse(body || '{}') as Partial<{
       description: string;
       content: string;
       backgroundColor: string;
+      faqs: unknown;
     }>;
     return {
       description: parsed.description ?? '',
       backgroundColor: parsed.backgroundColor ?? '',
       content: typeof parsed.content === 'string' ? parsed.content : '',
+      faqs: readPageFaqs(parsed.faqs),
     };
   } catch {
     return { description: '', backgroundColor: '' };
@@ -296,6 +301,7 @@ export function stateFromApi(cms: ApiCms, content: ApiSiteContent[]): CmsContent
           heading: text(stored.title),
           description: details.description,
           ...(details.content !== undefined ? { content: details.content } : {}),
+          ...(details.faqs !== undefined ? { faqs: details.faqs } : {}),
           backgroundColor: details.backgroundColor,
           backgroundImage: text(stored.imageUrl),
         };
