@@ -5,7 +5,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 
 export const SITE_URL = 'https://jaytechconsulting.github.io';
-const DEFAULT_IMAGE = `${SITE_URL}/og-cover.jpg`;
+const DEFAULT_IMAGE = `${SITE_URL}/jaytech-social.jpg`;
 
 // Commit de prueba
 export interface SeoConfig {
