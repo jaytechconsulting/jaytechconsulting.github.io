@@ -144,6 +144,7 @@
 /* Overlay scrollbar: transparent track, no layout gutter, theme-aware thumb. */
 .overlay-scroll-thumb{position:absolute;z-index:2;width:3px;border-radius:999px;background:color-mix(in srgb,var(--text-muted) 28%,transparent);opacity:0;transition:opacity .25s ease,background .2s ease;touch-action:none;cursor:grab}
 .overlay-scroll-thumb.is-visible{opacity:1}
+.admin-sidebar > .overlay-scroll-thumb{translate:7px 0}
 .overlay-scroll-thumb:hover,.overlay-scroll-thumb:active{opacity:1;background:color-mix(in srgb,var(--text-muted) 45%,transparent)}
 .overlay-scroll-thumb:active{cursor:grabbing}
 @media(prefers-reduced-motion:reduce){.overlay-scroll-thumb{transition:none}}

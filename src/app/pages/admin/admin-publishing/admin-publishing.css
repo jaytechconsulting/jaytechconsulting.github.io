@@ -159,3 +159,15 @@ td a:hover {
   color: var(--text-strong);
   text-decoration: underline;
 }
+
+.ap-panel { container: publishing-panel / inline-size; }
+.ap-run-cards { display: none; }
+@container publishing-panel (max-width: 900px) {
+  .ap-table-wrap { display: none; }
+  .ap-run-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 12px; }
+  .ap-run-card { min-width: 0; padding: 16px; border: 1px solid var(--border-subtle); border-radius: 12px; }
+  .ap-run-card header, .ap-run-card dl { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+  .ap-run-card header { align-items: center; justify-content: space-between; }
+  .ap-run-card dt { color: var(--text-muted); font-size: 12px; }
+  .ap-run-card dd { margin: 0; }
+}

@@ -1,14 +1,24 @@
+import { readHomeFaqs, type HomeFaq } from '../../../core/cms/home-faqs';
+import { HERO_TECHNOLOGIES, heroTechnologyLogo } from '../../../core/cms/hero-technologies';
+import { OverlayScroll } from '../../../ui/behaviors/overlay-scroll';
+import { ImageUpload } from '../../../ui/forms/image-upload/image-upload';
+import { HOME_SECTIONS, type HomeSection } from '../../../core/cms/home-sections';
+import { StickySidebarLayout } from '../../../ui/layout/sticky-sidebar-layout/sticky-sidebar-layout';
+import { AccessService } from '../../../core/access/access.service';
+import { Icon } from '../../../ui/data-display/icon/icon';
+import { Wordmark } from '../../../ui/brand/wordmark/wordmark';
+import { ThemeService } from '../../../core/services/theme.service';
 import { Checkbox } from '../../../ui/forms/checkbox/checkbox';
 import { SOCIAL_NETWORKS, socialUrlValid, type SocialLink } from '../../../core/cms/social-links';
 import { ImageFile } from '../../../ui/behaviors/image-file';
 import type { HeaderLink } from '../../../ui/navigation/header/header';
 import { AnnouncementEditor } from './announcement-editor/announcement-editor';
 import { AccessAction } from '../../../ui/behaviors/access-action';
-import { CONTENT_MODULES } from './content-modules';
+import { CONTENT_MODULES, SITE_EDITOR_TABS } from './content-modules';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AdminShell } from '../admin-shell/admin-shell';
 import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Card } from '../../../ui/data-display/card/card';
 import { Badge } from '../../../ui/data-display/badge/badge';
 import { Button } from '../../../ui/actions/button/button';
@@ -20,7 +30,6 @@ import { DialogService } from '../../../core/services/dialog.service';
 import {
   CmsContentService,
   type CmsAnnouncement,
-  type CmsHeroAnimation,
   type CmsLoaderConfig,
   type CmsPageDesign,
   type CmsPageDesignId,
@@ -48,8 +57,14 @@ import type { CmsFooterColumn as FooterColumn } from '../../../core/cms/cms.mode
 @Component({
   selector: 'app-admin-content',
   imports: [
+    StickySidebarLayout,
     Checkbox,
+    Icon,
+    Wordmark,
+    RouterLink,
     ImageFile,
+    ImageUpload,
+    OverlayScroll,
     AnnouncementEditor,
     AccessAction,
     AdminShell,
@@ -61,6 +76,7 @@ import type { CmsFooterColumn as FooterColumn } from '../../../core/cms/cms.mode
     Select,
   ],
   templateUrl: './admin-content.html',
+  styleUrl: './admin-content.css',
 })
 export class AdminContent {
   private readonly toast = inject(ToastService);
@@ -68,12 +84,66 @@ export class AdminContent {
   private readonly cms = inject(CmsContentService);
   private readonly api = inject(ApiService);
   private readonly destroyRef = inject(DestroyRef);
+  readonly theme = inject(ThemeService).theme;
 
   readonly palette = PALETTE;
   readonly glyphs = GLYPHS;
 
   readonly tab = signal('empresas');
-  readonly currentEntity = computed(() => ENTITIES[this.tab()]);
+  private readonly access = inject(AccessService);
+  readonly isSiteEditor = computed(() =>
+    SITE_EDITOR_TABS.some((item) => item.section === this.tab()),
+  );
+  private readonly allowedSiteTabs = computed(() =>
+    SITE_EDITOR_TABS.flatMap((tab) => {
+      const menu = this.access.menuFor(tab.route);
+      return menu ? [{ ...tab, href: this.access.link(menu) }] : [];
+    }),
+  );
+  readonly homeTabs = computed(() =>
+    this.allowedSiteTabs().filter(
+      (item) => item.section === 'secciones' || item.section === 'animacion',
+    ),
+  );
+  readonly orderDraft = signal<HomeSection['id'][]>([]);
+  readonly homeSectionLabels = Object.fromEntries(
+    HOME_SECTIONS.map(({ id, label }) => [id, label]),
+  );
+  moveHomeSection(index: number, step: number): void {
+    const order = [...this.orderDraft()];
+    const next = index + step;
+    if (next < 0 || next >= order.length) return;
+    [order[index], order[next]] = [order[next], order[index]];
+    this.orderDraft.set(order);
+  }
+  saveHomeOrder(): void {
+    if (this.saving()) return;
+    this.saving.set(true);
+    this.cms.saveHomeSectionOrder(this.orderDraft()).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.toast.success('Orden de Inicio guardado');
+      },
+      error: () => {
+        this.saving.set(false);
+        this.toast.error('No se pudo guardar el orden');
+      },
+    });
+  }
+  readonly isHomeEditor = computed(() => this.tab() === 'secciones' || this.tab() === 'animacion');
+  readonly siteTabs = computed(() => {
+    const home = this.homeTabs()[0];
+    return this.allowedSiteTabs()
+      .filter(
+        (item) => (item.section !== 'secciones' && item.section !== 'animacion') || item === home,
+      )
+      .map((item) =>
+        item === home
+          ? { ...item, label: 'Inicio', hint: 'Portada, secciones y orden', active: this.isHomeEditor() }
+          : { ...item, active: this.tab() === item.section },
+      );
+  });
+  readonly currentEntity = computed(() => ENTITIES[this.isHomeEditor() ? 'secciones' : this.tab()]);
   readonly moduleTitle = computed(
     () => CONTENT_MODULES.find((module) => module.section === this.tab())?.label ?? 'Empresas',
   );
@@ -144,7 +214,48 @@ export class AdminContent {
   readonly headerLinkVariantOptions = ['Enlace del menú', 'Botón relleno', 'Botón contorno'];
 
   readonly pageList = PAGE_LIST;
-  readonly selectedPageId = signal<CmsPageDesignId | 'inicio'>('proyectos');
+  readonly fixedHeaderEntries = [
+    { label: 'Inicio', destination: '/' },
+    { label: 'Servicios', destination: 'Menú con Asesorías y Capacitaciones' },
+    { label: 'Conócenos', destination: '/conocenos' },
+  ];
+  readonly linkedPages = computed(() => [
+    { label: 'Inicio', route: '/admin/secciones', hint: 'Portada, secciones y orden' },
+    { label: 'Cursos', route: '/admin/cursos', hint: 'Catálogo y fichas de cursos' },
+    { label: 'Libro de Reclamaciones', route: '/admin/reclamaciones/configuracion', hint: 'Configuración del formulario público' },
+  ].filter(page => this.canOpenEditor(page.route)));
+  readonly sectionSources: Record<string, { label: string; route: string; hint: string }> = {
+    services: { label: 'servicios', route: '/admin/servicios', hint: 'Edita aquí el encabezado. Las fichas vienen de la lista de Servicios.' },
+    clients: { label: 'empresas', route: '/admin/empresas', hint: 'Edita aquí el encabezado. Los logos vienen de la lista de Empresas.' },
+    reviews: { label: 'reseñas', route: '/admin/resenas', hint: 'Edita aquí el encabezado. Los testimonios vienen de la lista de Reseñas.' },
+    courses: { label: 'cursos', route: '/admin/cursos', hint: 'Aquí se edita el encabezado. Las fichas vienen de los cursos marcados como Más vendido.' },
+  };
+  readonly faqEntries = computed(() => readHomeFaqs(this.draft()['items'] ?? ''));
+  setFaq(index: number, field: keyof HomeFaq, value: string): void {
+    this.setField('items', JSON.stringify(this.faqEntries().map((item, i) => i === index ? { ...item, [field]: value } : item)));
+  }
+  addFaq(): void {
+    this.setField('items', JSON.stringify([...this.faqEntries(), { question: '', answer: '' }]));
+  }
+  removeFaq(index: number): void {
+    this.setField('items', JSON.stringify(this.faqEntries().filter((_, i) => i !== index)));
+  }
+  readonly sectionSource = computed(() => this.isHomeEditor() ? this.sectionSources[this.draft()['id']] : undefined);
+  canOpenEditor(route: string): boolean { return !!this.access.menuFor(route); }
+  readonly technologyCatalog = HERO_TECHNOLOGIES;
+  readonly technologyLogo = heroTechnologyLogo;
+  addTechnology(name: string): void {
+    const items = (this.draft()['items'] ?? '').split('\n').map((item) => item.trim()).filter(Boolean);
+    if (!items.some((item) => item.toLowerCase() === name.toLowerCase())) {
+      this.setField('items', [...items, name].join('\n'));
+    }
+  }
+  readonly heroMediaOptions = [
+    { value: 'video', label: 'Video' },
+    { value: 'image', label: 'Imagen' },
+    { value: 'none', label: 'Sin imagen ni video' },
+  ];
+  readonly selectedPageId = signal<CmsPageDesignId>('proyectos');
   readonly selectedPage = computed(
     () => this.pageList.find((p) => p.id === this.selectedPageId()) ?? this.pageList[0],
   );
@@ -159,9 +270,6 @@ export class AdminContent {
 
   readonly loaderEnabled = signal(false);
   readonly loaderColor = signal('');
-
-  readonly heroAnimationEnabled = signal(true);
-  readonly heroAnimationVideoUrl = signal('');
 
   readonly programItems = signal<ApiTrainingProgram[]>([]);
   readonly programSel = signal(0);
@@ -208,6 +316,9 @@ export class AdminContent {
     effect(() => {
       this.loadTab(this.tab());
     });
+    effect(() => {
+      if (this.tab() === 'secciones') this.orderDraft.set([...this.cms.homeSectionOrder()]);
+    });
     if (this.tab() === 'cursos' || this.tab() === 'programas') return;
     this.cms
       .load(true)
@@ -219,36 +330,6 @@ export class AdminContent {
             'Verifica tu sesión y la conexión con el backend.',
           ),
       });
-  }
-
-  rowButtonClasses(i: number): string {
-    const on = i === this.sel();
-    return [
-      'flex w-full cursor-pointer items-center gap-3 border-b border-l-[3px] px-[18px] py-3 text-left transition-colors duration-150 ease-out',
-      on
-        ? 'border-b-border-subtle border-l-brand-orange bg-surface-sunken'
-        : 'border-b-border-subtle border-l-transparent bg-transparent',
-    ].join(' ');
-  }
-
-  programRowButtonClasses(i: number): string {
-    const on = i === this.programSel();
-    return [
-      'flex w-full cursor-pointer items-center gap-3 border-b border-l-[3px] px-[18px] py-3 text-left transition-colors duration-150 ease-out',
-      on
-        ? 'border-b-border-subtle border-l-brand-orange bg-surface-sunken'
-        : 'border-b-border-subtle border-l-transparent bg-transparent',
-    ].join(' ');
-  }
-
-  courseRowButtonClasses(i: number): string {
-    const on = i === this.courseSel();
-    return [
-      'flex w-full cursor-pointer items-center gap-3 border-b border-l-[3px] px-[18px] py-3 text-left transition-colors duration-150 ease-out',
-      on
-        ? 'border-b-border-subtle border-l-brand-orange bg-surface-sunken'
-        : 'border-b-border-subtle border-l-transparent bg-transparent',
-    ].join(' ');
   }
 
   rowThumbShapeClass(def: EntityDef): string {
@@ -298,6 +379,10 @@ export class AdminContent {
     const def = this.currentEntity();
     if (!def || this.saving()) return;
     const value = this.draft();
+    if (this.isHomeEditor() && value['id'] === 'faq' && this.faqEntries().some(item => !item.question.trim() || !item.answer.trim())) {
+      this.toast.error('Completa la pregunta y la respuesta de cada entrada.');
+      return;
+    }
     const isNew = this.isNew();
     const displayOrder = isNew ? this.items().length + 1 : this.sel() + 1;
     this.saving.set(true);
@@ -365,9 +450,8 @@ export class AdminContent {
     });
   }
 
-  selectPage(id: CmsPageDesignId | 'inicio'): void {
+  selectPage(id: CmsPageDesignId): void {
     this.selectedPageId.set(id);
-    if (id === 'inicio') return;
     const design = this.cms.pages()[id];
     this.pageHeading.set(design.heading);
     this.pageDescription.set(design.description);
@@ -386,7 +470,7 @@ export class AdminContent {
 
   savePageDesign(): void {
     const id = this.selectedPageId();
-    if (this.saving() || id === 'inicio') return;
+    if (this.saving()) return;
     const value: CmsPageDesign = {
       heading: this.pageHeading(),
       description: this.pageDescription(),
@@ -423,36 +507,6 @@ export class AdminContent {
       next: () => {
         this.saving.set(false);
         this.toast.success('Cambios guardados', 'La pantalla de carga se actualizó en el backend.');
-      },
-      error: () => {
-        this.saving.set(false);
-        this.toast.error('No pudimos guardar', 'Inténtalo nuevamente.');
-      },
-    });
-  }
-
-  toggleHeroAnimationEnabled(): void {
-    this.heroAnimationEnabled.update((enabled) => !enabled);
-  }
-
-  setHeroAnimationVideoUrl(value: string): void {
-    this.heroAnimationVideoUrl.set(value);
-  }
-
-  saveHeroAnimation(): void {
-    if (this.saving()) return;
-    const value: CmsHeroAnimation = {
-      enabled: this.heroAnimationEnabled(),
-      videoUrl: this.heroAnimationVideoUrl(),
-    };
-    this.saving.set(true);
-    this.cms.saveHeroAnimation(value).subscribe({
-      next: () => {
-        this.saving.set(false);
-        this.toast.success(
-          'Cambios guardados',
-          'La animación de inicio se actualizó en el backend.',
-        );
       },
       error: () => {
         this.saving.set(false);
@@ -598,6 +652,10 @@ export class AdminContent {
     this.courseDraft.update((d) => ({ ...d, [key]: value }));
   }
 
+  setCourseDraftBestSeller(isBestSeller: boolean): void {
+    this.courseDraft.update((d) => ({ ...d, isBestSeller }));
+  }
+
   setCourseDraftPrice(value: string): void {
     this.courseDraft.update((d) => ({ ...d, price: Number(value) || 0 }));
   }
@@ -709,6 +767,7 @@ export class AdminContent {
       imageUrl: value.imageUrl || null,
       price: value.price ?? 0,
       isPublished: value.isPublished ?? true,
+      isBestSeller: value.isBestSeller ?? false,
       displayOrder: value.displayOrder ?? this.courseItems().length + 1,
       materials: (value.materials ?? []).filter((m) => m.title.trim() && m.url.trim()),
       syllabus: (value.syllabus ?? []).filter((s) => s.title.trim()),
@@ -865,9 +924,22 @@ export class AdminContent {
   }
 
   private loadTab(tab: string): void {
-    const def = ENTITIES[tab];
+    const def = ENTITIES[tab === 'animacion' ? 'secciones' : tab];
     if (def) {
-      const collection = this.cms[def.collectionKey]().map((item) => ({ ...item })) as EntityItem[];
+      const media = def.collectionKey === 'sections' ? this.cms.heroAnimation() : undefined;
+      const collection = (
+        this.cms[def.collectionKey]().map((item) => ({ ...item })) as EntityItem[]
+      )
+        .filter((item) => tab !== 'animacion' || item['id'] === 'hero')
+        .map((item) =>
+          item['id'] === 'hero' && media
+            ? {
+                ...item,
+                mediaMode: media.mode ?? (media.enabled ? 'video' : 'none'),
+                videoUrl: media.videoUrl,
+              }
+            : { ...item },
+        );
       this.items.set(collection);
       this.sel.set(collection.length ? 0 : -1);
       this.draft.set({ ...(collection[0] ?? def.blank) });
@@ -885,13 +957,6 @@ export class AdminContent {
       const loader = this.cms.loader();
       this.loaderEnabled.set(loader.enabled);
       this.loaderColor.set(loader.color);
-      return;
-    }
-
-    if (tab === 'animacion') {
-      const heroAnimation = this.cms.heroAnimation();
-      this.heroAnimationEnabled.set(heroAnimation.enabled);
-      this.heroAnimationVideoUrl.set(heroAnimation.videoUrl);
       return;
     }
 

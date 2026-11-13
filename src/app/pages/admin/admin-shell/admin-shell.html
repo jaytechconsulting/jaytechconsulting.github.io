@@ -63,8 +63,8 @@
             [class.is-nested]="item.depth > 0"
             [style.--nav-index]="i"
             [style.--nav-depth]="item.depth"
-            [class.is-active]="access.currentMenu()?.id === item.id"
-            [attr.aria-current]="access.currentMenu()?.id === item.id ? 'page' : null"
+            [class.is-active]="displayedMenu()?.id === item.id"
+            [attr.aria-current]="displayedMenu()?.id === item.id ? 'page' : null"
             [attr.aria-label]="item.label"
             [title]="item.label"
             (click)="closeMenu()"
@@ -134,7 +134,7 @@
           <path d="M4 6h16 M4 12h16 M4 18h16" />
         </svg>
       </button>
-      <h1>{{ access.currentMenu()?.label || title() }}</h1>
+      <h1>{{ navTitle() || title() }}</h1>
       <div class="topbar-actions">
         <a
           routerLink="/"
@@ -175,9 +175,3 @@
     <ng-content />
   </main>
 </div>
-
-@if (loading.hasPendingRequests()) {
-  <div class="admin-request-lock" role="status" aria-live="polite">
-    <span>Procesando solicitud…</span>
-  </div>
-}

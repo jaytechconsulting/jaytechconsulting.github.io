@@ -17,10 +17,10 @@ import { AdsBar } from '../../ui/marketing/ads-bar/ads-bar';
 import { CmsContentService } from '../../core/cms/cms-content.service';
 import { HeroSection } from './sections/hero-section';
 import { ClientsSection } from './sections/clients-section';
+import { CoursesSection } from './sections/courses-section';
 import { ServicesSection } from './sections/services-section';
-import { PricingSection } from './sections/pricing-section';
 import { ReviewsSection } from './sections/reviews-section';
-import { ContactSection } from './sections/contact-section';
+import { FaqSection } from './sections/faq-section';
 
 @Component({
   selector: 'app-home',
@@ -32,10 +32,10 @@ import { ContactSection } from './sections/contact-section';
     AdsBar,
     HeroSection,
     ClientsSection,
+    CoursesSection,
     ServicesSection,
-    PricingSection,
     ReviewsSection,
-    ContactSection,
+    FaqSection,
   ],
   templateUrl: './home.html',
   styleUrl: './home.css',

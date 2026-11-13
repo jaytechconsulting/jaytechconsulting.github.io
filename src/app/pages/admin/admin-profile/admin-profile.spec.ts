@@ -1,8 +1,6 @@
-import { Avatar } from '../../../ui/data-display/avatar/avatar';
+import { AdminShell } from '../admin-shell/admin-shell';
 import { ApiService } from '../../../core/api.service';
 import { CatalogService } from '../../../core/catalog/catalog.service';
-import { PasswordStrength } from '../../../ui/forms/password-strength/password-strength';
-import { Select } from '../../../ui/forms/select/select';
 import { Component, input, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
@@ -11,9 +9,6 @@ import { AdminProfile } from './admin-profile';
 import { AuthService } from '../../../core/auth/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { DialogService } from '../../../core/services/dialog.service';
-import { Input } from '../../../ui/forms/input/input';
-import { Button } from '../../../ui/actions/button/button';
-import { Icon } from '../../../ui/data-display/icon/icon';
 @Component({selector:'app-admin-shell',template:'<ng-content />'}) class ShellStub {readonly title=input('');readonly active=input('');}
 const user={id:'u1',name:'Ana',email:'ana@example.test',role:'admin',initials:'A'};
 describe('Profile tabs and security',()=>{
@@ -21,8 +16,8 @@ describe('Profile tabs and security',()=>{
  beforeEach(()=>{
   auth={currentUser:signal(user),loadProfile:vi.fn(()=>of(user)),updateProfile:vi.fn(()=>of(user)),changeEmail:vi.fn(()=>of(user)),changePassword:vi.fn(()=>of(undefined))};
   dialogs={dialog:()=>null,confirm:vi.fn(async()=>true)};
-  TestBed.configureTestingModule({imports:[AdminProfile],providers:[{provide:ApiService,useValue:{lookupDocument:vi.fn(()=>of({givenNames:"Ana",paternalSurname:"García",maternalSurname:"López",source:"apiperu"}))}},{provide:CatalogService,useValue:{profile:()=>of({documents:{items:[{id:1,code:'DNI',name:'DNI',order:1,inputKind:'text',minLength:4,maxLength:30,minValue:null,maxValue:null}]},sex:{items:[{code:'F',name:'Femenino'}]}})}},{provide:AuthService,useValue:auth},{provide:DialogService,useValue:dialogs},{provide:ToastService,useValue:{success:vi.fn(),error:vi.fn()}}]});
-  TestBed.overrideComponent(AdminProfile,{set:{imports:[ShellStub,Input,Button,Icon,Select,PasswordStrength,Avatar]}});
+  TestBed.configureTestingModule({imports:[AdminProfile],providers:[{provide:ApiService,useValue:{lookupDocument:vi.fn(()=>of({givenNames:"Ana",paternalSurname:"Garcï¿½a",maternalSurname:"Lï¿½pez",source:"apiperu"}))}},{provide:CatalogService,useValue:{profile:()=>of({documents:{items:[{id:1,code:'DNI',name:'DNI',order:1,inputKind:'text',minLength:4,maxLength:30,minValue:null,maxValue:null}]},sex:{items:[{code:'F',name:'Femenino'}]}})}},{provide:AuthService,useValue:auth},{provide:DialogService,useValue:dialogs},{provide:ToastService,useValue:{success:vi.fn(),error:vi.fn()}}]});
+  TestBed.overrideComponent(AdminProfile,{remove:{imports:[AdminShell]},add:{imports:[ShellStub]}});
  });
  function setup(){const f=TestBed.createComponent(AdminProfile);f.detectChanges();return {fixture:f,profile:f.componentInstance};}
  it('switches between the left tabs and shows the security forms',()=>{
@@ -64,7 +59,7 @@ describe('Profile tabs and security',()=>{
   const {profile,fixture}=setup();const api=TestBed.inject(ApiService);
   profile.changeDocumentType('DNI');expect(profile.namesLocked()).toBe(true);
   profile.changeDocumentNumber('12345678');profile.lookupDocument();fixture.detectChanges();
-  expect(profile.name()).toBe('Ana');expect(profile.paternalSurname()).toBe('García');expect(profile.maternalSurname()).toBe('López');
+  expect(profile.name()).toBe('Ana');expect(profile.paternalSurname()).toBe('Garcï¿½a');expect(profile.maternalSurname()).toBe('Lï¿½pez');
   expect(profile.namesLocked()).toBe(true);profile.lookupDocument();expect(api.lookupDocument).toHaveBeenCalledTimes(1);
  });
  it('unlocks names only after lookup failure and ignores superseded requests',()=>{

@@ -1,6 +1,9 @@
+import { HOME_FAQS } from './home-faqs';
+import { HOME_SECTIONS } from './home-sections';
 import type { CmsContentState } from './cms.models';
 
 export const DEFAULT_STATE: CmsContentState = {
+  homeSectionOrder: HOME_SECTIONS.map(({ id }) => id),
   socialLinks: [],
   companies: [],
   reviews: [],
@@ -16,7 +19,7 @@ export const DEFAULT_STATE: CmsContentState = {
       title: 'Software que hace',
       highlight: 'crecer tu empresa',
       description: 'Del prototipo a producción, con comunicación cercana en cada paso.',
-      items: 'React\nNode.js\nPython\nPostgreSQL\nn8n\nAWS',
+      items: 'React\nAngular\nNode.js\nPython\nPostgreSQL\nSQL Server\nFlutter\nn8n\nAWS',
       image: '',
     },
     {
@@ -31,22 +34,11 @@ export const DEFAULT_STATE: CmsContentState = {
     },
     {
       id: 'services',
-      name: 'Qué hacemos',
-      eyebrow: 'Qué hacemos',
+      name: 'Soluciones',
+      eyebrow: 'Soluciones',
       title: 'Un socio tecnológico, no solo un proveedor',
       highlight: '',
       description: '',
-      items: '',
-      image: '',
-    },
-    {
-      id: 'pricing',
-      name: 'Planes',
-      eyebrow: 'Planes',
-      title: 'Precios claros, sin sorpresas',
-      highlight: '',
-      description:
-        'Empieza con lo justo y crece a tu ritmo. Cada plan incluye acompañamiento cercano.',
       items: '',
       image: '',
     },
@@ -60,18 +52,8 @@ export const DEFAULT_STATE: CmsContentState = {
       items: '4.9 | basado en 40+ proyectos',
       image: '',
     },
-    {
-      id: 'contact',
-      name: 'Contacto',
-      eyebrow: 'Contacto',
-      title: 'Cuéntanos tu idea. La convertimos en producto.',
-      highlight: '',
-      description:
-        'Respondemos en menos de 24 horas con una primera propuesta de alcance y presupuesto.',
-      items:
-        'Diagnóstico gratuito\nPresupuesto sin compromiso\nEquipo local, comunicación en español',
-      image: '',
-    },
+    { id: 'courses', name: 'Cursos destacados', eyebrow: 'Los más vendidos', title: 'Los cursos que', highlight: 'más eligen', description: 'Prácticos, con videos, guías y archivos descargables. Pago único y acceso inmediato.', items: '', image: '' },
+    { id: 'faq', name: 'Preguntas frecuentes', eyebrow: 'Preguntas frecuentes', title: 'Resolvemos', highlight: 'tus dudas', description: 'Lo que más nos preguntan antes de empezar un proyecto o tomar un curso.', items: JSON.stringify(HOME_FAQS), image: '' },
   ],
   announcement: {
     message: '',
@@ -195,7 +177,6 @@ Puedes consultar la versión vigente de este aviso en esta página.`,
     links: [
       { label: 'Clientes', href: '#clientes', variant: '' },
       { label: 'Proyectos', href: '/proyectos', variant: '' },
-      { label: 'Planes', href: '#planes', variant: '' },
     ],
     cta: 'Solicitar propuesta',
   },

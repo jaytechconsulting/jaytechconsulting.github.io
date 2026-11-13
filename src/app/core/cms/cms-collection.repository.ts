@@ -107,7 +107,15 @@ export class CmsCollectionRepository {
         request$ = this.api.updateSiteContent(contentKey, {
           key: contentKey,
           title: item['title'],
-          body: item['description'],
+          body: JSON.stringify({
+            kind: item['id'] === 'hero' && item['mediaMode'] ? 'hero-media' : 'section-copy',
+            description: item['description'] ?? '',
+            eyebrow: item['eyebrow'] ?? '',
+            highlight: item['highlight'] ?? '',
+            items: item['items'],
+            mode: item['mediaMode'],
+            videoUrl: item['videoUrl']?.trim() ?? '',
+          }),
           imageUrl: item['image'] || null,
           status: 1,
         });

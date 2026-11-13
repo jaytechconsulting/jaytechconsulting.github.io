@@ -276,24 +276,6 @@ h1 {
   }
 }
 
-.admin-request-lock {
-  position: fixed;
-  inset: 0;
-  z-index: 80;
-  pointer-events: none;
-}
-.admin-request-lock span {
-  position: absolute;
-  right: 24px;
-  top: 90px;
-  padding: 9px 14px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 10px;
-  background: var(--surface-card);
-  color: var(--text-muted);
-  font: 12px var(--font-body);
-  box-shadow: 0 4px 16px rgb(0 0 0 / 0.08);
-}
 
 .collapse-button {
   transition:

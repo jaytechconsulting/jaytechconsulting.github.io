@@ -3,7 +3,7 @@
     <button
       type="button"
       class="relative flex h-[180px] w-full shrink-0 cursor-pointer items-center justify-center overflow-hidden bg-cover bg-center"
-      aria-label="Ver página completa"
+      [attr.aria-label]="detailLabel()"
       [style.background-image]="image() ? 'url(' + image() + ')' : 'linear-gradient(135deg, ' + accentColor() + '38, ' + accentColor() + '0a)'"
       (click)="goToDetail()"
     >

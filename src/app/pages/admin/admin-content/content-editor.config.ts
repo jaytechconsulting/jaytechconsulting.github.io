@@ -48,12 +48,14 @@ export const ENTITIES: Record<string, EntityDef> = {
     collectionKey: 'sections',
     label: 'Secciones',
     icon: '▥',
-    title: 'Secciones de la página',
+    title: 'Secciones de Inicio',
     addLabel: 'sección',
     imageKey: 'image',
     fixed: true,
     blank: {},
     fields: [
+      { key: 'eyebrow', label: 'Etiqueta sobre el título', type: 'text' },
+      { key: 'highlight', label: 'Texto destacado del título', type: 'text' },
       {
         key: 'image',
         label: 'Imagen de la sección',
@@ -64,7 +66,7 @@ export const ENTITIES: Record<string, EntityDef> = {
       {
         key: 'title',
         label: 'Título principal',
-        type: 'text',
+        type: 'textarea',
         placeholder: 'Un socio tecnológico',
       },
       {
@@ -92,18 +94,12 @@ export const ENTITIES: Record<string, EntityDef> = {
         label: 'Logo de la empresa',
         type: 'image',
         shape: 'rect',
-        hint: 'PNG/SVG con fondo transparente',
+        hint: 'WebP, PNG, JPG, SVG, GIF y AVIF. Máximo 1 MB.',
       },
-      { key: 'glyph', label: 'Ícono alternativo', type: 'glyph' },
+      // Sector, result and accent colour are no longer shown on the site, so they are not asked
+      // for; the values already stored are kept.
+      { key: 'glyph', label: 'Ícono (si no hay logo)', type: 'glyph' },
       { key: 'name', label: 'Nombre', type: 'text', placeholder: 'Comercial Andina' },
-      { key: 'sector', label: 'Sector', type: 'text', placeholder: 'Retail' },
-      {
-        key: 'result',
-        label: 'Métrica de resultado',
-        type: 'text',
-        placeholder: '−40% tiempo de conteo',
-      },
-      { key: 'color', label: 'Color de acento', type: 'color' },
     ],
     seed: [
       {
@@ -129,7 +125,7 @@ export const ENTITIES: Record<string, EntityDef> = {
       },
     ],
     rowTitle: (item) => item['name'] || 'Sin nombre',
-    rowSub: (item) => item['sector'],
+    rowSub: (item) => item['sector'] ?? '',
   },
   resenas: {
     collectionKey: 'reviews',
@@ -183,9 +179,9 @@ export const ENTITIES: Record<string, EntityDef> = {
   },
   servicios: {
     collectionKey: 'services',
-    label: 'Qué hacemos',
+    label: 'Soluciones',
     icon: '◆',
-    title: 'Servicios (Qué hacemos)',
+    title: 'Soluciones (servicios)',
     addLabel: 'servicio',
     glyphKey: 'glyph',
     blank: { title: '', body: '', glyph: '◆', color: '#FF6B35' },
@@ -320,62 +316,6 @@ export const ENTITIES: Record<string, EntityDef> = {
     rowTitle: (item) => item['title'] || 'Sin título',
     rowSub: (item) => `${item['client']} · ${item['cat']}`,
   },
-  planes: {
-    collectionKey: 'plans',
-    label: 'Planes',
-    icon: '▦',
-    title: 'Planes de precios',
-    addLabel: 'plan',
-    blank: { name: '', price: '', description: '', features: '', featured: 'No', cta: 'Empezar' },
-    fields: [
-      { key: 'name', label: 'Nombre del plan', type: 'text', placeholder: 'Crece' },
-      { key: 'price', label: 'Precio', type: 'text', placeholder: 'S/ 3,500' },
-      { key: 'featured', label: 'Destacado', type: 'select', options: ['No', 'Sí'] },
-      { key: 'cta', label: 'Texto del botón', type: 'text', placeholder: 'Agendar llamada' },
-      {
-        key: 'description',
-        label: 'Descripción',
-        type: 'textarea',
-        placeholder: 'Aplicación web completa a medida.',
-      },
-      {
-        key: 'features',
-        label: 'Características (una por línea)',
-        type: 'textarea',
-        placeholder: 'App web a medida\nPanel de administración\nIntegraciones / API',
-      },
-    ],
-    seed: [
-      {
-        name: 'Emprende',
-        price: 'S/ 1,200',
-        description: 'Para lanzar tu presencia digital.',
-        features:
-          'Landing page a medida\nFormulario de contacto\nHosting 1 año incluido\n2 rondas de ajustes',
-        featured: 'No',
-        cta: 'Empezar',
-      },
-      {
-        name: 'Crece',
-        price: 'S/ 3,500',
-        description: 'Aplicación web completa a medida.',
-        features:
-          'App web a medida\nPanel de administración\nIntegraciones / API\nSoporte prioritario 6 meses',
-        featured: 'Sí',
-        cta: 'Agendar llamada',
-      },
-      {
-        name: 'A medida',
-        price: 'Custom',
-        description: 'Proyectos complejos y automatización.',
-        features: 'Alcance definido contigo\nAutomatizaciones\nEquipo dedicado\nSLA garantizado',
-        featured: 'No',
-        cta: 'Contáctanos',
-      },
-    ],
-    rowTitle: (item) => item['name'] || 'Sin nombre',
-    rowSub: (item) => item['price'],
-  },
   equipo: {
     collectionKey: 'teamMembers',
     label: 'Equipo',
@@ -442,7 +382,6 @@ export const ENTITIES: Record<string, EntityDef> = {
 
 export const INITIAL_HEADER_LINKS: HeaderLink[] = [
   { label: 'Proyectos', href: '#proyectos' },
-  { label: 'Planes', href: '#planes' },
   { label: 'Nosotros', href: '#nosotros' },
 ];
 export const INITIAL_HEADER_CTA = 'Solicitar propuesta';
@@ -452,31 +391,28 @@ export const INITIAL_FOOTER_ABOUT =
 export const INITIAL_FOOTER_EMAIL = 'hola@dronlab.pe';
 export const INITIAL_FOOTER_PHONE = '+51 993 908 435';
 export const INITIAL_FOOTER_COLUMNS: FooterColumn[] = [
-  { title: 'Producto', links: 'Servicios\nPlanes\nProyectos' },
+  { title: 'Producto', links: 'Servicios\nProyectos' },
   { title: 'Empresa', links: 'Nosotros\nContacto\nBlog' },
   { title: 'Legal', links: 'Términos\nPrivacidad' },
 ];
 
 export const PAGE_LIST: {
-  id: CmsPageDesignId | 'inicio';
+  id: CmsPageDesignId;
   label: string;
   route: string;
-  editable: boolean;
 }[] = [
-  { id: 'inicio', label: 'Inicio', route: '/', editable: false },
   {
     id: 'terminos-y-condiciones',
     label: 'Términos y condiciones',
     route: '/terminos-y-condiciones',
-    editable: true,
   },
-  { id: 'avisos-legales', label: 'Avisos legales', route: '/avisos-legales', editable: true },
-  { id: 'proyectos', label: 'Proyectos', route: '/proyectos', editable: true },
-  { id: 'propuesta', label: 'Solicitar propuesta', route: '/solicitar-propuesta', editable: true },
-  { id: 'login', label: 'Iniciar sesión', route: '/login', editable: true },
-  { id: 'asesorias', label: 'Asesorías', route: '/asesorias', editable: true },
-  { id: 'capacitaciones', label: 'Capacitaciones', route: '/capacitaciones', editable: true },
-  { id: 'conocenos', label: 'Conócenos', route: '/conocenos', editable: true },
+  { id: 'avisos-legales', label: 'Avisos legales', route: '/avisos-legales' },
+  { id: 'proyectos', label: 'Proyectos', route: '/proyectos' },
+  { id: 'propuesta', label: 'Solicitar propuesta', route: '/solicitar-propuesta' },
+  { id: 'login', label: 'Iniciar sesión', route: '/login' },
+  { id: 'asesorias', label: 'Asesorías', route: '/asesorias' },
+  { id: 'capacitaciones', label: 'Capacitaciones', route: '/capacitaciones' },
+  { id: 'conocenos', label: 'Conócenos', route: '/conocenos' },
 ];
 
 /** Sub-página del panel admin: gestión de contenido web (empresas, reseñas, servicios, proyectos, planes, header, footer). No es una entrada del switch interno del panel — se navega como ruta aparte. */

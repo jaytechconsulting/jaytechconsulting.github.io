@@ -1,72 +1,160 @@
-<section id="clientes" class="relative overflow-hidden border-t border-border-inverse bg-surface-inverse px-8 py-24">
-  <div
-    class="pointer-events-none absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-35 [mask-image:radial-gradient(circle_at_20%_0%,#000,transparent_70%)]"
-  ></div>
-  <div
-    class="pointer-events-none absolute -top-[120px] -right-[60px] h-[420px] w-[420px] bg-[radial-gradient(circle,rgba(34,211,238,0.16),transparent_66%)]"
-  ></div>
+@if (clients().length) {
+  <section
+    id="clientes"
+    class="relative flex min-h-dvh scroll-mt-16 flex-col justify-center overflow-hidden bg-surface-page py-14"
+  >
+    <div
+      class="pointer-events-none absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-[0.07] [mask-image:radial-gradient(circle_at_50%_40%,#000,transparent_68%)]"
+    ></div>
+    <div
+      class="pointer-events-none absolute top-[12%] -left-32 h-[480px] w-[480px] rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.15),transparent_62%)] motion-safe:animate-[float-y_10s_ease-in-out_infinite]"
+    ></div>
+    <div
+      class="pointer-events-none absolute -right-28 bottom-[6%] h-[460px] w-[460px] rounded-full bg-[radial-gradient(circle,rgba(255,107,53,0.13),transparent_60%)] motion-safe:animate-[float-y_12s_ease-in-out_infinite_1s]"
+    ></div>
 
-  <div class="relative mx-auto max-w-[1200px]">
-    <div appReveal class="mb-11 flex flex-wrap items-end justify-between gap-6">
-      <div>
-        <div class="mb-3.5 font-mono text-[13px] uppercase tracking-[0.14em] text-brand-cyan">// {{ content().eyebrow }}</div>
-        <h2 class="m-0 max-w-[560px] font-display text-4xl font-bold leading-[1.15] tracking-[-0.03em] text-text-on-inverse">
-          {{ content().title }}
-          @if (content().highlight) {
-            <span class="text-brand-orange"> {{ content().highlight }}</span>
-          }
+    <div class="relative mx-auto w-full max-w-[1200px] px-5 min-[821px]:px-8">
+      <div appReveal class="flex flex-col items-center text-center">
+        <div
+          class="mb-5 flex items-center gap-3 whitespace-nowrap font-mono text-[12px] font-semibold uppercase tracking-[0.2em] text-brand-orange-600 min-[821px]:gap-4 min-[821px]:text-[13px] min-[821px]:tracking-[0.32em]"
+        >
+          <span class="h-px w-6 bg-[linear-gradient(90deg,transparent,var(--brand-orange))] min-[821px]:w-16"></span>
+          <span class="h-1.5 w-1.5 rotate-45 bg-brand-orange"></span>
+          <span>{{ content().eyebrow }}</span>
+          <span class="h-1.5 w-1.5 rotate-45 bg-brand-orange"></span>
+          <span class="h-px w-6 bg-[linear-gradient(270deg,transparent,var(--brand-orange))] min-[821px]:w-16"></span>
+        </div>
+        <h2
+          class="m-0 max-w-[760px] font-display text-[clamp(30px,4vw,46px)] font-extrabold leading-[1.1] tracking-[-0.03em] text-text-strong"
+        >
+          {{ content().title }}@if (content().highlight) { <span class="text-brand-orange"> {{ content().highlight }}</span> }
         </h2>
         @if (content().description) {
-          <p class="mt-4 max-w-[560px] text-base text-text-inverse-muted">{{ content().description }}</p>
+          <p class="mx-auto mt-4 max-w-[580px] text-lg leading-snug text-text-muted">{{ content().description }}</p>
         }
-      </div>
-      <div class="flex flex-wrap gap-8">
         @if (content().image) {
-          <img [src]="content().image" alt="" class="h-[112px] w-[190px] rounded-md border border-[var(--glass-border)] object-cover" />
-        }
-        @for (stat of stats(); track stat[1]) {
-          <div>
-            <div class="font-display text-[30px] font-bold text-brand-orange">{{ stat[0] }}</div>
-            <div class="text-[13px] text-text-inverse-muted">{{ stat[1] }}</div>
-          </div>
+          <img
+            [src]="content().image"
+            alt=""
+            class="mt-6 hidden h-[112px] w-[190px] rounded-lg border border-border-subtle object-cover shadow-sm min-[821px]:block"
+          />
         }
       </div>
     </div>
 
-    <div class="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-[18px]">
-      @for (client of clients(); track client.name; let i = $index) {
-        <div
-          appReveal
-          [appRevealDelay]="(i % 6) * 60"
-          class="group relative flex min-h-[156px] flex-col justify-between overflow-hidden rounded-lg border border-[var(--glass-border)] bg-[var(--glass-dark)] px-[22px] py-6 backdrop-blur-[var(--blur-glass)] transition-[border-color,box-shadow,transform] duration-200 ease-out hover:-translate-y-1 hover:border-[var(--tile-color)] hover:shadow-[0_0_30px_-6px_var(--tile-color)]"
-          [style.--tile-color]="client.color"
-        >
-          <div class="flex items-center gap-3.5">
-            <span
-              class="inline-flex h-[46px] w-[46px] shrink-0 items-center justify-center overflow-hidden rounded-md border border-[var(--glass-border)] transition-shadow duration-200 ease-out group-hover:shadow-[0_0_16px_-4px_var(--tile-color)]"
-              [style.background]="client.logo ? '#fff' : client.color + '1f'"
-            >
-              @if (client.logo) {
-                <img [src]="client.logo" [alt]="client.name" class="h-full w-full object-cover" />
-              } @else {
-                <span class="text-[22px]" [style.color]="client.color">{{ client.glyph || '◧' }}</span>
-              }
-            </span>
-            <span class="font-display text-[19px] font-semibold tracking-[-0.01em] text-text-on-inverse">{{
-              client.name
-            }}</span>
-          </div>
-          <div>
-            <div class="mb-2 font-mono text-[11px] uppercase tracking-[0.14em] text-text-inverse-muted">
-              {{ client.sector }}
-            </div>
-            <div class="inline-flex items-center gap-2 font-mono text-[13.5px] font-medium" [style.color]="client.color">
-              <span class="h-1.5 w-1.5 rounded-full" [style.background]="client.color"></span>
-              {{ client.result }}
-            </div>
-          </div>
-        </div>
-      }
+    <!-- Ribbon of company logos. Decorative movement, so the duplicate that makes the loop
+         seamless is hidden from assistive technology. -->
+    <div
+      class="clients-wall relative mt-10 overflow-hidden py-3 [mask-image:linear-gradient(90deg,transparent,#000_14%,#000_86%,transparent)]"
+    >
+      <div class="clients-row flex w-max">
+        @for (copy of [0, 1]; track copy) {
+          <ul
+            class="m-0 flex shrink-0 list-none gap-5 p-0 pr-5"
+            [class.clients-row-copy]="copy === 1"
+            [attr.aria-hidden]="copy === 1 ? 'true' : null"
+            [attr.aria-label]="copy === 0 ? 'Empresas que trabajan con Jaytech' : null"
+          >
+            @for (client of ribbon(); track $index) {
+              <!-- Logo-only tile on a white plate, so any logo reads the same in both themes. A
+                   company without a logo falls back to its glyph and name, or it would be blank. -->
+              <li
+                class="group/tile relative flex h-[96px] shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border-subtle shadow-sm transition-[transform,border-color,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:border-[var(--tile-color)] hover:shadow-[0_18px_34px_-20px_var(--tile-color)]"
+                [class]="client.logo ? 'w-[212px] bg-white p-5' : 'gap-3.5 bg-surface-card px-6'"
+                [style.--tile-color]="logoColors().get(client.logo) ?? 'var(--brand-orange)'"
+              >
+                <span
+                  class="pointer-events-none absolute inset-x-0 bottom-0 h-[3px] origin-left scale-x-0 bg-[var(--tile-color)] transition-transform duration-500 ease-out group-hover/tile:scale-x-100"
+                ></span>
+                @if (client.logo) {
+                  <img
+                    [src]="client.logo"
+                    [alt]="client.name"
+                    loading="lazy"
+                    class="max-h-full max-w-full object-contain transition-transform duration-300 ease-out group-hover/tile:scale-105"
+                  />
+                } @else {
+                  <span
+                    class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[color-mix(in_srgb,var(--tile-color)_35%,transparent)] bg-[color-mix(in_srgb,var(--tile-color)_14%,transparent)] text-[24px] text-[var(--tile-color)]"
+                    aria-hidden="true"
+                    >{{ client.glyph || '◧' }}</span
+                  >
+                  <span class="whitespace-nowrap font-display text-[17px] font-bold tracking-[-0.01em] text-text-strong">{{
+                    client.name
+                  }}</span>
+                }
+              </li>
+            }
+          </ul>
+        }
+      </div>
     </div>
-  </div>
-</section>
+
+    <!-- Jaytech's overall figures: independent from the companies above. -->
+    @if (results().length) {
+      <div class="relative mx-auto mt-10 w-full max-w-[1200px] px-5 min-[821px]:px-8">
+        <ul class="m-0 flex list-none flex-wrap justify-center gap-5 p-0 min-[821px]:gap-6">
+          @for (result of results(); track $index; let i = $index) {
+            <li
+              appReveal
+              [appRevealDelay]="(i % 3) * 90"
+              class="flex w-full min-[680px]:w-[calc((100%-20px)/2)] min-[1040px]:w-[calc((100%-48px)/3)]"
+            >
+              <div
+                class="clients-result motion-card group relative flex min-h-[210px] w-full flex-col justify-end overflow-hidden rounded-[26px] border border-border-subtle bg-surface-card p-7 shadow-md transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-2 hover:border-[var(--tile-color)] hover:shadow-[0_28px_56px_-28px_var(--tile-color)]"
+                [style.--tile-color]="result.color"
+                (pointermove)="spotlight($event)"
+              >
+                <span
+                  class="pointer-events-none absolute inset-0 bg-[linear-gradient(150deg,color-mix(in_srgb,var(--tile-color)_13%,transparent),transparent_55%)]"
+                ></span>
+                <span class="pointer-events-none absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,var(--tile-color),transparent)]"></span>
+
+                <!-- Trend line; it goes down when the figure is a reduction. -->
+                <svg
+                  class="clients-trend pointer-events-none absolute top-6 right-7 h-[64px] w-[34%] overflow-visible transition-transform duration-500 ease-out group-hover:scale-105"
+                  [class]="result.metric.falling ? '-scale-y-100' : ''"
+                  viewBox="0 0 120 60"
+                  preserveAspectRatio="none"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M2 54 C 22 52, 30 40, 46 40 S 66 28, 80 24 S 104 10, 118 4"
+                    pathLength="1"
+                    stroke="var(--tile-color)"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    opacity="0.6"
+                  />
+                </svg>
+
+                <div
+                  class="relative font-display font-extrabold leading-[0.95] tracking-[-0.04em] text-[color-mix(in_srgb,var(--tile-color)_74%,var(--text-strong))]"
+                >
+                  @if (result.metric.value !== null) {
+                    <span class="text-[clamp(56px,6vw,80px)]"
+                      >{{ result.metric.prefix }}<app-count-up
+                        [value]="result.metric.value"
+                        [decimals]="result.metric.decimals"
+                        [separator]="result.metric.separator"
+                      /></span
+                    ><span class="ml-0.5 text-[clamp(30px,3vw,42px)]">{{ result.metric.unit }}</span>
+                  } @else {
+                    <span class="text-[clamp(28px,2.8vw,36px)] leading-[1.1] tracking-[-0.02em]">{{ result.metric.rest }}</span>
+                  }
+                </div>
+                <div class="relative mt-3 flex items-center gap-3">
+                  <span class="h-[3px] w-8 shrink-0 rounded-full bg-[var(--tile-color)] transition-[width] duration-500 ease-out group-hover:w-14"></span>
+                  <span class="text-[16px] font-semibold leading-snug text-text-strong">{{
+                    [result.metric.value !== null ? result.metric.rest : '', result.label].join(' ').trim()
+                  }}</span>
+                </div>
+              </div>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+  </section>
+}

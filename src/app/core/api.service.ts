@@ -111,9 +111,6 @@ export class ApiService {
   createProposal(input: unknown): Observable<unknown> {
     return this.client.post<unknown>(`/proposals`, input);
   }
-  createContact(input: unknown): Observable<unknown> {
-    return this.client.post<unknown>(`/contacts`, input);
-  }
 
   complaintBookInfo(): Observable<ApiComplaintBookInfo> {
     return this.client.getPublic<ApiComplaintBookInfo>(`/complaints/info`);

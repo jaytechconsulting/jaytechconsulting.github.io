@@ -26,7 +26,6 @@ import type {
   CmsPageDesignId,
   CmsPageDesign,
   CmsLoaderConfig,
-  CmsHeroAnimation,
   CmsContentState,
   CmsCollectionKey,
   CmsEntityItem,
@@ -58,6 +57,7 @@ export class CmsContentService {
   readonly loader = computed(() => this.state().loader);
   readonly heroAnimation = computed(() => this.state().heroAnimation);
   readonly header = computed(() => this.state().header);
+  readonly homeSectionOrder = computed(() => this.state().homeSectionOrder);
   readonly footer = computed(() => this.state().footer);
   readonly socialLinks = computed(() => this.state().socialLinks);
 
@@ -77,6 +77,7 @@ export class CmsContentService {
         this.state.update((state) => ({
           ...state,
           sections: next.sections,
+          homeSectionOrder: next.homeSectionOrder,
           pages: next.pages,
           announcement: next.announcement,
           socialLinks: next.socialLinks,
@@ -235,6 +236,22 @@ export class CmsContentService {
     return this.api.updateSiteContent(key, input).pipe(switchMap(() => this.load(true)));
   }
 
+  saveHomeSectionOrder(order: CmsContentState['homeSectionOrder']): Observable<CmsContentState> {
+    const key = 'home.section-order';
+    return this.api
+      .updateSiteContent(key, {
+        key,
+        title: 'Orden de Inicio',
+        body: JSON.stringify(order),
+        imageUrl: null,
+        status: 1,
+      })
+      .pipe(
+        tap(() => this.state.update((state) => ({ ...state, homeSectionOrder: [...order] }))),
+        map(() => this.state()),
+      );
+  }
+
   saveLoaderConfig(value: CmsLoaderConfig): Observable<CmsContentState> {
     const details = JSON.stringify({ color: value.color });
     const input = {
@@ -245,19 +262,5 @@ export class CmsContentService {
       status: value.enabled ? 1 : 0,
     };
     return this.api.updateSiteContent('site.loader', input).pipe(switchMap(() => this.load(true)));
-  }
-
-  saveHeroAnimation(value: CmsHeroAnimation): Observable<CmsContentState> {
-    const details = JSON.stringify({ videoUrl: value.videoUrl });
-    const input = {
-      key: 'home.heroAnimation',
-      title: '',
-      body: details,
-      imageUrl: null,
-      status: value.enabled ? 1 : 0,
-    };
-    return this.api
-      .updateSiteContent('home.heroAnimation', input)
-      .pipe(switchMap(() => this.load(true)));
   }
 }

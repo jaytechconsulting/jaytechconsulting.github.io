@@ -22,6 +22,6 @@ export class Badge {
 
   readonly classes = computed(
     () =>
-      `inline-flex items-center gap-1.5 rounded-pill px-2.5 py-1 font-mono text-xs font-medium tracking-[0.02em] ${TONE_CLASSES[this.tone()]}`,
+      `inline-flex shrink-0 items-center whitespace-nowrap gap-1.5 rounded-pill px-2.5 py-1 font-mono text-xs font-medium tracking-[0.02em] ${TONE_CLASSES[this.tone()]}`,
   );
 }

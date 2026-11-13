@@ -5,7 +5,6 @@ export const CONTENT_MODULES = [
  { section:'resenas', label:'Reseñas', route:'/admin/resenas', path:'m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z' },
  { section:'servicios', label:'Servicios', route:'/admin/servicios', path:'m12 3 9 5-9 5-9-5z M3 12l9 5 9-5 M3 16l9 5 9-5' },
  { section:'proyectos', label:'Portafolio web', route:'/admin/portafolio', path:'M3 6h18v15H3z M8 6V3h8v3 M3 12h18 M10 12v3h4v-3' },
- { section:'planes', label:'Planes', route:'/admin/planes', path:'M5 3h14v18H5z M8 7h8 M8 11h8 M8 15h4' },
  { section:'equipo', label:'Equipo', route:'/admin/equipo', path:'M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0 M20 21v-2a7 7 0 0 0-7-7h-2a7 7 0 0 0-7 7v2' },
  { section:'anuncio', label:'Anuncios', route:'/admin/anuncios', path:'M3 10v4h5l12 5V5L8 10z M8 14l2 7h4l-2-5' },
  { section:'paginas', label:'Páginas', route:'/admin/paginas', path:'M7 3h10v18H7z M7 8h10 M9 12h6 M9 15h6' },
@@ -15,4 +14,12 @@ export const CONTENT_MODULES = [
  { section:'animacion', label:'Animación de inicio', route:'/admin/animacion', path:'M5 4h14v16H5z M10 9l6 3-6 3z' },
  { section:'header', label:'Cabecera web', route:'/admin/cabecera', path:'M3 3h18v18H3z M3 9h18 M6 6h4 M16 6h2' },
  { section:'footer', label:'Pie de página', route:'/admin/pie-de-pagina', path:'M3 3h18v18H3z M3 15h18 M6 18h4 M16 18h2' },
+] as const;
+
+export const SITE_EDITOR_TABS = [
+  { route: '/admin/paginas', section: 'paginas', label: 'Páginas', hint: 'Título, texto y fondo', icon: 'cmspaginas' },
+  { route: '/admin/secciones', section: 'secciones', label: 'Contenido de inicio', hint: 'Portada y secciones', icon: 'cmssecciones' },
+  { route: '/admin/animacion', section: 'animacion', label: 'Animación de inicio', hint: 'Video de la portada', icon: 'cmsanimacion' },
+  { route: '/admin/cabecera', section: 'header', label: 'Cabecera', hint: 'Navegación y acciones', icon: 'cmsheader' },
+  { route: '/admin/pie-de-pagina', section: 'footer', label: 'Pie de página', hint: 'Contacto, enlaces y redes', icon: 'cmsfooter' },
 ] as const;

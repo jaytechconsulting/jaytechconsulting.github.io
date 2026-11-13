@@ -1,3 +1,4 @@
+import type { HomeSection } from './home-sections';
 import type { SocialLink } from './social-links';
 import type { Announcement } from '../models/announcement';
 
@@ -82,7 +83,7 @@ export interface CmsTeamMember {
   displayOrder?: string;
 }
 
-export type CmsSectionId = 'hero' | 'clients' | 'services' | 'pricing' | 'reviews' | 'contact';
+export type CmsSectionId = 'hero' | 'clients' | 'services' | 'reviews' | 'courses' | 'faq';
 
 export interface CmsPageSection {
   id: CmsSectionId;
@@ -141,6 +142,7 @@ export interface CmsLoaderConfig {
 }
 
 export interface CmsHeroAnimation {
+  mode?: 'video' | 'image' | 'none';
   enabled: boolean;
   videoUrl: string;
 }
@@ -154,6 +156,7 @@ export interface CmsContentState {
   plans: CmsPlan[];
   teamMembers: CmsTeamMember[];
   sections: CmsPageSection[];
+  homeSectionOrder: HomeSection['id'][];
   announcement: CmsAnnouncement;
   pages: Record<CmsPageDesignId, CmsPageDesign>;
   loader: CmsLoaderConfig;

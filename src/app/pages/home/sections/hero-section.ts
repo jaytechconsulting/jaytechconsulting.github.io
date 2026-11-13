@@ -1,3 +1,4 @@
+import { heroTechnologyLogo } from '../../../core/cms/hero-technologies';
 import {
   Component,
   DestroyRef,
@@ -14,6 +15,8 @@ import { Button } from '../../../ui/actions/button/button';
 import { CmsContentService } from '../../../core/cms/cms-content.service';
 import { ThemeService } from '../../../core/services/theme.service';
 
+
+
 @Component({
   selector: 'app-hero-section',
   imports: [Button],
@@ -29,7 +32,10 @@ export class HeroSection {
     this.content()
       .items.split('\n')
       .map((item) => item.trim())
-      .filter(Boolean),
+      .filter(Boolean)
+      .map((label) => {
+        return { label, logo: heroTechnologyLogo(label) };
+      }),
   );
   readonly theme = this.themeService.theme;
   readonly heroAnimation = this.cms.heroAnimation;

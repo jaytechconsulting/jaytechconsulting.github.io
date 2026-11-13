@@ -65,6 +65,22 @@
           <app-button variant="outline" size="sm" (clicked)="load()">Actualizar</app-button>
         </header>
         @if (s.runs.length) {
+          <div class="ap-run-cards">
+            @for (run of s.runs; track run.id) {
+              <article class="ap-run-card">
+                <header>
+                  <strong>Publicación #{{ run.number }}</strong>
+                  <app-badge [tone]="runState(run).tone" [dot]="true">{{ runState(run).label }}</app-badge>
+                </header>
+                <dl>
+                  <div><dt>Origen</dt><dd>{{ origin(run) }}</dd></div>
+                  <div><dt>Inicio</dt><dd>{{ run.startedAt ?? run.createdAt | date: 'dd/MM/yyyy HH:mm' }}</dd></div>
+                  <div><dt>Duración</dt><dd>{{ duration(run) }}</dd></div>
+                </dl>
+                <a [href]="run.url" target="_blank" rel="noopener noreferrer">Ver detalle</a>
+              </article>
+            }
+          </div>
           <div class="ap-table-wrap">
             <table>
               <thead>

@@ -1,3 +1,4 @@
+import { SITE_EDITOR_TABS } from '../admin-content/content-modules';
 import { firstValueFrom } from 'rxjs';
 import { AccessService, AccessMenu } from '../../../core/access/access.service';
 import { Icon } from '../../../ui/data-display/icon/icon';
@@ -72,15 +73,42 @@ export class AdminShell {
   rememberMenuScroll(event: Event): void {
     this.navigationState.scrollTop = (event.target as HTMLElement).scrollTop;
   }
-  readonly nav = computed(() => {
+  private readonly siteMenu = computed(() => {
     const menus = this.access.session().menus;
+    return SITE_EDITOR_TABS.map((tab) => menus.find((menu) => menu.route === tab.route)).find(
+      Boolean,
+    );
+  });
+  private isSiteEditor(route: string | null | undefined): boolean {
+    return SITE_EDITOR_TABS.some((tab) => tab.route === route);
+  }
+  readonly displayedMenu = computed(() => {
+    const current = this.access.currentMenu();
+    return this.isSiteEditor(current?.route) ? this.siteMenu() : current;
+  });
+  readonly navTitle = computed(() =>
+    this.isSiteEditor(this.access.currentMenu()?.route)
+      ? 'Sitio web'
+      : this.access.currentMenu()?.label,
+  );
+  readonly nav = computed(() => {
+    const site = this.siteMenu();
+    const menus = this.access
+      .session()
+      .menus.filter((menu) => !this.isSiteEditor(menu.route) || menu.id === site?.id);
     const result: (AccessMenu & { depth: number; hasChildren: boolean; expanded: boolean })[] = [];
     const walk = (parentId: string | null, depth: number) => {
       for (const menu of menus.filter((m) => m.parentId === parentId)) {
         const hasChildren = menus.some((m) => m.parentId === menu.id);
-        const ancestorOfCurrent = this.isAncestor(menu, this.access.currentMenu());
+        const ancestorOfCurrent = this.isAncestor(menu, this.displayedMenu());
         const expanded = this.expanded()[menu.id] ?? ancestorOfCurrent;
-        result.push({ ...menu, depth, hasChildren, expanded });
+        result.push({
+          ...menu,
+          label: menu.id === site?.id ? 'Sitio web' : menu.label,
+          depth,
+          hasChildren,
+          expanded,
+        });
         if (hasChildren && expanded) walk(menu.id, depth + 1);
       }
     };
@@ -101,11 +129,11 @@ export class AdminShell {
     this.expanded.update((current) => ({ ...current, [id]: !open }));
     if (this.collapsed() && !this.mobile()) this.toggleCollapsed();
   }
-  private readonly activeMenuId = computed(() => this.access.currentMenu()?.id);
+  private readonly activeMenuId = computed(() => this.displayedMenu()?.id);
   private readonly pendingActiveFocus = signal(false);
   private expandActiveAncestors(): void {
     const menus = this.access.session().menus;
-    let parent = this.access.currentMenu()?.parentId;
+    let parent = this.displayedMenu()?.parentId;
     const expanded = { ...this.expanded() };
     const visited = new Set<string>();
     while (parent && !visited.has(parent)) {

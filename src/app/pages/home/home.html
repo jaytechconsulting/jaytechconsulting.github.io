@@ -19,15 +19,17 @@
 <!-- Prerendered with the page; its code loads and hydrates after the first screen. -->
 @defer (on idle; hydrate on idle) {
   @if (cms.contentStatus() === 'ready' && cms.collectionsStatus() === 'ready') {
-    <app-clients-section /><app-services-section /><app-pricing-section /><app-reviews-section />
+    @for (section of cms.homeSectionOrder(); track section) {
+      @switch (section) {
+        @case ('services') { <app-services-section /> }
+        @case ('courses') { <app-courses-section /> }
+        @case ('clients') { <app-clients-section /> }
+        @case ('reviews') { <app-reviews-section /> }
+        @case ('faq') { <app-faq-section /> }
+      }
+    }
   } @else {
-    <app-cms-placeholder
-      [error]="cms.collectionsStatus() === 'error'"
-      (retry)="cms.retryPublic()"
-    />
-  }
-  @if (cms.contentStatus() === 'ready') {
-    <app-contact-section />
+    <app-cms-placeholder [error]="cms.collectionsStatus() === 'error'" (retry)="cms.retryPublic()" />
   }
   @if (cms.headerStatus() === 'ready') {
     <app-footer />

@@ -1,3 +1,4 @@
+import { HOME_SECTIONS } from './home-sections';
 import { parseSocialLinks } from './social-links';
 import { normalizeAnnouncement, type Announcement } from '../models/announcement';
 import type {
@@ -185,6 +186,47 @@ function toTeamMember(item: ApiTeamMember): CmsTeamMember {
   };
 }
 
+function parseHeroMedia(body: string | undefined) {
+  if (!body) return undefined;
+  try {
+    const value = JSON.parse(body);
+    if (
+      value?.kind !== 'hero-media' ||
+      typeof value.description !== 'string' ||
+      !['video', 'image', 'none'].includes(value.mode) ||
+      typeof value.videoUrl !== 'string'
+    )
+      return undefined;
+    return {
+      description: value.description as string,
+      mode: value.mode as 'video' | 'image' | 'none',
+      videoUrl: value.videoUrl as string,
+    };
+  } catch {
+    return undefined;
+  }
+}
+
+function parseSectionCopy(body: string) {
+  try {
+    const value = JSON.parse(body);
+    if (
+      (value?.kind === 'hero-media' || value?.kind === 'section-copy') &&
+      typeof value.description === 'string'
+    ) {
+      return {
+        description: value.description as string,
+        ...(typeof value.eyebrow === 'string' ? { eyebrow: value.eyebrow as string } : {}),
+        ...(typeof value.items === 'string' ? { items: value.items as string } : {}),
+        ...(typeof value.highlight === 'string' ? { highlight: value.highlight as string } : {}),
+      };
+    }
+  } catch {
+    /* Legacy sections store plain text. */
+  }
+  return { description: body };
+}
+
 export function stateFromApi(cms: ApiCms, content: ApiSiteContent[]): CmsContentState {
   const defaults = cloneState();
   return {
@@ -194,16 +236,29 @@ export function stateFromApi(cms: ApiCms, content: ApiSiteContent[]): CmsContent
     projects: (cms.projects ?? []).map(toProject),
     plans: (cms.plans ?? []).map(toPlan),
     teamMembers: (cms.teamMembers ?? []).map(toTeamMember),
+    homeSectionOrder: (() => {
+      const ids = HOME_SECTIONS.map(({ id }) => id);
+      const saved = content.find((item) => item.key === 'home.section-order');
+      try {
+        const value: unknown = JSON.parse(saved?.body ?? '[]');
+        const ordered = Array.isArray(value)
+          ? value.filter((id): id is (typeof ids)[number] => ids.includes(id))
+          : [];
+        return [...new Set([...ordered, ...ids])];
+      } catch {
+        return ids;
+      }
+    })(),
     sections: defaults.sections.map((section) => {
       const stored = content.find((item) => item.key === `home.${section.id}`);
       return stored
         ? {
             ...section,
             title: text(stored.title),
-            description: text(stored.body),
+            ...parseSectionCopy(text(stored.body)),
             image: text(stored.imageUrl),
           }
-        : {
+        : section.id === 'courses' || section.id === 'faq' ? { ...section } : {
             ...section,
             eyebrow: '',
             title: '',
@@ -254,6 +309,10 @@ export function stateFromApi(cms: ApiCms, content: ApiSiteContent[]): CmsContent
       return { enabled: stored.status === 1, color: details.color };
     })(),
     heroAnimation: (() => {
+      const hero = content.find((item) => item.key === 'home.hero');
+      const media = parseHeroMedia(hero?.body);
+      if (media)
+        return { enabled: media.mode === 'video', videoUrl: media.videoUrl, mode: media.mode };
       const stored = content.find((item) => item.key === 'home.heroAnimation');
       if (!stored) return defaults.heroAnimation;
       const details = parseHeroAnimationDetails(stored.body);
@@ -261,11 +320,14 @@ export function stateFromApi(cms: ApiCms, content: ApiSiteContent[]): CmsContent
     })(),
     header: {
       cta: cms.header?.cta ?? '',
-      links: (cms.header?.links ?? []).map((link) => ({
-        label: link.label,
-        href: link.href,
-        variant: toHeaderLinkVariant(link.variant),
-      })),
+      // The pricing section no longer exists, so a saved link to it would lead nowhere.
+      links: (cms.header?.links ?? [])
+        .filter((link) => link.href !== '#planes')
+        .map((link) => ({
+          label: link.label,
+          href: link.href,
+          variant: toHeaderLinkVariant(link.variant),
+        })),
     },
     footer: {
       about: cms.footer?.about ?? '',

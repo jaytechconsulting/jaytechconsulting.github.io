@@ -1,30 +1,185 @@
-<section id="servicios" class="bg-surface-page px-8 py-24">
-  <div class="mx-auto max-w-[1200px]">
-    <div appReveal class="mb-12 flex flex-wrap items-end justify-between gap-6">
-      <div>
-        <div class="mb-3.5 font-mono text-[13px] uppercase tracking-[0.14em] text-brand-orange-600">// {{ content().eyebrow }}</div>
-        <h2 class="m-0 max-w-[640px] font-display text-4xl font-bold leading-[1.15] tracking-[-0.03em] text-text-strong">
-          {{ content().title }}@if (content().highlight) { <span class="text-brand-orange"> {{ content().highlight }}</span> }
-        </h2>
-        @if (content().description) {
-          <p class="mt-4 max-w-[580px] text-lg text-text-muted">{{ content().description }}</p>
+<section
+  id="servicios"
+  class="relative flex min-h-dvh scroll-mt-16 flex-col justify-center overflow-hidden bg-surface-page px-5 py-20 min-[821px]:px-8"
+>
+  <div
+    class="pointer-events-none absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-[0.07] [mask-image:radial-gradient(circle_at_75%_30%,#000,transparent_65%)]"
+  ></div>
+  <div
+    class="pointer-events-none absolute top-[8%] -right-24 h-[460px] w-[460px] rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.16),transparent_62%)] motion-safe:animate-[float-y_9s_ease-in-out_infinite]"
+  ></div>
+  <div
+    class="pointer-events-none absolute -bottom-40 -left-28 h-[480px] w-[480px] rounded-full bg-[radial-gradient(circle,rgba(255,107,53,0.14),transparent_60%)] motion-safe:animate-[float-y_11s_ease-in-out_infinite_1s]"
+  ></div>
+
+  <div class="relative mx-auto w-full max-w-[1200px]">
+    <div appReveal class="mb-8 flex flex-col items-center text-center min-[821px]:mb-10">
+      <!-- Label between two fading rules, so it reads as a divider and not as a button. -->
+      <div
+        class="mb-5 flex items-center gap-4 font-mono text-[13px] font-semibold uppercase tracking-[0.32em] text-brand-orange-600"
+      >
+        <span class="h-px w-10 bg-[linear-gradient(90deg,transparent,var(--brand-orange))] min-[821px]:w-16"></span>
+        <span class="h-1.5 w-1.5 rotate-45 bg-brand-orange"></span>
+        <span class="-mr-[0.32em]">{{ content().eyebrow }}</span>
+        <span class="h-1.5 w-1.5 rotate-45 bg-brand-orange"></span>
+        <span class="h-px w-10 bg-[linear-gradient(270deg,transparent,var(--brand-orange))] min-[821px]:w-16"></span>
+      </div>
+      <h2
+        class="m-0 max-w-[760px] font-display text-[clamp(32px,4.4vw,52px)] font-extrabold leading-[1.1] tracking-[-0.03em] text-text-strong"
+      >
+        {{ content().title }}@if (content().highlight) { <span class="text-brand-orange"> {{ content().highlight }}</span> }
+      </h2>
+      @if (content().description) {
+        <p class="mx-auto mt-5 max-w-[580px] text-lg leading-snug text-text-muted">{{ content().description }}</p>
+      }
+      @if (content().image) {
+        <img
+          [src]="content().image"
+          alt=""
+          class="mt-6 hidden h-[140px] w-[250px] rounded-lg border border-border-subtle object-cover shadow-sm min-[821px]:block"
+        />
+      }
+    </div>
+
+    <!-- Whole cards only: one, two or three per view. The side padding leaves room for the hover
+         shadow and is narrower than the gap, so the next card never peeks in. -->
+    <ul
+      #track
+      class="services-track relative -mx-3 m-0 flex list-none snap-x snap-mandatory overflow-x-auto scroll-px-3 px-3 pt-4 pb-10 [scrollbar-width:none] motion-safe:scroll-smooth [&::-webkit-scrollbar]:hidden"
+      tabindex="0"
+      aria-label="Soluciones de Jaytech"
+      (scroll)="sync()"
+      (pointerenter)="hovered.set(true)"
+      (pointerleave)="hovered.set(false)"
+      (focusin)="focused.set(true)"
+      (focusout)="focused.set(false)"
+    >
+      @for (service of services(); track service.title; let i = $index) {
+        <li appReveal [appRevealDelay]="i * 70" class="services-slide flex shrink-0 snap-start">
+          <button
+            type="button"
+            class="motion-card group relative flex min-h-[340px] w-full cursor-pointer flex-col overflow-hidden rounded-[24px] border border-border-subtle bg-surface-card p-7 text-left shadow-sm transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-2 hover:border-[var(--tile-color)] hover:shadow-[0_26px_50px_-24px_var(--tile-color)] focus-visible:-translate-y-2 focus-visible:border-[var(--tile-color)] focus-visible:outline-none focus-visible:shadow-[0_26px_50px_-24px_var(--tile-color)]"
+            [style.--tile-color]="service.color || 'var(--brand-orange)'"
+            [attr.aria-label]="'Ver detalle de ' + service.title"
+            (click)="selected.set(service)"
+          >
+            <span
+              class="pointer-events-none absolute inset-0 bg-[linear-gradient(160deg,color-mix(in_srgb,var(--tile-color)_14%,transparent),transparent_55%)] opacity-70 transition-opacity duration-300 group-hover:opacity-100"
+            ></span>
+            <span
+              class="pointer-events-none absolute -right-6 -bottom-12 select-none text-[190px] leading-none text-[var(--tile-color)] opacity-[0.07] transition-[transform,opacity] duration-500 ease-out group-hover:-translate-y-3 group-hover:-rotate-12 group-hover:opacity-[0.16]"
+              aria-hidden="true"
+              >{{ service.glyph || '◆' }}</span
+            >
+            <span
+              class="pointer-events-none absolute inset-x-0 top-0 h-1 origin-left scale-x-0 bg-[var(--tile-color)] transition-transform duration-500 ease-out group-hover:scale-x-100 group-focus-visible:scale-x-100"
+            ></span>
+
+            @if (service.image) {
+              <img
+                [src]="service.image"
+                alt=""
+                loading="lazy"
+                class="relative mb-6 aspect-[16/9] w-full rounded-xl object-cover"
+              />
+            }
+            <span class="relative mb-8 flex items-start justify-between">
+              <span
+                class="inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-[color-mix(in_srgb,var(--tile-color)_35%,transparent)] bg-[color-mix(in_srgb,var(--tile-color)_14%,transparent)] text-[30px] text-[var(--tile-color)] shadow-[0_10px_24px_-12px_var(--tile-color)] transition-transform duration-300 ease-out group-hover:scale-110 group-hover:-rotate-6"
+                aria-hidden="true"
+                >{{ service.glyph || '◆' }}</span
+              >
+              <span
+                class="font-display text-[34px] font-extrabold leading-none tracking-[-0.03em] text-text-faint opacity-40 transition-[color,opacity] duration-300 group-hover:text-[var(--tile-color)] group-hover:opacity-100"
+                aria-hidden="true"
+                >{{ position(i) }}</span
+              >
+            </span>
+            <span
+              class="relative mb-3 block font-display text-[24px] font-bold leading-tight tracking-[-0.01em] text-text-strong"
+              >{{ service.title }}</span
+            >
+            <span class="relative block flex-1 text-[15px] leading-[1.65] text-text-muted">{{ service.body }}</span>
+            <span class="relative mt-8 flex items-center justify-between border-t border-border-subtle pt-5">
+              <span class="font-mono text-[13px] font-semibold uppercase tracking-[0.12em] text-text-strong"
+                >Ver detalle</span
+              >
+              <span
+                class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border-subtle text-text-strong transition-[background-color,border-color,color,transform] duration-300 ease-out group-hover:translate-x-1 group-hover:border-[var(--tile-color)] group-hover:bg-[var(--tile-color)] group-hover:text-ink-950"
+                aria-hidden="true"
+              >
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M3 8h10M9 4l4 4-4 4" /></svg>
+              </span>
+            </span>
+          </button>
+        </li>
+      }
+    </ul>
+
+    <div class="flex flex-wrap items-center justify-between gap-5">
+      <div class="flex items-center gap-5">
+        @if (positions().length > 1) {
+          <div class="flex gap-2">
+            <button
+              type="button"
+              class="inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-border-subtle bg-surface-card text-text-strong shadow-sm transition-[border-color,color] duration-150 ease-out hover:border-brand-orange hover:text-brand-orange"
+              aria-label="Soluciones anteriores"
+              (click)="step(-1)"
+            >
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M10 3 5 8l5 5" /></svg>
+            </button>
+            <button
+              type="button"
+              class="inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-border-subtle bg-surface-card text-text-strong shadow-sm transition-[border-color,color] duration-150 ease-out hover:border-brand-orange hover:text-brand-orange"
+              aria-label="Siguientes soluciones"
+              (click)="step(1)"
+            >
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="m6 3 5 5-5 5" /></svg>
+            </button>
+          </div>
+          <div class="flex items-center gap-2">
+            @for (index of positions(); track index) {
+              <button
+                type="button"
+                class="relative h-2 cursor-pointer overflow-hidden rounded-full border-0 bg-border-subtle p-0 transition-[width] duration-300 ease-out"
+                [class]="index === active() ? 'w-10' : 'w-2 hover:bg-text-faint'"
+                [attr.aria-label]="'Ir a la posición ' + (index + 1)"
+                [attr.aria-current]="index === active() ? 'true' : null"
+                (click)="goTo(index)"
+              >
+                @if (index === active()) {
+                  <!-- Its fill is the autoplay clock: when the animation ends the carousel advances. -->
+                  <span
+                    class="services-dot-fill absolute inset-0 rounded-full bg-brand-orange"
+                    [style.animation-play-state]="playing() ? 'running' : 'paused'"
+                    (animationend)="step(1)"
+                  ></span>
+                }
+              </button>
+            }
+          </div>
         }
       </div>
-      @if (content().image) {
-        <img [src]="content().image" alt="" class="h-[140px] w-[250px] rounded-lg border border-border-subtle object-cover shadow-sm" />
-      }
-    </div>
-    <div class="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-6">
-      @for (service of services(); track service.title; let i = $index) {
-        <app-card elevation="sm" [interactive]="true" [accent]="true" appReveal [appRevealDelay]="i * 70">
-          @if (service.image) {
-            <img [src]="service.image" [alt]="service.title" class="mb-5 aspect-[16/9] w-full rounded-md object-cover" />
-          }
-          <div class="mb-4 text-2xl" [style.color]="service.color">{{ service.glyph }}</div>
-          <h3 class="m-0 mb-2 font-display text-xl font-semibold text-text-strong">{{ service.title }}</h3>
-          <p class="m-0 text-[15px] leading-[1.6] text-text-muted">{{ service.body }}</p>
-        </app-card>
-      }
+      <app-button variant="outline" (clicked)="goToProposal()">
+        Solicitar propuesta
+        <span slot="icon-right">→</span>
+      </app-button>
     </div>
   </div>
+
+  @if (selected(); as service) {
+    <app-detail-modal
+      [image]="service.image || null"
+      [accentColor]="service.color || '#FF6B35'"
+      [glyph]="service.glyph || '◆'"
+      [badges]="[content().eyebrow]"
+      [title]="service.title"
+      [description]="service.body"
+      detailLabel="Ver proyectos realizados"
+      ctaLabel="Solicitar propuesta"
+      (closed)="selected.set(null)"
+      (ctaClicked)="selected.set(null); goToProposal()"
+      (detailClicked)="selected.set(null); goToProjects()"
+    />
+  }
 </section>

@@ -118,6 +118,8 @@ export interface ApiCourse {
   imageUrl?: string | null;
   price: number;
   isPublished: boolean;
+  /** Featured in the home best-sellers block; chosen by hand in the admin. */
+  isBestSeller?: boolean;
   displayOrder: number;
   syllabus: ApiCourseSyllabusItem[];
   reviews: ApiCourseReview[];

@@ -1,94 +1,175 @@
-<section id="reviews" class="relative overflow-hidden bg-surface-page px-8 py-24">
-  <div
-    class="pointer-events-none absolute -top-[140px] left-[40%] h-[460px] w-[460px] bg-[radial-gradient(circle,rgba(255,107,53,0.08),transparent_68%)]"
-  ></div>
+@if (activeReview(); as review) {
+  <section
+    id="reviews"
+    class="relative flex min-h-dvh scroll-mt-16 flex-col justify-center overflow-hidden bg-surface-inverse px-5 py-16 min-[821px]:px-8"
+    [style.--review-color]="review.color"
+  >
+    <div
+      class="pointer-events-none absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-30 [mask-image:radial-gradient(circle_at_50%_30%,#000,transparent_70%)]"
+    ></div>
+    <!-- The glow takes the colour of the review on stage. -->
+    <div
+      class="pointer-events-none absolute top-1/2 left-1/2 h-[640px] w-[640px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--review-color)_22%,transparent),transparent_62%)] transition-[background] duration-700"
+    ></div>
+    <div
+      class="pointer-events-none absolute -top-40 -left-32 h-[460px] w-[460px] rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.14),transparent_62%)] motion-safe:animate-[float-y_11s_ease-in-out_infinite]"
+    ></div>
 
-  <div class="relative mx-auto grid max-w-[1200px] items-center gap-16 md:grid-cols-2">
-    <div appReveal>
-      <div class="mb-3.5 font-mono text-[13px] uppercase tracking-[0.14em] text-brand-orange-600">// {{ content().eyebrow }}</div>
-      <h2 class="m-0 mb-6 font-display text-4xl font-bold leading-[1.15] tracking-[-0.03em] text-text-strong">
-        {{ content().title }}@if (content().highlight) { <span class="text-brand-orange"> {{ content().highlight }}</span> }
-      </h2>
-      @if (content().description) {
-        <p class="mb-6 text-base leading-relaxed text-text-muted">{{ content().description }}</p>
-      }
+    <div class="relative mx-auto w-full max-w-[1000px]">
+      <div appReveal class="flex flex-col items-center text-center">
+        <div
+          class="mb-5 flex items-center gap-3 whitespace-nowrap font-mono text-[12px] font-semibold uppercase tracking-[0.2em] text-brand-cyan min-[821px]:gap-4 min-[821px]:text-[13px] min-[821px]:tracking-[0.32em]"
+        >
+          <span class="h-px w-6 bg-[linear-gradient(90deg,transparent,var(--brand-cyan))] min-[821px]:w-16"></span>
+          <span class="h-1.5 w-1.5 rotate-45 bg-brand-cyan"></span>
+          <span>{{ content().eyebrow }}</span>
+          <span class="h-1.5 w-1.5 rotate-45 bg-brand-cyan"></span>
+          <span class="h-px w-6 bg-[linear-gradient(270deg,transparent,var(--brand-cyan))] min-[821px]:w-16"></span>
+        </div>
+        <h2
+          class="m-0 max-w-[760px] font-display text-[clamp(30px,4vw,46px)] font-extrabold leading-[1.1] tracking-[-0.03em] text-text-on-inverse"
+        >
+          {{ content().title }}@if (content().highlight) {
+            <span class="bg-[linear-gradient(90deg,var(--brand-cyan),var(--brand-yellow))] bg-clip-text text-transparent">
+              {{ content().highlight }}</span
+            >
+          }
+        </h2>
+        @if (content().description) {
+          <p class="mx-auto mt-4 max-w-[580px] text-lg leading-snug text-text-inverse-muted">{{ content().description }}</p>
+        }
 
-      <div class="mb-7 inline-flex items-center gap-4 rounded-lg border border-border-subtle bg-surface-card px-5 py-3.5 shadow-sm">
-        <span class="font-display text-[40px] leading-none font-bold text-text-strong">{{ summary().score }}</span>
-        <span class="h-10 w-px bg-border-subtle"></span>
-        <span>
-          <span class="inline-flex gap-0.5 text-[17px] text-brand-yellow" aria-label="5 de 5">
+        <div
+          class="mt-6 inline-flex items-center gap-3.5 rounded-pill border border-[var(--glass-border)] bg-[var(--glass-dark)] py-2 pr-5 pl-4 backdrop-blur-md"
+        >
+          <span class="font-display text-[26px] font-extrabold leading-none text-text-on-inverse">
+            <app-count-up [value]="summary().score" [decimals]="1" />
+          </span>
+          <span class="inline-flex gap-0.5 text-[15px] text-brand-yellow" aria-hidden="true">
             @for (star of stars; track star) {
               <span>★</span>
             }
           </span>
-          <div class="mt-1 text-[13px] text-text-muted">{{ summary().caption }}</div>
-        </span>
+          <span class="hidden text-[13px] text-text-inverse-muted min-[560px]:inline">{{ summary().caption }}</span>
+        </div>
       </div>
 
-      @if (content().image) {
-        <img [src]="content().image" [alt]="content().title" class="mb-7 h-[190px] w-full max-w-[420px] rounded-lg border border-border-subtle object-cover shadow-sm" />
-      }
-
-      <div class="flex flex-wrap gap-3">
-        @for (review of reviews(); track review.name; let i = $index) {
-          <button
-            type="button"
-            [attr.title]="review.name"
-            [class]="avatarButtonClasses(i)"
-            [style.borderColor]="active() === i ? review.color : 'transparent'"
-            (click)="select(i)"
+      <!-- Stage: one review at a time. -->
+      <div
+        #stage
+        appReveal
+        [appRevealDelay]="120"
+        class="relative mt-9"
+        (pointerenter)="hovered.set(true)"
+        (pointerleave)="hovered.set(false)"
+        (focusin)="focused.set(true)"
+        (focusout)="focused.set(false)"
+      >
+        <figure
+          id="review-panel"
+          role="tabpanel"
+          [attr.aria-labelledby]="'review-tab-' + active()"
+          class="relative m-0 overflow-hidden rounded-[30px] border border-[var(--glass-border)] bg-[var(--glass-dark)] px-7 py-9 shadow-[0_40px_90px_-50px_var(--review-color)] backdrop-blur-[var(--blur-glass)] transition-shadow duration-700 min-[821px]:px-14 min-[821px]:py-12"
+        >
+          <span
+            class="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,var(--review-color),transparent)] transition-[background] duration-700"
+          ></span>
+          <span
+            class="pointer-events-none absolute -top-6 left-6 select-none font-display text-[200px] leading-none text-[var(--review-color)] opacity-20 transition-colors duration-700 min-[821px]:left-10"
+            aria-hidden="true"
+            >“</span
           >
-            @if (review.photo) {
-              <span class="m-0.5 inline-flex h-12 w-12 overflow-hidden rounded-full bg-ink-950">
-                <img [src]="review.photo" [alt]="review.name" class="h-full w-full object-cover" />
+
+          <!-- Tracking by index rebuilds the content on each change, which replays its entrance. -->
+          @for (current of [active()]; track current) {
+            <div
+              class="relative flex justify-center gap-1 text-[22px] text-brand-yellow"
+              role="img"
+              [attr.aria-label]="review.rating + ' de 5 estrellas'"
+            >
+              @for (star of stars; track star) {
+                <span
+                  class="review-star"
+                  [class.opacity-25]="star > review.rating"
+                  [style.animation-delay.ms]="star * 70"
+                  aria-hidden="true"
+                  >★</span
+                >
+              }
+            </div>
+            <blockquote
+              class="review-quote relative mx-auto mt-6 mb-0 max-w-[760px] text-center font-display text-[clamp(20px,2.5vw,30px)] font-semibold leading-[1.4] tracking-[-0.01em] text-text-on-inverse"
+            >
+              {{ review.quote }}
+            </blockquote>
+            <figcaption class="review-author relative mt-8 flex items-center justify-center gap-4">
+              <span
+                class="inline-flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[var(--review-color)] bg-[color-mix(in_srgb,var(--review-color)_22%,transparent)] font-display text-[18px] font-bold text-text-on-inverse shadow-[0_0_24px_-6px_var(--review-color)]"
+              >
+                @if (review.photo) {
+                  <img [src]="review.photo" alt="" class="h-full w-full object-cover" />
+                } @else {
+                  {{ review.initials }}
+                }
               </span>
-            } @else {
-              <span [class]="avatarClasses(i)">{{ review.initials }}</span>
+              <span class="text-left">
+                <span class="block font-display text-[17px] font-bold text-text-on-inverse">{{ review.name }}</span>
+                <span class="mt-0.5 block text-[14px] text-text-inverse-muted">{{
+                  byline(review)
+                }}</span>
+              </span>
+            </figcaption>
+          }
+        </figure>
+
+        <!-- People as tabs. The fill of the active one is the autoplay clock. -->
+        @if (reviews().length > 1) {
+          <div role="tablist" aria-label="Reseñas de clientes" class="mt-6 flex flex-wrap justify-center gap-3">
+            @for (item of reviews(); track $index; let i = $index) {
+              <button
+                type="button"
+                role="tab"
+                [id]="'review-tab-' + i"
+                aria-controls="review-panel"
+                [attr.aria-selected]="i === active()"
+                [attr.tabindex]="i === active() ? 0 : -1"
+                class="group relative flex cursor-pointer items-center gap-3 overflow-hidden rounded-pill border py-1.5 pr-5 pl-1.5 text-left transition-[border-color,background-color,opacity,transform] duration-300 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--tab-color)]"
+                [class]="
+                  i === active()
+                    ? 'border-[var(--tab-color)] bg-[color-mix(in_srgb,var(--tab-color)_14%,transparent)]'
+                    : 'border-[var(--glass-border)] bg-transparent opacity-70 hover:-translate-y-0.5 hover:opacity-100'
+                "
+                [style.--tab-color]="item.color"
+                (click)="select(i)"
+                (keydown)="onTabKeydown($event)"
+              >
+                @if (i === active()) {
+                  <span
+                    class="review-clock pointer-events-none absolute inset-x-0 bottom-0 h-[3px] bg-[var(--tab-color)]"
+                    [style.animation-play-state]="playing() ? 'running' : 'paused'"
+                    (animationend)="next()"
+                  ></span>
+                }
+                <span
+                  class="inline-flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--tab-color)_26%,transparent)] font-display text-[14px] font-bold text-text-on-inverse"
+                >
+                  @if (item.photo) {
+                    <img [src]="item.photo" alt="" class="h-full w-full object-cover" />
+                  } @else {
+                    {{ item.initials }}
+                  }
+                </span>
+                <span>
+                  <span class="block font-display text-[14px] font-bold leading-tight text-text-on-inverse">{{ item.name }}</span>
+                  @if (item.company) {
+                    <span class="block text-[12px] leading-tight text-text-inverse-muted">{{ item.company }}</span>
+                  }
+                </span>
+              </button>
             }
-          </button>
+          </div>
         }
       </div>
     </div>
-
-    <div appReveal [appRevealDelay]="120" class="relative overflow-hidden rounded-xl bg-[image:var(--gradient-ink)] p-11 text-text-on-inverse shadow-lg">
-      <div
-        class="pointer-events-none absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-40 [mask-image:radial-gradient(circle_at_80%_10%,#000,transparent_70%)]"
-      ></div>
-      <div
-        class="pointer-events-none absolute -top-[60px] -right-[30px] h-[260px] w-[260px] rounded-full"
-        [style.background]="'radial-gradient(circle, ' + activeReview().color + '33, transparent 66%)'"
-      ></div>
-      <div class="pointer-events-none absolute top-2.5 right-6 font-display text-[150px] leading-none text-white/[0.06]">
-        &rdquo;
-      </div>
-
-      <div class="relative">
-        <span class="inline-flex gap-0.5 text-lg text-brand-yellow" [attr.aria-label]="activeReview().rating + ' de 5'">
-          @for (star of stars; track star) {
-            <span [class.opacity-25]="star >= activeReview().rating">★</span>
-          }
-        </span>
-        <p class="my-5 mb-7 font-display text-2xl font-medium leading-[1.4] text-text-on-inverse">
-          {{ activeReview().quote }}
-        </p>
-        <div class="flex items-center gap-3.5">
-          @if (activeReview().photo) {
-            <span class="flex h-[52px] w-[52px] shrink-0 overflow-hidden rounded-full bg-ink-950">
-              <img [src]="activeReview().photo" [alt]="activeReview().name" class="h-full w-full object-cover" />
-            </span>
-          } @else {
-            <span
-              class="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-[image:var(--gradient-hud)] font-display text-[17px] font-bold text-ink-950"
-              >{{ activeReview().initials }}</span
-            >
-          }
-          <div>
-            <div class="text-base font-semibold text-text-on-inverse">{{ activeReview().name }}</div>
-            <div class="text-sm text-text-inverse-muted">{{ activeReview().role }} · {{ activeReview().company }}</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+  </section>
+}

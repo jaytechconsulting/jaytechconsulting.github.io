@@ -11,12 +11,14 @@
     class="pointer-events-none absolute inset-0 bg-[image:var(--texture-grid)] bg-[length:var(--texture-grid-size)] opacity-[0.07] [mask-image:radial-gradient(circle_at_30%_70%,#000,transparent_65%)] min-[821px]:hidden"
   ></div>
 
-  @if (heroAnimation().enabled) {
+  @if (heroAnimation().enabled || (heroAnimation().mode === 'image' && content().image)) {
     <div
       class="pointer-events-none absolute inset-y-0 right-0 hidden w-[58%] overflow-hidden min-[821px]:block [mask-image:linear-gradient(90deg,transparent_0%,black_24%,black_82%,transparent_100%)]"
       aria-hidden="true"
     >
-      @if (videoAllowed()) {
+      @if (heroAnimation().mode === 'image') {
+        <img class="h-full w-full object-cover" [src]="content().image" alt="" fetchpriority="high" />
+      } @else if (videoAllowed()) {
         @for (src of [videoSrc()]; track src) {
           <video
             #heroVideo
@@ -92,15 +94,23 @@
         </app-button>
       </div>
 
-      <div class="mt-9 flex flex-wrap items-center gap-2.5">
-        <span class="font-mono text-xs uppercase tracking-[0.14em] text-text-faint">stack</span>
-        @for (tech of stack(); track tech) {
-          <span
-            class="rounded-pill border border-border-subtle bg-surface-sunken px-3 py-1.5 font-mono text-[13px] text-text-muted"
-            >{{ tech }}</span
-          >
-        }
-      </div>
+      @if (stack().length) {
+        <div class="mt-9 border-t border-border-subtle pt-4">
+          <p class="mb-3 font-mono text-xs uppercase tracking-[0.14em] text-text-muted">Tecnologías</p>
+          <ul class="flex list-none flex-wrap gap-2 p-0" aria-label="Tecnologías que usamos">
+            @for (tech of stack(); track $index) {
+              <li class="inline-flex items-center gap-2 whitespace-nowrap rounded-lg border border-border-subtle bg-surface-card py-1.5 pr-3 pl-2 text-xs font-semibold text-text-body">
+                @if (tech.logo) {
+                  <span class="grid size-7 shrink-0 place-items-center rounded-md bg-white">
+                    <img [src]="tech.logo" alt="" width="20" height="20" class="size-5 object-contain" />
+                  </span>
+                }
+                {{ tech.label }}
+              </li>
+            }
+          </ul>
+        </div>
+      }
 
       <!-- trust badges: floating over the video on desktop (below), inline here on mobile since there's no video to anchor them to -->
       <div class="mt-7 flex flex-wrap items-center gap-2.5 min-[821px]:hidden">

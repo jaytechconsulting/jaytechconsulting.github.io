@@ -26,7 +26,6 @@ export interface HeaderLink {
 
 const DEFAULT_LINKS: HeaderLink[] = [
   { label: 'Proyectos', href: '#proyectos', variant: '' },
-  { label: 'Planes', href: '#planes', variant: '' },
   { label: 'Nosotros', href: '#nosotros', variant: '' },
 ];
 

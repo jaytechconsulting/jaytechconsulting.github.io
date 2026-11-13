@@ -18,6 +18,34 @@ const snapshot = (title = 'Portada real'): ApiPublicSite => ({
   content: [{ key: 'home.hero', title, body: 'Descripción real', status: 1 } as ApiSiteContent],
 });
 describe('Published site snapshot', () => {
+  it('applies the saved home section order and restores missing sections once', () => {
+    const data = snapshot();
+    data.content.push({
+      ...data.content[0], key: 'home.section-order', body: '["faq","faq","unknown","reviews"]',
+    });
+    TestBed.configureTestingModule({
+      providers: [{ provide: ApiService, useValue: { publicSite: () => of(data) } }],
+    });
+    expect(TestBed.inject(CmsContentService).homeSectionOrder()).toEqual([
+      'faq', 'reviews', 'services', 'courses', 'clients',
+    ]);
+  });
+  it('uses the media saved in the hero record ahead of the legacy video record', () => {
+    const data = snapshot();
+    data.content[0].body = JSON.stringify({
+      kind: 'hero-media', description: 'Texto visible', mode: 'image', videoUrl: '',
+    });
+    data.content[0].imageUrl = '/portada.webp';
+    data.content.push({
+      ...data.content[0], key: 'home.heroAnimation', body: '{"videoUrl":"/anterior.mp4"}',
+    });
+    TestBed.configureTestingModule({
+      providers: [{ provide: ApiService, useValue: { publicSite: () => of(data) } }],
+    });
+    const cms = TestBed.inject(CmsContentService);
+    expect(cms.section('hero')()).toMatchObject({ description: 'Texto visible', image: '/portada.webp' });
+    expect(cms.heroAnimation()).toEqual({ enabled: false, mode: 'image', videoUrl: '' });
+  });
   it('starts empty, shares one request and publishes all parts together', () => {
     const source = new Subject<ApiPublicSite>();
     const api = { publicSite: vi.fn(() => source) };

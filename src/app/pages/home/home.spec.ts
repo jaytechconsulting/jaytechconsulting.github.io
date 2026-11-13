@@ -19,7 +19,7 @@ class HeroStub {}
 class AdsStub {}
 @Component({
   selector:
-    'app-clients-section,app-services-section,app-pricing-section,app-reviews-section,app-contact-section,app-footer,app-whatsapp-fab',
+    'app-clients-section,app-services-section,app-reviews-section,app-faq-section,app-footer,app-whatsapp-fab',
   template: '',
 })
 class EmptyStub {}
@@ -42,6 +42,7 @@ describe('Coherent initial home render', () => {
     const cms = {
       contentStatus: signal('loading'),
       collectionsStatus: signal('loading'),
+      homeSectionOrder: signal([]),
       headerStatus: signal('loading'),
       header: signal({ links: [], cta: '' }),
       retryPublic: vi.fn(),

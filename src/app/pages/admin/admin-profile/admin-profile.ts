@@ -1,3 +1,4 @@
+import { StickySidebarLayout } from '../../../ui/layout/sticky-sidebar-layout/sticky-sidebar-layout';
 import {
   profilePhoneValid,
   profileEmailValid,
@@ -37,7 +38,7 @@ import { DialogService } from '../../../core/services/dialog.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 @Component({
   selector: 'app-admin-profile',
-  imports: [AdminShell, Button, Input, Icon, Select, PasswordStrength, Avatar],
+  imports: [StickySidebarLayout,AdminShell, Button, Input, Icon, Select, PasswordStrength, Avatar],
   templateUrl: './admin-profile.html',
   styleUrl: './admin-profile.css',
 })
