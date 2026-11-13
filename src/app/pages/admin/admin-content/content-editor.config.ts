@@ -388,7 +388,7 @@ export const INITIAL_HEADER_CTA = 'Solicitar propuesta';
 
 export const INITIAL_FOOTER_ABOUT =
   'Software a medida que hace crecer tu empresa. Del prototipo a producción.';
-export const INITIAL_FOOTER_EMAIL = 'hola@dronlab.pe';
+export const INITIAL_FOOTER_EMAIL = 'jayroguerreros@gmail.com';
 export const INITIAL_FOOTER_PHONE = '+51 993 908 435';
 export const INITIAL_FOOTER_COLUMNS: FooterColumn[] = [
   { title: 'Producto', links: 'Servicios\nProyectos' },

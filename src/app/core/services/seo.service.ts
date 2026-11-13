@@ -25,9 +25,9 @@ const ORGANIZATION_SCHEMA = {
   legalName: 'Jaytech',
   url: `${SITE_URL}/`,
   logo: `${SITE_URL}/favicon.svg`,
-  email: 'hola@dronlab.pe',
   telephone: '+51 993 908 435',
-  areaServed: 'PE',
+  email: 'jayroguerreros@gmail.com',
+   areaServed: 'PE',
   knowsAbout: ['Aplicaciones web', 'Páginas web', 'Automatizaciones', 'Integraciones API'],
 };
 

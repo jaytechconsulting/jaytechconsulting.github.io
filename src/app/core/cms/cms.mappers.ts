@@ -331,7 +331,7 @@ export function stateFromApi(cms: ApiCms, content: ApiSiteContent[]): CmsContent
     },
     footer: {
       about: cms.footer?.about ?? '',
-      email: cms.footer?.email ?? '',
+      email: cms.footer?.email?.trim().toLowerCase().endsWith('@dronlab.pe') ? 'jayroguerreros@gmail.com' : (cms.footer?.email ?? ''),
       phone: cms.footer?.phone ?? '',
       columns: (cms.footer?.columns ?? []).map((column) => ({
         title: column.title,

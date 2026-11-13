@@ -183,7 +183,7 @@ Puedes consultar la versión vigente de este aviso en esta página.`,
   footer: {
     about:
       'Jaytech — software, páginas y automatizaciones a medida. Del prototipo a producción, con acompañamiento cercano en cada paso.',
-    email: 'hola@dronlab.pe',
+    email: 'jayroguerreros@gmail.com',
     phone: '+51 993 908 435',
     columns: [
       {
