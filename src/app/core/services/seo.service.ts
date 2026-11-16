@@ -55,7 +55,7 @@ export class SeoService {
   }
 
   update(config: SeoConfig): void {
-    const canonicalUrl = this.absoluteUrl(config.path ?? this.router.url);
+    const canonicalUrl = this.absoluteUrl(config.path ?? this.router.url).replace(/\/+$/, '') + '/';
     const imageUrl = this.absoluteUrl(config.image || DEFAULT_IMAGE);
     const robots = config.index === false ? 'noindex, nofollow' : 'index, follow, max-image-preview:large';
 

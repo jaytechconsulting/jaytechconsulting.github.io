@@ -48,7 +48,7 @@ for (const page of pages.filter((path) => path.endsWith('index.html'))) {
   const html = await readFile(page, 'utf8');
   if (/<meta\b[^>]*name="robots"[^>]*content="[^"]*\bnoindex\b/i.test(html)) continue;
   const path = relative(outputDir, page).split(sep).join('/').replace(/\/?index\.html$/, '');
-  sitemapUrls.push(path ? `${siteUrl}/${path}` : `${siteUrl}/`);
+  sitemapUrls.push(path ? `${siteUrl}/${path}/` : `${siteUrl}/`);
 }
 sitemapUrls.sort();
 const sitemapEntries = sitemapUrls.map(
